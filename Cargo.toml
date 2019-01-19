@@ -1,0 +1,9 @@
+[package]
+name = "getrandom"
+version = "0.0.0"
+authors = ["The Rand Project Developers"]
+license = "MIT/Apache-2.0"
+edition = "2015"
+description = "A small cross-platform library to securely get random data (entropy)"
+
+[dependencies]
