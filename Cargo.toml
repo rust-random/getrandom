@@ -1,9 +1,20 @@
 [package]
 name = "getrandom"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["The Rand Project Developers"]
-license = "MIT/Apache-2.0"
-edition = "2015"
+license = "MIT OR Apache-2.0"
 description = "A small cross-platform library to securely get random data (entropy)"
 
-[dependencies]
+[badges]
+travis-ci = { repository = "rust-random/getrandom" }
+appveyor = { repository = "rust-random/getrandom" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["minwindef", "ntsecapi", "winnt"] }
+
+[target.wasm32-unknown-unknown.dependencies]
+wasm-bindgen = { version = "0.2.12", optional = true }
+stdweb = { version = "0.4", optional = true }
