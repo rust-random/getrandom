@@ -7,7 +7,6 @@
 // except according to those terms.
 
 //! Implementation for Linux / Android
-extern crate std;
 extern crate libc;
 
 use super::Error;
