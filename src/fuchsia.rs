@@ -15,8 +15,6 @@ extern {
 }
 
 pub fn getrandom(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-    for chunk in dest.chunks(256) {
-        unsafe { zx_cprng_draw(chunk.as_mut_ptr(), chunk.len()) };
-    }
+    unsafe { zx_cprng_draw(chunk.as_mut_ptr(), chunk.len()) };
     Ok(())
 }
