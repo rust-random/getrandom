@@ -7,14 +7,11 @@
 // except according to those terms.
 
 //! Implementation for Fuchsia Zircon
+extern crate fuchsia_cprng;
+
 use super::Error;
 
-#[link(name = "zircon")]
-extern {
-    fn zx_cprng_draw(buffer: *mut u8, len: usize);
-}
-
-pub fn getrandom(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-    unsafe { zx_cprng_draw(chunk.as_mut_ptr(), chunk.len()) };
+pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+    fuchsia_cprng::cprng_draw(dest);
     Ok(())
 }
