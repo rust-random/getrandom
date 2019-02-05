@@ -8,24 +8,16 @@
 
 //! Implementation for Redox
 use super::Error;
+use super::utils::use_init;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
-use std::ops::DerefMut;
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     RNG_FILE.with(|f| {
-        let mut f = f.borrow_mut();
-        let f: &mut Option<File> = f.deref_mut();
-        if let Some(f) = f {
-            f.read_exact(dest)
-        } else {
-            let mut rng_file = File::open("rand:")?;
-            rng_file.read_exact(dest)?;
-            *f = Some(rng_file);
-            Ok(())
-        }
+        use_init(f, || File::open("rand:"), |f| f.read_exact(dest))
     }).map_err(|_| Error::Unknown)
 }
+

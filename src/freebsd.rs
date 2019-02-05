@@ -10,7 +10,7 @@
 extern crate libc;
 
 use super::Error;
-use std::ptr;
+use core::ptr;
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
@@ -29,3 +29,4 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     }
     Ok(())
 }
+

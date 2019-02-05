@@ -30,11 +30,10 @@ use std::ops::DerefMut;
 enum RngSource {
     GetRandom,
     Device(File),
-    None,
 }
 
 thread_local!(
-    static RNG_SOURCE: RefCell<RngSource> = RefCell::new(RngSource::None);
+    static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 );
 
 fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
@@ -55,31 +54,28 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
 }
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    // The documentation says 1024 is the maximum for getrandom,
-    // but 1040 for /dev/random.
-    for chunk in dest.chunks_mut(1024) {
-        RNG_SOURCE.with(|f| {
-            let mut f = f.borrow_mut();
-            let f: &mut RngSource = f.deref_mut();
-            if let RngSource::None = f {
-                *f = if is_getrandom_available() {
-                    RngSource::GetRandom
-                } else {
-                    let mut rng_file = File::open("/dev/random")
-                        .map_err(|_| Error::Unknown)?;
-                    RngSource::Device(rng_file)
-                }
-            }
-            if let RngSource::Device(f) = f {
-                f.read_exact(chunk)
-                    .map_err(|_| Error::Unknown)
+    // The documentation says 1024 is the maximum for getrandom
+    // and 1040 for /dev/random.
+    RNG_SOURCE.with(|f| {
+        use_init(f,
+        || {
+            let s = if is_getrandom_available() {
+                RngSource::GetRandom
             } else {
-                syscall_getrandom(chunk)
-                    .map_err(|_| Error::Unknown)
+                RngSource::Device(File::open("/dev/random")?)
+            };
+            Ok(s)
+        }, |f| {
+            match f {
+                RngSource::GetRandom => for chunk in dest.chunks_mut(1024) {
+                    syscall_getrandom(chunk)
+                },
+                RngSource::Device(f) => for chunk in dest.chunks_mut(1040) {
+                    f.read_exact(dest)
+                },
             }
-        })?;
-    }
-    Ok(())
+        })
+    }).map_err(|_| Error::Unknown)
 }
 
 fn is_getrandom_available() -> bool {

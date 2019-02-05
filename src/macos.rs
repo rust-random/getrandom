@@ -7,8 +7,6 @@
 // except according to those terms.
 
 //! Implementation for MacOS / iOS
-extern crate libc;
-
 use super::Error;
 
 // TODO: check correctness

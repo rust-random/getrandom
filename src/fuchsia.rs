@@ -15,3 +15,4 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     fuchsia_cprng::cprng_draw(dest);
     Ok(())
 }
+

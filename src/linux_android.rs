@@ -11,20 +11,19 @@ extern crate std;
 extern crate libc;
 
 use super::Error;
+use super::utils::use_init;
 use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
-use std::ops::DerefMut;
 
 enum RngSource {
     GetRandom,
     Device(File),
-    None,
 }
 
 thread_local!(
-    static RNG_SOURCE: RefCell<RngSource> = RefCell::new(RngSource::None);
+    static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 );
 
 fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
@@ -39,30 +38,24 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     RNG_SOURCE.with(|f| {
-        let mut f = f.borrow_mut();
-        let f: &mut RngSource = f.deref_mut();
-        if let RngSource::None = f {
-            *f = if is_getrandom_available() {
+        use_init(f,
+        || {
+            let s = if is_getrandom_available() {
                 RngSource::GetRandom
             } else {
-                let mut buf = [0u8; 1];
-                File::open("/dev/random")
-                    .and_then(|mut f| f.read_exact(&mut buf))
-                    .map_err(|_| Error::Unknown)?;
-                let mut rng_file = File::open("/dev/urandom")
-                    .map_err(|_| Error::Unknown)?;
-                RngSource::Device(rng_file)
+                // read one byte from "/dev/random" to ensure that
+                // OS RNG has initialized
+                File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
+                RngSource::Device(File::open("/dev/urandom")?)
+            };
+            Ok(s)
+        }, |f| {
+            match f {
+                RngSource::GetRandom => syscall_getrandom(dest),
+                RngSource::Device(f) => f.read_exact(dest),
             }
-        }
-        if let RngSource::Device(f) = f {
-            f.read_exact(dest)
-                .map_err(|_| Error::Unknown)
-        } else {
-            syscall_getrandom(dest)
-                .map_err(|_| Error::Unknown)
-        }
-    })?;
-    Ok(())
+        }).map_err(|_| Error::Unknown)
+    })
 }
 
 fn is_getrandom_available() -> bool {
@@ -76,8 +69,7 @@ fn is_getrandom_available() -> bool {
         let mut buf: [u8; 0] = [];
         let available = match syscall_getrandom(&mut buf) {
             Ok(()) => true,
-            Err(ref err) if err.raw_os_error() == Some(libc::ENOSYS) => false,
-            Err(_) => true,
+            Err(err) => err.raw_os_error() != Some(libc::ENOSYS),
         };
         AVAILABLE.store(available, Ordering::Relaxed);
     });

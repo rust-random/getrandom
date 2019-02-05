@@ -21,6 +21,17 @@
 ))]
 #[macro_use] extern crate std;
 
+#[cfg(any(
+    target_os = "android",
+    target_os = "netbsd",
+    target_os = "solaris",
+    target_os = "redox",
+    target_os = "dragonfly",
+    target_os = "haiku",
+    target_os = "emscripten",
+    target_os = "linux",
+))]
+mod utils;
 mod error;
 pub use error::Error;
 

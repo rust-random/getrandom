@@ -15,8 +15,8 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe {
             libc::getentropy(
-                dest.as_mut_ptr() as *mut libc::c_void,
-                dest.len()
+                chunk.as_mut_ptr() as *mut libc::c_void,
+                chunk.len()
             )
         };
         if ret == -1 {
@@ -25,3 +25,4 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     }
     Ok(())
 }
+

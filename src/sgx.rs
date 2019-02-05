@@ -12,8 +12,8 @@ use super::Error;
 use core::{mem, ptr};
 use core::arch::x86_64::_rdrand64_step;
 
-//#[cfg(not(target_feature = "rdrand"))]
-//compile_error!("enable rdrand target feature!");
+#[cfg(not(target_feature = "rdrand"))]
+compile_error!("enable rdrand target feature!");
 
 const RETRY_LIMIT: usize = 32;
 
