@@ -25,9 +25,9 @@ fn test_huge() {
     getrandom(&mut huge).unwrap();
 }
 
-#[cfg(not(any(target_arch = "wasm32", target_arch = "asmjs")))]
+#[cfg(any(unix, windows, target_os="redox", target_os = "fuchsia"))]
 #[test]
-fn test_os_rng_tasks() {
+fn test_multithreading() {
     use std::sync::mpsc::channel;
     use std::thread;
 
