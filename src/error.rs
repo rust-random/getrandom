@@ -43,10 +43,8 @@ impl fmt::Display for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         err.raw_os_error()
-            .map(|code| Error(unsafe {
-                // all supported targets use 0 as success code
-                NonZeroU32::new_unchecked(code as u32)
-            }))
+            .and_then(|code| NonZeroU32::new(code as u32))
+            .map(|code| Error(code))
             // in practice this should never happen
             .unwrap_or(UNKNOWN_ERROR)
     }
