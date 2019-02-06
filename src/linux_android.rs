@@ -15,6 +15,9 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
+use std::sync::atomic::{AtomicBool, ATOMIC_BOOL_INIT, Ordering};
+
+static RNG_INIT: AtomicBool = ATOMIC_BOOL_INIT;
 
 enum RngSource {
     GetRandom,
@@ -44,7 +47,10 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
             } else {
                 // read one byte from "/dev/random" to ensure that
                 // OS RNG has initialized
-                File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
+                if !RNG_INIT.load(Ordering::Relaxed) {
+                    File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
+                    RNG_INIT.store(true, Ordering::Relaxed)
+                }
                 RngSource::Device(File::open("/dev/urandom")?)
             };
             Ok(s)
@@ -58,7 +64,6 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    use std::sync::atomic::{AtomicBool, ATOMIC_BOOL_INIT, Ordering};
     use std::sync::{Once, ONCE_INIT};
 
     static CHECKER: Once = ONCE_INIT;
