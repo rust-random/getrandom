@@ -21,11 +21,11 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     // task length variation, partition large randomBytes requests when
     // doing so as part of fulfilling a client request.
     RNG_FILE.with(|f| {
-        use_init(f, || File::open("/dev/random"), |f| {
+        use_init(f, || File::open("/dev/random").map_err(From::from), |f| {
             for chunk in dest.chunks_mut(65536) {
                 f.read_exact(chunk)?;
             }
             Ok(())
         })
-    }).map_err(|_| Error::Unknown)
+    })
 }

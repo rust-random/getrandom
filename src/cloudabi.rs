@@ -16,6 +16,8 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     if errno == 0 {
         Ok(())
     } else {
-        Err(Error::Unknown)
+        Err(Error(unsafe {
+            NonZeroU32::new_unchecked(errno as u32)
+        }))
     }
 }

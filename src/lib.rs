@@ -7,16 +7,7 @@
 // except according to those terms.
 #![no_std]
 
-#[cfg(any(
-    target_os = "android",
-    target_os = "netbsd",
-    target_os = "solaris",
-    target_os = "redox",
-    target_os = "dragonfly",
-    target_os = "haiku",
-    target_os = "emscripten",
-    target_os = "linux",
-))]
+#[cfg(not(target_env = "sgx"))]
 #[macro_use] extern crate std;
 
 #[cfg(any(
@@ -31,7 +22,7 @@
 ))]
 mod utils;
 mod error;
-pub use error::Error;
+pub use error::{Error, UNKNOWN_ERROR, UNAVAILABLE_ERROR};
 
 macro_rules! mod_use {
     ($cond:meta, $module:ident) => {

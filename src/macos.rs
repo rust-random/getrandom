@@ -8,6 +8,7 @@
 
 //! Implementation for MacOS / iOS
 use super::Error;
+use std::io;
 
 // TODO: check correctness
 #[allow(non_upper_case_globals)]
@@ -29,7 +30,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
         )
     };
     if ret == -1 {
-        Err(Error::Unknown)
+        Err(io::Error::last_os_error().into())
     } else {
         Ok(())
     }

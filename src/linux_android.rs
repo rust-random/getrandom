@@ -58,8 +58,8 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
             match f {
                 RngSource::GetRandom => syscall_getrandom(dest),
                 RngSource::Device(f) => f.read_exact(dest),
-            }
-        }).map_err(|_| Error::Unknown)
+            }.map_err(From::from)
+        })
     })
 }
 

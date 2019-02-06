@@ -7,9 +7,9 @@
 // except according to those terms.
 
 //! A dummy implementation for unsupported targets which always returns
-//! `Err(Error::Unavailable)`
-use super::Error;
+//! `Err(UNAVAILABLE_ERROR)`
+use super::UNAVAILABLE_ERROR;
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    Err(Error::Unavailable)
+    Err(UNAVAILABLE_ERROR)
 }

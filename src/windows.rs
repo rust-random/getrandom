@@ -12,12 +12,13 @@ extern crate winapi;
 use self::winapi::shared::minwindef::ULONG;
 use self::winapi::um::ntsecapi::RtlGenRandom;
 use self::winapi::um::winnt::PVOID;
+use std::io;
 use super::Error;
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
         RtlGenRandom(dest.as_mut_ptr() as PVOID, dest.len() as ULONG)
     };
-    if ret == 0 { return Err(Error::Unknown); }
+    if ret == 0 { return Err(io::Error::last_os_error().into()); }
     Ok(())
 }

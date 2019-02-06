@@ -17,6 +17,9 @@ thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     RNG_FILE.with(|f| {
-        use_init(f, || File::open("rand:"), |f| f.read_exact(dest))
-    }).map_err(|_| Error::Unknown)
+        use_init(f,
+            || File::open("rand:").map_err(From::from),
+            |f| f.read_exact(dest).map_err(From::from),
+        )
+    }).map_err(From::from)
 }

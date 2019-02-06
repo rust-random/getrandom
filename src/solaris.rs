@@ -36,7 +36,7 @@ thread_local!(
     static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 );
 
-fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
+fn syscall_getrandom(dest: &mut [u8]) -> Result<(), Error> {
     // repalce with libc?
     const SYS_GETRANDOM: libc::c_long = 143;
 
@@ -48,7 +48,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
         syscall(SYS_GETRANDOM, dest.as_mut_ptr(), dest.len(), 0)
     };
     if ret == -1 || ret != dest.len() as i64 {
-        return Err(io::Error::last_os_error());
+        return Err(io::Error::last_os_error().from());
     }
     Ok(())
 }
@@ -71,7 +71,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
                     syscall_getrandom(chunk)
                 },
                 RngSource::Device(f) => for chunk in dest.chunks_mut(1040) {
-                    f.read_exact(dest)
+                    f.read_exact(dest).map_err(From::from)
                 },
             }
         })

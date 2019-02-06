@@ -11,6 +11,7 @@ extern crate libc;
 
 use super::Error;
 use core::ptr;
+use std::io;
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
@@ -24,7 +25,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 || len != chunk.len() {
-            return Err(Error::Unknown);
+            return Err(io::Error::last_os_error().into());
         }
     }
     Ok(())

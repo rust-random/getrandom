@@ -5,16 +5,16 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use std::cell::RefCell;
-use std::ops::DerefMut;
-use std::io;
+use super::Error;
+use core::cell::RefCell;
+use core::ops::DerefMut;
 
 /// If `f` contains `Some(T)` call `use_f` using contents of `f` as an argument,
 /// otherwise initialize `f` value using `init_f`, store resulting value in `f`
 /// and call `use_f`.
 pub(crate) fn use_init<T, F, U>(f: &RefCell<Option<T>>, init_f: F, mut use_f: U)
-    -> io::Result<()>
-    where F: FnOnce() -> io::Result<T>, U: FnMut(&mut T) -> io::Result<()>
+    -> Result<(), Error>
+    where F: FnOnce() -> Result<T, Error>, U: FnMut(&mut T) -> Result<(), Error>
 {
     let mut f = f.borrow_mut();
     let f: &mut Option<T> = f.deref_mut();

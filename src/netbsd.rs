@@ -28,7 +28,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
                 File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
                 RNG_INIT.store(true, Ordering::Relaxed)
             }
-            File::open("/dev/urandom")
-        }, |f| f.read_exact(dest))
-    }).map_err(|_| Error::Unknown)
+            File::open("/dev/urandom").map_err(From::from)
+        }, |f| f.read_exact(dest).map_err(From::from))
+    })
 }

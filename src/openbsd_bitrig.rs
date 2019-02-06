@@ -10,6 +10,7 @@
 extern crate libc;
 
 use super::Error;
+use std::io;
 
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
@@ -20,7 +21,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 {
-            return Err(Error::Unknown);
+            return Err(io::Error::last_os_error().into());
         }
     }
     Ok(())
