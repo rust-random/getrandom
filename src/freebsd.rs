@@ -29,4 +29,3 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     }
     Ok(())
 }
-

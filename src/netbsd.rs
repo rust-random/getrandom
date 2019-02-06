@@ -26,4 +26,3 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
         }, |f| f.read_exact(dest))
     }).map_err(|_| Error::Unknown)
 }
-

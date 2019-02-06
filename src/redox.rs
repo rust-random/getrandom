@@ -20,4 +20,3 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
         use_init(f, || File::open("rand:"), |f| f.read_exact(dest))
     }).map_err(|_| Error::Unknown)
 }
-
