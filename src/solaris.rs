@@ -48,7 +48,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), Error> {
         syscall(SYS_GETRANDOM, dest.as_mut_ptr(), dest.len(), 0)
     };
     if ret == -1 || ret != dest.len() as i64 {
-        return Err(io::Error::last_os_error().from());
+        return Err(io::Error::last_os_error().into());
     }
     Ok(())
 }
@@ -75,7 +75,7 @@ pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
                 },
             }
         })
-    }).map_err(|_| Error::Unknown)
+    })
 }
 
 fn is_getrandom_available() -> bool {

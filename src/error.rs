@@ -12,18 +12,29 @@ use core::fmt;
 #[cfg(not(target_env = "sgx"))]
 use std::{io, error};
 
+/// An unknown error.
 pub const UNKNOWN_ERROR: Error = Error(unsafe {
     NonZeroU32::new_unchecked(0x756e6b6e) // "unkn"
 });
 
+/// No generator is available.
 pub const UNAVAILABLE_ERROR: Error = Error(unsafe {
     NonZeroU32::new_unchecked(0x4e416e61) // "NAna"
 });
 
+/// The error type.
+/// 
+/// This type is small and no-std compatible.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
 impl Error {
+    /// Extract the error code.
+    /// 
+    /// This may equal one of the codes defined in this library or may be a
+    /// system error code.
+    /// 
+    /// One may attempt to format this error via the `Display` implementation.
     pub fn code(&self) -> NonZeroU32 {
         self.0
     }
