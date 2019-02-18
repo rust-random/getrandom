@@ -51,9 +51,9 @@ impl From<io::Error> for Error {
 }
 
 #[cfg(not(target_env = "sgx"))]
-impl Into<io::Error> for Error {
-    fn into(self) -> io::Error {
-        match self {
+impl From<Error> for io::Error {
+    fn from(err: Error) -> Self {
+        match err {
             UNKNOWN_ERROR => io::Error::new(io::ErrorKind::Other,
                 "getrandom error: unknown"),
             UNAVAILABLE_ERROR => io::Error::new(io::ErrorKind::Other,
