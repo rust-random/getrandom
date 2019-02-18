@@ -13,7 +13,7 @@ use super::Error;
 use core::ptr;
 use std::io;
 
-pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
     // kern.arandom permits a maximum buffer size of 256 bytes
     for chunk in dest.chunks_mut(256) {

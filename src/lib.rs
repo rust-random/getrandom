@@ -42,7 +42,8 @@
 //! The bare WASM target `wasm32-unknown-unknown` tries to call the javascript
 //! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
 //! features are activated for this crate. Note that if both features are
-//! enabled `wasm-bindgen` will be used.
+//! enabled `wasm-bindgen` will be used. If neither feature is enabled,
+//! `getrandom` will always fail.
 //!
 //! ## Early boot
 //!
@@ -112,14 +113,14 @@ pub use error::{Error, UNKNOWN_ERROR, UNAVAILABLE_ERROR};
 
 // System-specific implementations.
 // 
-// These should all provide getrandom_os with the same signature as getrandom.
+// These should all provide getrandom_inner with the same signature as getrandom.
 
 macro_rules! mod_use {
     ($cond:meta, $module:ident) => {
         #[$cond]
         mod $module;
         #[$cond]
-        use $module::getrandom_os;
+        use $module::getrandom_inner;
     }
 }
 
@@ -204,5 +205,5 @@ mod_use!(
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    getrandom_os(dest)
+    getrandom_inner(dest)
 }

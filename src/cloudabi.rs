@@ -11,7 +11,7 @@ extern "C" {
     fn cloudabi_sys_random_get(buf: *mut u8, len: usize) -> u16;
 }
 
-pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let errno = unsafe { cloudabi_sys_random_get(dest.as_ptr(), dest.len()) };
     if errno == 0 {
         Ok(())

@@ -38,7 +38,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     RNG_SOURCE.with(|f| {
         use_init(f,
         || {

@@ -34,6 +34,16 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 }
 ```
 
+## Features
+
+This library is `no_std` compatible on SGX but requires `std` on most platforms.
+
+For WebAssembly (`wasm32`), Enscripten targets are supported directly; otherwise
+one of the following features must be enabled:
+
+-   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
+-   [`stdweb`](https://crates.io/crates/stdweb)
+
 
 # License
 

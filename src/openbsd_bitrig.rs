@@ -12,7 +12,7 @@ extern crate libc;
 use super::Error;
 use std::io;
 
-pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe {
             libc::getentropy(

@@ -15,7 +15,7 @@ use super::utils::use_init;
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
-pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // `Crypto.getRandomValues` documents `dest` should be at most 65536
     // bytes. `crypto.randomBytes` documents: "To minimize threadpool
     // task length variation, partition large randomBytes requests when
