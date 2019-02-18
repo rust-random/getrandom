@@ -11,7 +11,7 @@ extern crate fuchsia_cprng;
 
 use super::Error;
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
     fuchsia_cprng::cprng_draw(dest);
     Ok(())
 }

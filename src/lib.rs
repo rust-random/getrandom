@@ -5,6 +5,91 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+
+//! Interface to the random number generator of the operating system.
+//!
+//! # Platform sources
+//!
+//! | OS               | interface
+//! |------------------|---------------------------------------------------------
+//! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after reading from `/dev/random` once
+//! | Windows          | [`RtlGenRandom`][3]
+//! | macOS, iOS       | [`SecRandomCopyBytes`][4]
+//! | FreeBSD          | [`kern.arandom`][5]
+//! | OpenBSD, Bitrig  | [`getentropy`][6]
+//! | NetBSD           | [`/dev/urandom`][7] after reading from `/dev/random` once
+//! | Dragonfly BSD    | [`/dev/random`][8]
+//! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]
+//! | Fuchsia OS       | [`cprng_draw`][11]
+//! | Redox            | [`rand:`][12]
+//! | CloudABI         | [`random_get`][13]
+//! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
+//! | SGX              | RDRAND
+//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
+//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
+//!
+//! Getrandom doesn't have a blanket implementation for all Unix-like operating
+//! systems that reads from `/dev/urandom`. This ensures all supported operating
+//! systems are using the recommended interface and respect maximum buffer
+//! sizes.
+//!
+//! ## Support for WebAssembly and ams.js
+//!
+//! The three Emscripten targets `asmjs-unknown-emscripten`,
+//! `wasm32-unknown-emscripten` and `wasm32-experimental-emscripten` use
+//! Emscripten's emulation of `/dev/random` on web browsers and Node.js.
+//!
+//! The bare WASM target `wasm32-unknown-unknown` tries to call the javascript
+//! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
+//! features are activated for this crate. Note that if both features are
+//! enabled `wasm-bindgen` will be used.
+//!
+//! ## Early boot
+//!
+//! It is possible that early in the boot process the OS hasn't had enough time
+//! yet to collect entropy to securely seed its RNG, especially on virtual
+//! machines.
+//!
+//! Some operating systems always block the thread until the RNG is securely
+//! seeded. This can take anywhere from a few seconds to more than a minute.
+//! Others make a best effort to use a seed from before the shutdown and don't
+//! document much.
+//!
+//! A few, Linux, NetBSD and Solaris, offer a choice between blocking and
+//! getting an error; in these cases we always choose to block.
+//!
+//! On Linux (when the `genrandom` system call is not available) and on NetBSD
+//! reading from `/dev/urandom` never blocks, even when the OS hasn't collected
+//! enough entropy yet. To avoid returning low-entropy bytes, we first read from
+//! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
+//!
+//! # Error handling
+//!
+//! We always choose failure over returning insecure "random" bytes. In general,
+//! on supported platforms, failure is unlikely, though not impossible. If an
+//! error does occur, then it is likely that it will occur on every call to
+//! `getrandom`, hence after the first successful call one can be reasonably
+//! confident that no errors will occur.
+//! 
+//! On unsupported platforms, `getrandom` always fails.
+//!
+//! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
+//! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
+//! [3]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa387694.aspx
+//! [4]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
+//! [5]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
+//! [6]: https://man.openbsd.org/getentropy.2
+//! [7]: http://netbsd.gw.com/cgi-bin/man-cgi?random+4+NetBSD-current
+//! [8]: https://leaf.dragonflybsd.org/cgi/web-man?command=random&section=4
+//! [9]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
+//! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
+//! [11]: https://fuchsia.googlesource.com/zircon/+/HEAD/docs/syscalls/cprng_draw.md
+//! [12]: https://github.com/redox-os/randd/blob/master/src/main.rs
+//! [13]: https://github.com/NuxiNL/cloudabi/blob/v0.20/cloudabi.txt#L1826
+//! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
+//! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
+//! [16]: #support-for-webassembly-and-amsjs
+
 #![no_std]
 
 #[cfg(not(target_env = "sgx"))]
@@ -24,12 +109,17 @@ mod utils;
 mod error;
 pub use error::{Error, UNKNOWN_ERROR, UNAVAILABLE_ERROR};
 
+
+// System-specific implementations.
+// 
+// These should all provide getrandom_os with the same signature as getrandom.
+
 macro_rules! mod_use {
     ($cond:meta, $module:ident) => {
         #[$cond]
         mod $module;
         #[$cond]
-        pub use $module::getrandom;
+        use $module::getrandom_os;
     }
 }
 
@@ -100,3 +190,19 @@ mod_use!(
     ))),
     dummy
 );
+
+
+/// Fill `dest` with random bytes from the system's preferred random number
+/// source.
+/// 
+/// This function returns an error on any failure, including partial reads. We
+/// make no guarantees regarding the contents of `dest` on error.
+/// 
+/// Blocking is possible, at least during early boot; see module documentation.
+/// 
+/// In general, `getrandom` will be fast enough for interactive usage, though
+/// significantly slower than a user-space CSPRNG; for the latter consider
+/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+    getrandom_os(dest)
+}

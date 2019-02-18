@@ -53,7 +53,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
     // The documentation says 1024 is the maximum for getrandom
     // and 1040 for /dev/random.
     RNG_SOURCE.with(|f| {

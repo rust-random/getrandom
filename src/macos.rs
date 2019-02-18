@@ -21,7 +21,7 @@ extern {
     ) -> c_int;
 }
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_os(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
         SecRandomCopyBytes(
             kSecRandomDefault,
