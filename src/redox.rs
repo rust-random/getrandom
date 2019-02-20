@@ -15,7 +15,7 @@ use std::cell::RefCell;
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     RNG_FILE.with(|f| {
         use_init(f,
             || File::open("rand:").map_err(From::from),

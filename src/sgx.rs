@@ -29,7 +29,7 @@ fn get_rand_u64() -> Result<u64, Error> {
     Err(UNKNOWN_ERROR)
 }
 
-pub fn getrandom(mut dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(mut dest: &mut [u8]) -> Result<(), Error> {
     while dest.len() >= 8 {
         let (chunk, left) = {dest}.split_at_mut(8);
         dest = left;

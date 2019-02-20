@@ -9,6 +9,11 @@ A Rust library to securely get random entropy. This crate derives its name from
 Linux's `getrandom` function, but is cross platform, roughly supporting the same
 set of platforms as Rust's `std` lib.
 
+This is a low-level API. Most users should prefer a high-level random-number
+library like [Rand] or a cryptography library.
+
+[Rand]: https://crates.io/crates/rand
+
 
 ## Usage
 
@@ -19,7 +24,25 @@ Add this to your `Cargo.toml`:
 getrandom = "0.1"
 ```
 
-TODO
+Then invoke the `getrandom` function:
+
+```rust
+fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
+    let mut buf = [0u8; 32];
+    getrandom::getrandom(&mut buf)?;
+    buf
+}
+```
+
+## Features
+
+This library is `no_std` compatible on SGX but requires `std` on most platforms.
+
+For WebAssembly (`wasm32`), Enscripten targets are supported directly; otherwise
+one of the following features must be enabled:
+
+-   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
+-   [`stdweb`](https://crates.io/crates/stdweb)
 
 
 # License

@@ -48,12 +48,12 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), Error> {
         syscall(SYS_GETRANDOM, dest.as_mut_ptr(), dest.len(), 0)
     };
     if ret == -1 || ret != dest.len() as i64 {
-        return Err(io::Error::last_os_error().from());
+        return Err(io::Error::last_os_error().into());
     }
     Ok(())
 }
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // The documentation says 1024 is the maximum for getrandom
     // and 1040 for /dev/random.
     RNG_SOURCE.with(|f| {
@@ -75,7 +75,7 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
                 },
             }
         })
-    }).map_err(|_| Error::Unknown)
+    })
 }
 
 fn is_getrandom_available() -> bool {

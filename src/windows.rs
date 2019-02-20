@@ -15,7 +15,7 @@ use self::winapi::um::winnt::PVOID;
 use std::io;
 use super::Error;
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
         RtlGenRandom(dest.as_mut_ptr() as PVOID, dest.len() as ULONG)
     };

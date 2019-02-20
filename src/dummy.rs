@@ -10,6 +10,6 @@
 //! `Err(UNAVAILABLE_ERROR)`
 use super::UNAVAILABLE_ERROR;
 
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     Err(UNAVAILABLE_ERROR)
 }
