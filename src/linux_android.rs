@@ -15,9 +15,9 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
-use std::sync::atomic::{AtomicBool, ATOMIC_BOOL_INIT, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static RNG_INIT: AtomicBool = ATOMIC_BOOL_INIT;
+static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
 enum RngSource {
     GetRandom,
@@ -67,7 +67,7 @@ fn is_getrandom_available() -> bool {
     use std::sync::{Once, ONCE_INIT};
 
     static CHECKER: Once = ONCE_INIT;
-    static AVAILABLE: AtomicBool = ATOMIC_BOOL_INIT;
+    static AVAILABLE: AtomicBool = AtomicBool::new(false);
 
     CHECKER.call_once(|| {
         let mut buf: [u8; 0] = [];
