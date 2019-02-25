@@ -3,9 +3,9 @@
 set -ex
 
 main() {
-  - cross test --target $TARGET
-  - cross test --target $TARGET --benches
-  - cross test --target $TARGET --examples
+    cross test --target $TARGET
+    cross test --target $TARGET --benches
+    cross test --target $TARGET --examples
 }
 
 # we don't run the "test phase" when doing deploys
