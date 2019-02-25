@@ -100,6 +100,7 @@
     target_os = "android",
     target_os = "netbsd",
     target_os = "solaris",
+    target_os = "illumos",
     target_os = "redox",
     target_os = "dragonfly",
     target_os = "haiku",
@@ -138,7 +139,7 @@ mod_use!(cfg(target_os = "macos"), macos);
 mod_use!(cfg(target_os = "netbsd"), netbsd);
 mod_use!(cfg(target_os = "openbsd"), openbsd_bitrig);
 mod_use!(cfg(target_os = "redox"), redox);
-mod_use!(cfg(target_os = "solaris"), solaris);
+mod_use!(cfg(any(target_os = "solaris", target_os = "illumos")), solarish);
 mod_use!(cfg(windows), windows);
 mod_use!(cfg(target_env = "sgx"), sgx);
 
@@ -171,6 +172,7 @@ mod_use!(
         target_os = "freebsd",
         target_os = "fuchsia",
         target_os = "haiku",
+        target_os = "illumos",
         target_os = "ios",
         target_os = "linux",
         target_os = "macos",
