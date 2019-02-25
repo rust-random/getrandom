@@ -4,7 +4,6 @@ set -ex
 
 main() {
     cross test --target $TARGET
-    cross test --target $TARGET --benches
     cross test --target $TARGET --examples
 }
 
