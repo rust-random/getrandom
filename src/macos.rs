@@ -10,7 +10,9 @@
 use super::Error;
 use std::io;
 
-// TODO: check correctness
+enum SecRandom {}
+
+/// Essentially a null pointer (type `SecRandomRef`)
 #[allow(non_upper_case_globals)]
 const kSecRandomDefault: *const SecRandom = 0 as *const SecRandom;
 
