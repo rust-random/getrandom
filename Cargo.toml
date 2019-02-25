@@ -9,6 +9,11 @@ description = "A small cross-platform library to securely get random data (entro
 travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
+[workspace]
+members = [
+    "tests/wasm_bindgen",
+]
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
