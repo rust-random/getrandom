@@ -1,0 +1,162 @@
+language: rust
+sudo: false
+
+matrix:
+  include:
+    - rust: 1.28.0
+      env: DESCRIPTION="Linux, 1.28.0"
+      os: linux
+
+    - rust: 1.28.0
+      env: DESCRIPTION="OSX, 1.22.0"
+      os: osx
+
+    - rust: stable
+      env: DESCRIPTION="Linux, stable"
+
+    - rust: stable
+      env: DESCRIPTION="OSX+iOS, stable"
+      os: osx
+      install:
+        - rustup target add aarch64-apple-ios
+
+    - rust: beta
+      env: DESCRIPTION="Linux, beta"
+
+    - rust: nightly
+      os: linux
+      env: DESCRIPTION="Linux, nightly, docs"
+      install:
+        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
+        - cargo deadlinks -V
+      before_script:
+        - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
+      script:
+        # Differs from standard script: alloc feature, all features, doc build
+        - cargo test --lib --no-default-features --features=alloc
+        - cargo test --all-features
+        - cargo test --benches --features=nightly
+        - cargo test --examples
+        - cargo test --manifest-path rand_core/Cargo.toml
+        - cargo test --manifest-path rand_core/Cargo.toml --no-default-features --features=alloc
+        - cargo test --manifest-path rand_isaac/Cargo.toml --features=serde1
+        - cargo test --manifest-path rand_pcg/Cargo.toml --features=serde1
+        - cargo test --manifest-path rand_xorshift/Cargo.toml --features=serde1
+        - cargo test --manifest-path rand_xoshiro/Cargo.toml
+        - cargo test --manifest-path rand_chacha/Cargo.toml
+        - cargo test --manifest-path rand_hc/Cargo.toml
+        - cargo test --manifest-path rand_jitter/Cargo.toml
+        - cargo test --manifest-path rand_os/Cargo.toml
+        # remove cached documentation, otherwise files from previous PRs can get included
+        - rm -rf target/doc
+        - cargo doc --no-deps --all --all-features
+        - cargo deadlinks --dir target/doc
+      after_success:
+        - travis-cargo --only nightly doc-upload
+
+    - rust: nightly
+      os: osx
+      env: DESCRIPTION="OSX, nightly, docs"
+      install:
+        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
+        - cargo deadlinks -V
+      script:
+        - cargo test
+        - cargo test --benches
+        - cargo test --examples
+        # remove cached documentation, otherwise files from previous PRs can get included
+        - rm -rf target/doc
+        - cargo doc --no-deps --all --all-features
+        - cargo deadlinks --dir target/doc
+
+    - rust: nightly
+      env: DESCRIPTION="WASM via emscripten, stdweb and wasm-bindgen"
+      install:
+        - rustup target add wasm32-unknown-unknown
+        - rustup target add wasm32-unknown-emscripten
+        - nvm install 9
+        - ./utils/ci/install_cargo_web.sh
+        - cargo web prepare-emscripten
+        - cargo web -V
+        - cargo list | grep install-update || cargo install -f cargo-update
+        - cargo install-update -i cargo-update wasm-bindgen-cli wasm-pack
+      addons:
+        chrome: stable
+      script:
+        # Testing wasm32-unknown-emscripten fails because of rust-lang/rust#49877
+        # However, we can still build and link all tests to make sure that works.
+        # This is actually useful as it finds stuff such as rust-random/rand#669
+        - EMCC_CFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0" cargo web test --target wasm32-unknown-emscripten --no-run
+        #- cargo web test --target wasm32-unknown-emscripten
+        #- cargo web test --nodejs --target wasm32-unknown-emscripten
+        #- cargo build --target wasm32-unknown-unknown # without any features
+        - cargo build --target wasm32-unknown-unknown --features=wasm-bindgen
+        - cargo web test --target wasm32-unknown-unknown --features=stdweb
+        - cargo build --manifest-path tests/wasm_bindgen/Cargo.toml --target wasm32-unknown-unknown
+        - wasm-bindgen --nodejs target/wasm32-unknown-unknown/debug/rand_wasm_bindgen_test.wasm --out-dir tests/wasm_bindgen/js
+        - node tests/wasm_bindgen/js/index.js
+        - wasm-pack test --node tests/wasm_bindgen
+
+    - rust: nightly
+      env: DESCRIPTION="cross-platform build only"
+      install:
+        - rustup target add x86_64-sun-solaris
+        - rustup target add x86_64-unknown-cloudabi
+        - rustup target add x86_64-unknown-freebsd
+        - rustup target add x86_64-unknown-fuchsia
+        - rustup target add x86_64-unknown-netbsd
+        - rustup target add x86_64-unknown-redox
+      script:
+        - cargo build --target=x86_64-sun-solaris --all-features
+        - cargo build --target=x86_64-unknown-cloudabi --all-features
+        - cargo build --target=x86_64-unknown-freebsd --all-features
+        - cargo build --target=x86_64-unknown-fuchsia --all-features
+        - cargo build --target=x86_64-unknown-netbsd --all-features
+        - cargo build --target=x86_64-unknown-redox --all-features
+
+    # Trust cross-built/emulated targets. We must repeat all non-default values.
+    - rust: stable
+      sudo: required
+      dist: trusty
+      services: docker
+      env: DESCRIPTION="Linux (MIPS, big-endian)" TARGET=mips-unknown-linux-gnu
+      install:
+        - sh utils/ci/install.sh
+        - source ~/.cargo/env || true
+      script:
+        - bash utils/ci/script.sh
+    
+    - rust: stable
+      sudo: required
+      dist: trusty
+      services: docker
+      env: DESCRIPTION="Android (ARMv7)" TARGET=armv7-linux-androideabi
+      install:
+        - sh utils/ci/install.sh
+        - source ~/.cargo/env || true
+      script:
+        - bash utils/ci/script.sh
+
+before_install:
+  - set -e
+  - rustup self update
+
+script:
+  - cargo test
+  - cargo test --benches
+  - cargo test --examples
+
+after_script: set +e
+
+cache:
+  cargo: true
+  directories:
+    - .local/share/cargo-web
+
+before_cache:
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
+
+notifications:
+  email:
+    on_success: never
