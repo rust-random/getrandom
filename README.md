@@ -44,6 +44,10 @@ one of the following features must be enabled:
 -   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
 -   [`stdweb`](https://crates.io/crates/stdweb)
 
+## Versions
+
+This crate requires Rustc version 1.28.0 or later due to usage of `NonZeroU32`.
+
 
 # License
 
