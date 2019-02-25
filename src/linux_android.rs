@@ -32,7 +32,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
     let ret = unsafe {
         libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), 0)
     };
-    if ret == -1 || ret != dest.len() as i64 {
+    if ret < 0 || (ret as usize) != dest.len() {
         return Err(io::Error::last_os_error());
     }
     Ok(())

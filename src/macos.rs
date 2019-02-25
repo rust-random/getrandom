@@ -7,8 +7,11 @@
 // except according to those terms.
 
 //! Implementation for MacOS / iOS
+extern crate libc;
+
 use super::Error;
 use std::io;
+use self::libc::{c_int, size_t};
 
 enum SecRandom {}
 

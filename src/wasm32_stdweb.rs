@@ -27,7 +27,7 @@ thread_local!(
     static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 );
 
-pub fn getrandom_inner(mut dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
 
     RNG_SOURCE.with(|f| {
@@ -69,7 +69,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
     }
 }
 
-fn getrandom_fill(source: &mut RngSource, mut dest: &mut [u8]) -> Result<(), Error> {
+fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(65536) {
         let len = chunk.len() as u32;
         let ptr = chunk.as_mut_ptr() as i32;

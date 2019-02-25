@@ -50,6 +50,12 @@ impl fmt::Display for Error {
     }
 }
 
+impl From<NonZeroU32> for Error {
+    fn from(code: NonZeroU32) -> Self {
+        Error(code)
+    }
+}
+
 #[cfg(not(target_env = "sgx"))]
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
