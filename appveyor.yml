@@ -24,7 +24,7 @@ environment:
   - TARGET: i686-pc-windows-msvc
 install:
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-  - rustup-init.exe -y --default-host %TARGET% --default-toolchain nightly
+  - rustup-init.exe -y --default-host %TARGET%
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
   - rustc -V
   - cargo -V
@@ -33,5 +33,4 @@ build: false
 
 test_script:
   - cargo test
-  - cargo test --benches
   - cargo test --examples

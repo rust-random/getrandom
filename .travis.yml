@@ -29,30 +29,14 @@ matrix:
       install:
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
         - cargo deadlinks -V
-      before_script:
-        - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
       script:
-        # Differs from standard script: alloc feature, all features, doc build
-        - cargo test --lib --no-default-features --features=alloc
-        - cargo test --all-features
-        - cargo test --benches --features=nightly
+        - cargo test
+        - cargo test --benches
         - cargo test --examples
-        - cargo test --manifest-path rand_core/Cargo.toml
-        - cargo test --manifest-path rand_core/Cargo.toml --no-default-features --features=alloc
-        - cargo test --manifest-path rand_isaac/Cargo.toml --features=serde1
-        - cargo test --manifest-path rand_pcg/Cargo.toml --features=serde1
-        - cargo test --manifest-path rand_xorshift/Cargo.toml --features=serde1
-        - cargo test --manifest-path rand_xoshiro/Cargo.toml
-        - cargo test --manifest-path rand_chacha/Cargo.toml
-        - cargo test --manifest-path rand_hc/Cargo.toml
-        - cargo test --manifest-path rand_jitter/Cargo.toml
-        - cargo test --manifest-path rand_os/Cargo.toml
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
         - cargo doc --no-deps --all --all-features
         - cargo deadlinks --dir target/doc
-      after_success:
-        - travis-cargo --only nightly doc-upload
 
     - rust: nightly
       os: osx
@@ -143,7 +127,6 @@ before_install:
 
 script:
   - cargo test
-  - cargo test --benches
   - cargo test --examples
 
 after_script: set +e
