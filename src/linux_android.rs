@@ -15,9 +15,9 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
-use std::sync::atomic::{AtomicBool, ATOMIC_BOOL_INIT, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static RNG_INIT: AtomicBool = ATOMIC_BOOL_INIT;
+static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
 enum RngSource {
     GetRandom,
@@ -32,7 +32,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
     let ret = unsafe {
         libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), 0)
     };
-    if ret == -1 || ret != dest.len() as i64 {
+    if ret < 0 || (ret as usize) != dest.len() {
         return Err(io::Error::last_os_error());
     }
     Ok(())
@@ -67,7 +67,7 @@ fn is_getrandom_available() -> bool {
     use std::sync::{Once, ONCE_INIT};
 
     static CHECKER: Once = ONCE_INIT;
-    static AVAILABLE: AtomicBool = ATOMIC_BOOL_INIT;
+    static AVAILABLE: AtomicBool = AtomicBool::new(false);
 
     CHECKER.call_once(|| {
         let mut buf: [u8; 0] = [];

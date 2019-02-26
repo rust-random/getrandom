@@ -7,3 +7,101 @@
 // except according to those terms.
 
 //! Implementation for WASM via stdweb
+
+use std::cell::RefCell;
+use std::mem;
+
+use stdweb::unstable::TryInto;
+use stdweb::web::error::Error as WebError;
+
+use super::{Error, UNAVAILABLE_ERROR, UNKNOWN_ERROR};
+use super::utils::use_init;
+
+#[derive(Clone, Debug)]
+enum RngSource {
+    Browser,
+    Node
+}
+
+thread_local!(
+    static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
+);
+
+pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+    assert_eq!(mem::size_of::<usize>(), 4);
+
+    RNG_SOURCE.with(|f| {
+        use_init(f, getrandom_init, |source| getrandom_fill(source, dest))
+    })
+
+}
+
+fn getrandom_init() -> Result<RngSource, Error> {
+    let result = js! {
+        try {
+            if (
+                typeof self === "object" &&
+                typeof self.crypto === "object" &&
+                typeof self.crypto.getRandomValues === "function"
+            ) {
+                return { success: true, ty: 1 };
+            }
+
+            if (typeof require("crypto").randomBytes === "function") {
+                return { success: true, ty: 2 };
+            }
+
+            return { success: false, error: new Error("not supported") };
+        } catch(err) {
+            return { success: false, error: err };
+        }
+    };
+
+    if js!{ return @{ result.as_ref() }.success } == true {
+        let ty = js!{ return @{ result }.ty };
+
+        if ty == 1 { Ok(RngSource::Browser) }
+        else if ty == 2 { Ok(RngSource::Node) }
+        else { unreachable!() }
+    } else {
+        let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
+        Err(UNAVAILABLE_ERROR)  // TODO: forward err
+    }
+}
+
+fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> {
+    for chunk in dest.chunks_mut(65536) {
+        let len = chunk.len() as u32;
+        let ptr = chunk.as_mut_ptr() as i32;
+
+        let result = match source {
+            RngSource::Browser => js! {
+                try {
+                    let array = new Uint8Array(@{ len });
+                    self.crypto.getRandomValues(array);
+                    HEAPU8.set(array, @{ ptr });
+
+                    return { success: true };
+                } catch(err) {
+                    return { success: false, error: err };
+                }
+            },
+            RngSource::Node => js! {
+                try {
+                    let bytes = require("crypto").randomBytes(@{ len });
+                    HEAPU8.set(new Uint8Array(bytes), @{ ptr });
+
+                    return { success: true };
+                } catch(err) {
+                    return { success: false, error: err };
+                }
+            }
+        };
+
+        if js!{ return @{ result.as_ref() }.success } != true {
+            let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
+            return Err(UNKNOWN_ERROR)  // TODO: forward err
+        }
+    }
+    Ok(())
+}

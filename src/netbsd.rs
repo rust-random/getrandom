@@ -13,9 +13,9 @@ use super::utils::use_init;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
-use std::sync::atomic::{AtomicBool, ATOMIC_BOOL_INIT, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static RNG_INIT: AtomicBool = ATOMIC_BOOL_INIT;
+static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 

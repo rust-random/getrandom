@@ -9,11 +9,19 @@ description = "A small cross-platform library to securely get random data (entro
 travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
+[workspace]
+members = [
+    "tests/wasm_bindgen",
+]
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["minwindef", "ntsecapi", "winnt"] }
+
+[target.'cfg(target_os = "cloudabi")'.dependencies]
+cloudabi = "0.0.3"
 
 [target.'cfg(fuchsia)'.dependencies]
 fuchsia-cprng = "0.1"

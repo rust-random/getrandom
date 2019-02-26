@@ -5,19 +5,20 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+
+//! Implementation for CloudABI
+
+extern crate cloudabi;
+
+use core::num::NonZeroU32;
 use error::Error;
 
-extern "C" {
-    fn cloudabi_sys_random_get(buf: *mut u8, len: usize) -> u16;
-}
-
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let errno = unsafe { cloudabi_sys_random_get(dest.as_ptr(), dest.len()) };
-    if errno == 0 {
+    let errno = unsafe { cloudabi::random_get(dest) };
+    if errno == cloudabi::errno::SUCCESS {
         Ok(())
     } else {
-        Err(Error(unsafe {
-            NonZeroU32::new_unchecked(errno as u32)
-        }))
+        let code = NonZeroU32::new(errno as u32).unwrap();
+        Err(Error::from(code))
     }
 }

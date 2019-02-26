@@ -7,10 +7,15 @@
 // except according to those terms.
 
 //! Implementation for MacOS / iOS
+extern crate libc;
+
 use super::Error;
 use std::io;
+use self::libc::{c_int, size_t};
 
-// TODO: check correctness
+enum SecRandom {}
+
+/// Essentially a null pointer (type `SecRandomRef`)
 #[allow(non_upper_case_globals)]
 const kSecRandomDefault: *const SecRandom = 0 as *const SecRandom;
 
