@@ -6,14 +6,10 @@ matrix:
     - rust: 1.28.0
       env: DESCRIPTION="Linux, 1.28.0"
       os: linux
-      before_script:
-        - cargo generate-lockfile -Z minimal-versions
 
     - rust: 1.28.0
       env: DESCRIPTION="OSX, 1.22.0"
       os: osx
-      before_script:
-        - cargo generate-lockfile -Z minimal-versions
 
     - rust: stable
       env: DESCRIPTION="Linux, stable"
