@@ -13,7 +13,8 @@ use self::winapi::shared::minwindef::ULONG;
 use self::winapi::um::ntsecapi::RtlGenRandom;
 use self::winapi::um::winnt::PVOID;
 use std::io;
-use super::Error;
+use std::num::NonZeroU32;
+use error::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
@@ -22,3 +23,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     if ret == 0 { return Err(io::Error::last_os_error().into()); }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

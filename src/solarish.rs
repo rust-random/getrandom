@@ -19,11 +19,12 @@
 //! libc::dlsym.
 extern crate libc;
 
-use super::Error;
+use error::Error;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io;
 use std::io::Read;
+use std::num::NonZeroU32;
 use utils::use_init;
 
 #[cfg(target_os = "illumos")]
@@ -97,3 +98,6 @@ fn fetch_getrandom() -> Option<GetRandomFn> {
     let ptr = FPTR.load(Ordering::SeqCst);
     unsafe { mem::transmute::<usize, Option<GetRandomFn>>(ptr) }
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

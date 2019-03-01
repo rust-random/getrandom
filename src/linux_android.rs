@@ -9,12 +9,13 @@
 //! Implementation for Linux / Android
 extern crate libc;
 
-use super::Error;
-use super::utils::use_init;
+use error::Error;
+use utils::use_init;
 use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
+use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
@@ -80,3 +81,6 @@ fn is_getrandom_available() -> bool {
 
     AVAILABLE.load(Ordering::Relaxed)
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

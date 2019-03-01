@@ -9,9 +9,10 @@
 //! Implementation for FreeBSD
 extern crate libc;
 
-use super::Error;
+use error::Error;
 use core::ptr;
 use std::io;
+use std::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
@@ -30,3 +31,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

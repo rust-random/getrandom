@@ -7,11 +7,12 @@
 // except according to those terms.
 
 //! Implementation for Emscripten
-use super::Error;
+use error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
-use super::utils::use_init;
+use std::num::NonZeroU32;
+use utils::use_init;
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
@@ -29,3 +30,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         })
     })
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

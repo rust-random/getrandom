@@ -7,11 +7,12 @@
 // except according to those terms.
 
 //! Implementation for Redox
-use super::Error;
-use super::utils::use_init;
+use error::Error;
+use utils::use_init;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
+use std::num::NonZeroU32;
 
 thread_local!(static RNG_FILE: RefCell<Option<File>> = RefCell::new(None));
 
@@ -23,3 +24,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         )
     }).map_err(From::from)
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

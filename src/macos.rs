@@ -9,8 +9,9 @@
 //! Implementation for MacOS / iOS
 extern crate libc;
 
-use super::Error;
+use error::Error;
 use std::io;
+use std::num::NonZeroU32;
 use self::libc::{c_int, size_t};
 
 enum SecRandom {}
@@ -40,3 +41,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         Ok(())
     }
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

@@ -12,20 +12,25 @@ use core::fmt;
 #[cfg(not(target_env = "sgx"))]
 use std::{io, error};
 
+// A randomly-chosen 16-bit prefix for our codes
+pub(crate) const CODE_PREFIX: u32 = 0x57f40000;
+const CODE_UNKNOWN: u32 = CODE_PREFIX | 0;
+const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
+
 /// An unknown error.
-pub const UNKNOWN_ERROR: Error = Error(unsafe {
-    NonZeroU32::new_unchecked(0x756e6b6e) // "unkn"
+pub const UNKNOWN: Error = Error(unsafe {
+    NonZeroU32::new_unchecked(CODE_UNKNOWN)
 });
 
 /// No generator is available.
-pub const UNAVAILABLE_ERROR: Error = Error(unsafe {
-    NonZeroU32::new_unchecked(0x4e416e61) // "NAna"
+pub const UNAVAILABLE: Error = Error(unsafe {
+    NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
 });
 
 /// The error type.
 /// 
 /// This type is small and no-std compatible.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
 impl Error {
@@ -38,14 +43,34 @@ impl Error {
     pub fn code(&self) -> NonZeroU32 {
         self.0
     }
+    
+    fn msg(&self) -> Option<&'static str> {
+        if let Some(msg) = super::error_msg_inner(self.0) {
+            Some(msg)
+        } else {
+            match *self {
+                UNKNOWN => Some("getrandom: unknown error"),
+                UNAVAILABLE => Some("getrandom: unavailable"),
+                _ => None
+            }
+        }
+    }
+}
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.msg() {
+            Some(msg) => write!(f, "Error(\"{}\")", msg),
+            None => write!(f, "Error({})", self.0.get()),
+        }
+    }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        match *self {
-            UNKNOWN_ERROR => write!(f, "Getrandom Error: unknown"),
-            UNAVAILABLE_ERROR => write!(f, "Getrandom Error: unavailable"),
-            code => write!(f, "Getrandom Error: {}", code.0.get()),
+        match self.msg() {
+            Some(msg) => write!(f, "{}", msg),
+            None => write!(f, "getrandom: unknown code {}", self.0.get()),
         }
     }
 }
@@ -63,22 +88,31 @@ impl From<io::Error> for Error {
             .and_then(|code| NonZeroU32::new(code as u32))
             .map(|code| Error(code))
             // in practice this should never happen
-            .unwrap_or(UNKNOWN_ERROR)
+            .unwrap_or(UNKNOWN)
     }
 }
 
 #[cfg(not(target_env = "sgx"))]
 impl From<Error> for io::Error {
     fn from(err: Error) -> Self {
-        match err {
-            UNKNOWN_ERROR => io::Error::new(io::ErrorKind::Other,
-                "getrandom error: unknown"),
-            UNAVAILABLE_ERROR => io::Error::new(io::ErrorKind::Other,
-                "getrandom error: entropy source is unavailable"),
-            code => io::Error::from_raw_os_error(code.0.get() as i32),
+        match err.msg() {
+            Some(msg) => io::Error::new(io::ErrorKind::Other, msg),
+            None => io::Error::from_raw_os_error(err.0.get() as i32),
         }
     }
 }
 
 #[cfg(not(target_env = "sgx"))]
 impl error::Error for Error { }
+
+#[cfg(test)]
+mod tests {
+    use std::mem::size_of;
+    use super::Error;
+    
+    #[test]
+    fn test_size() {
+        assert_eq!(size_of::<Error>(), 4);
+        assert_eq!(size_of::<Result<(), Error>>(), 4);
+    }
+}

@@ -123,8 +123,7 @@ extern crate wasm_bindgen;
     target_arch = "wasm32",
 ))]
 mod utils;
-mod error;
-pub use error::{Error, UNKNOWN_ERROR, UNAVAILABLE_ERROR};
+pub mod error;
 
 
 // System-specific implementations.
@@ -136,7 +135,7 @@ macro_rules! mod_use {
         #[$cond]
         mod $module;
         #[$cond]
-        use $module::getrandom_inner;
+        use $module::{getrandom_inner, error_msg_inner};
     }
 }
 
@@ -221,7 +220,7 @@ mod_use!(
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom(dest: &mut [u8]) -> Result<(), error::Error> {
     getrandom_inner(dest)
 }
 
