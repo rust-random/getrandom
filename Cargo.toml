@@ -15,10 +15,10 @@ members = [
 ]
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2"
+libc = "0.2.27"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["minwindef", "ntsecapi", "winnt"] }
+winapi = { version = "0.3.6", features = ["minwindef", "ntsecapi", "winnt"] }
 
 [target.'cfg(target_os = "cloudabi")'.dependencies]
 cloudabi = "0.0.3"
@@ -27,5 +27,5 @@ cloudabi = "0.0.3"
 fuchsia-cprng = "0.1"
 
 [target.wasm32-unknown-unknown.dependencies]
-wasm-bindgen = { version = "0.2.12", optional = true }
-stdweb = { version = "0.4", optional = true }
+wasm-bindgen = { version = "0.2.29", optional = true }
+stdweb = { version = "0.4.9", optional = true }
