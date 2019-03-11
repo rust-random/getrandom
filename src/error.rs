@@ -19,11 +19,15 @@ const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
 
 /// An unknown error.
 pub const UNKNOWN: Error = Error(unsafe {
+/// 
+/// This is the following constant: 57F40000 (hex) / 1475608576 (decimal).
     NonZeroU32::new_unchecked(CODE_UNKNOWN)
 });
 
 /// No generator is available.
 pub const UNAVAILABLE: Error = Error(unsafe {
+/// 
+/// This is the following constant: 57F40001 (hex) / 1475608577 (decimal).
     NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
 });
 
@@ -61,7 +65,7 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.msg() {
             Some(msg) => write!(f, "Error(\"{}\")", msg),
-            None => write!(f, "Error({})", self.0.get()),
+            None => write!(f, "Error({:08X})", self.0),
         }
     }
 }
@@ -70,7 +74,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.msg() {
             Some(msg) => write!(f, "{}", msg),
-            None => write!(f, "getrandom: unknown code {}", self.0.get()),
+            None => write!(f, "getrandom: unknown code {:08X}", self.0),
         }
     }
 }
