@@ -9,7 +9,7 @@
 //! Implementation for FreeBSD
 extern crate libc;
 
-use error::Error;
+use Error;
 use core::ptr;
 use std::io;
 use std::num::NonZeroU32;

@@ -19,7 +19,7 @@
 //! libc::dlsym.
 extern crate libc;
 
-use error::Error;
+use Error;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io;

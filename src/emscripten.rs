@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for Emscripten
-use error::Error;
+use Error;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;

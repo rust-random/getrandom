@@ -10,7 +10,7 @@
 extern crate fuchsia_cprng;
 
 use std::num::NonZeroU32;
-use error::Error;
+use Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     fuchsia_cprng::cprng_draw(dest);

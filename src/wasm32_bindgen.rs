@@ -15,7 +15,7 @@ use std::num::NonZeroU32;
 use wasm_bindgen::prelude::*;
 
 use __wbg_shims::*;
-use error::Error;
+use Error;
 use utils::use_init;
 
 const CODE_PREFIX: u32 = ::error::CODE_PREFIX | 0x8e00;

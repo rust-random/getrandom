@@ -123,8 +123,8 @@ extern crate wasm_bindgen;
     target_arch = "wasm32",
 ))]
 mod utils;
-pub mod error;
-
+mod error;
+pub use error::{Error, ERROR_UNKNOWN, ERROR_UNAVAILABLE};
 
 // System-specific implementations.
 // 

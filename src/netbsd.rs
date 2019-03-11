@@ -8,7 +8,7 @@
 
 //! Implementation for NetBSD
 
-use error::Error;
+use Error;
 use utils::use_init;
 use std::fs::File;
 use std::io::Read;

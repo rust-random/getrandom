@@ -15,7 +15,7 @@ use std::num::NonZeroU32;
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
-use error::{Error, UNAVAILABLE, UNKNOWN};
+use {Error, ERROR_UNAVAILABLE, ERROR_UNKNOWN};
 use utils::use_init;
 
 #[derive(Clone, Debug)]
@@ -66,7 +66,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
         else { unreachable!() }
     } else {
         let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-        Err(UNAVAILABLE)  // TODO: forward err
+        Err(ERROR_UNAVAILABLE)  // TODO: forward err
     }
 }
 
@@ -101,7 +101,7 @@ fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> 
 
         if js!{ return @{ result.as_ref() }.success } != true {
             let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-            return Err(UNKNOWN)  // TODO: forward err
+            return Err(ERROR_UNKNOWN)  // TODO: forward err
         }
     }
     Ok(())

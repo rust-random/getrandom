@@ -9,7 +9,7 @@
 //! Implementation for OpenBSD / Bitrig
 extern crate libc;
 
-use error::Error;
+use Error;
 use std::io;
 use std::num::NonZeroU32;
 

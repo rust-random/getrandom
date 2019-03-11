@@ -14,7 +14,7 @@ use self::winapi::um::ntsecapi::RtlGenRandom;
 use self::winapi::um::winnt::PVOID;
 use std::io;
 use std::num::NonZeroU32;
-use error::Error;
+use Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {

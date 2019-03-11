@@ -7,12 +7,12 @@
 // except according to those terms.
 
 //! A dummy implementation for unsupported targets which always returns
-//! `Err(error::UNAVAILABLE)`
+//! `Err(ERROR_UNAVAILABLE)`
 use std::num::NonZeroU32;
-use error::{Error, UNAVAILABLE};
+use {Error, ERROR_UNAVAILABLE};
 
 pub fn getrandom_inner(_: &mut [u8]) -> Result<(), Error> {
-    Err(UNAVAILABLE)
+    Err(ERROR_UNAVAILABLE)
 }
 
 #[inline(always)]

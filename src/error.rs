@@ -18,16 +18,16 @@ const CODE_UNKNOWN: u32 = CODE_PREFIX | 0;
 const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
 
 /// An unknown error.
-pub const UNKNOWN: Error = Error(unsafe {
 /// 
 /// This is the following constant: 57F40000 (hex) / 1475608576 (decimal).
+pub const ERROR_UNKNOWN: Error = Error(unsafe {
     NonZeroU32::new_unchecked(CODE_UNKNOWN)
 });
 
 /// No generator is available.
-pub const UNAVAILABLE: Error = Error(unsafe {
 /// 
 /// This is the following constant: 57F40001 (hex) / 1475608577 (decimal).
+pub const ERROR_UNAVAILABLE: Error = Error(unsafe {
     NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
 });
 
@@ -53,8 +53,8 @@ impl Error {
             Some(msg)
         } else {
             match *self {
-                UNKNOWN => Some("getrandom: unknown error"),
-                UNAVAILABLE => Some("getrandom: unavailable"),
+                ERROR_UNKNOWN => Some("getrandom: unknown error"),
+                ERROR_UNAVAILABLE => Some("getrandom: unavailable"),
                 _ => None
             }
         }
@@ -92,7 +92,7 @@ impl From<io::Error> for Error {
             .and_then(|code| NonZeroU32::new(code as u32))
             .map(|code| Error(code))
             // in practice this should never happen
-            .unwrap_or(UNKNOWN)
+            .unwrap_or(ERROR_UNKNOWN)
     }
 }
 

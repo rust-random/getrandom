@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for Redox
-use error::Error;
+use Error;
 use utils::use_init;
 use std::fs::File;
 use std::io::Read;

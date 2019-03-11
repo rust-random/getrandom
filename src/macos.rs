@@ -9,7 +9,7 @@
 //! Implementation for MacOS / iOS
 extern crate libc;
 
-use error::Error;
+use Error;
 use std::io;
 use std::num::NonZeroU32;
 use self::libc::{c_int, size_t};
