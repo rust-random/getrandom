@@ -20,7 +20,10 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
         RtlGenRandom(dest.as_mut_ptr() as PVOID, dest.len() as ULONG)
     };
-    if ret == 0 { return Err(io::Error::last_os_error().into()); }
+    if ret == 0 {
+        error!("RtlGenRandom call failed");
+        return Err(io::Error::last_os_error().into());
+    }
     Ok(())
 }
 

@@ -45,6 +45,7 @@ fn libc_getrandom(rand: GetRandomFn, dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe { rand(dest.as_mut_ptr(), dest.len(), 0) as libc::ssize_t };
 
     if ret == -1 || ret != dest.len() as libc::ssize_t {
+        error!("getrandom syscall failed with ret={}", ret);
         Err(io::Error::last_os_error().into())
     } else {
         Ok(())

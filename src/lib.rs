@@ -113,7 +113,7 @@ extern crate wasm_bindgen;
 
 #[cfg(feature = "log")] #[macro_use] extern crate log;
 #[allow(unused)]
-#[cfg(not(feature = "log"))] macro_rules! warn { ($($x:tt)*) => () }
+#[cfg(not(feature = "log"))] macro_rules! error { ($($x:tt)*) => () }
 
 #[cfg(any(
     target_os = "android",

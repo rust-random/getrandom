@@ -34,6 +34,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
         libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), 0)
     };
     if ret < 0 || (ret as usize) != dest.len() {
+        error!("Linux getrandom syscall failed with return value {}", ret);
         return Err(io::Error::last_os_error());
     }
     Ok(())

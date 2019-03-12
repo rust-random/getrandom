@@ -19,6 +19,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         Ok(())
     } else {
         let code = NonZeroU32::new(errno as u32).unwrap();
+        error!("cloudabi::random_get syscall failed with code {}", code);
         Err(Error::from(code))
     }
 }

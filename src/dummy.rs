@@ -12,6 +12,7 @@ use std::num::NonZeroU32;
 use {Error, ERROR_UNAVAILABLE};
 
 pub fn getrandom_inner(_: &mut [u8]) -> Result<(), Error> {
+    error!("no support for this platform");
     Err(ERROR_UNAVAILABLE)
 }
 

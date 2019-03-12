@@ -26,6 +26,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 || len != chunk.len() {
+            error!("freebsd: kern.arandom syscall failed");
             return Err(io::Error::last_os_error().into());
         }
     }

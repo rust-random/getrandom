@@ -66,7 +66,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
         else { unreachable!() }
     } else {
         let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-        warn!("getrandom unavailable: {}", err);
+        error!("getrandom unavailable: {}", err);
         Err(ERROR_UNAVAILABLE)
     }
 }
@@ -102,7 +102,7 @@ fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> 
 
         if js!{ return @{ result.as_ref() }.success } != true {
             let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-            warn!("getrandom failed: {}", err);
+            error!("getrandom failed: {}", err);
             return Err(ERROR_UNKNOWN)
         }
     }

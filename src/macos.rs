@@ -36,6 +36,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         )
     };
     if ret == -1 {
+        error!("SecRandomCopyBytes call failed");
         Err(io::Error::last_os_error().into())
     } else {
         Ok(())

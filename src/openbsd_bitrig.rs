@@ -22,6 +22,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 {
+            error!("libc::getentropy call failed");
             return Err(io::Error::last_os_error().into());
         }
     }
