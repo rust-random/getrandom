@@ -65,7 +65,7 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.msg() {
             Some(msg) => write!(f, "Error(\"{}\")", msg),
-            None => write!(f, "Error({:08X})", self.0),
+            None => write!(f, "Error(0x{:08X})", self.0),
         }
     }
 }
@@ -74,7 +74,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.msg() {
             Some(msg) => write!(f, "{}", msg),
-            None => write!(f, "getrandom: unknown code {:08X}", self.0),
+            None => write!(f, "getrandom: unknown code 0x{:08X}", self.0),
         }
     }
 }

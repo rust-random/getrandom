@@ -111,6 +111,10 @@ extern crate wasm_bindgen;
           feature = "stdweb"))]
 #[macro_use] extern crate stdweb;
 
+#[cfg(feature = "log")] #[macro_use] extern crate log;
+#[allow(unused)]
+#[cfg(not(feature = "log"))] macro_rules! warn { ($($x:tt)*) => () }
+
 #[cfg(any(
     target_os = "android",
     target_os = "netbsd",
