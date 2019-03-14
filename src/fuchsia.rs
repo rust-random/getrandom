@@ -9,9 +9,13 @@
 //! Implementation for Fuchsia Zircon
 extern crate fuchsia_cprng;
 
-use super::Error;
+use std::num::NonZeroU32;
+use Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     fuchsia_cprng::cprng_draw(dest);
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

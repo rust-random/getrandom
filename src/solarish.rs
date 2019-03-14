@@ -19,11 +19,12 @@
 //! libc::dlsym.
 extern crate libc;
 
-use super::Error;
+use Error;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io;
 use std::io::Read;
+use std::num::NonZeroU32;
 use utils::use_init;
 
 #[cfg(target_os = "illumos")]
@@ -44,6 +45,7 @@ fn libc_getrandom(rand: GetRandomFn, dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe { rand(dest.as_mut_ptr(), dest.len(), 0) as libc::ssize_t };
 
     if ret == -1 || ret != dest.len() as libc::ssize_t {
+        error!("getrandom syscall failed with ret={}", ret);
         Err(io::Error::last_os_error().into())
     } else {
         Ok(())
@@ -97,3 +99,6 @@ fn fetch_getrandom() -> Option<GetRandomFn> {
     let ptr = FPTR.load(Ordering::SeqCst);
     unsafe { mem::transmute::<usize, Option<GetRandomFn>>(ptr) }
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

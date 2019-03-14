@@ -9,12 +9,13 @@
 //! Implementation for Linux / Android
 extern crate libc;
 
-use super::Error;
-use super::utils::use_init;
+use Error;
+use utils::use_init;
 use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::cell::RefCell;
+use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
@@ -33,6 +34,7 @@ fn syscall_getrandom(dest: &mut [u8]) -> Result<(), io::Error> {
         libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), 0)
     };
     if ret < 0 || (ret as usize) != dest.len() {
+        error!("Linux getrandom syscall failed with return value {}", ret);
         return Err(io::Error::last_os_error());
     }
     Ok(())
@@ -80,3 +82,6 @@ fn is_getrandom_available() -> bool {
 
     AVAILABLE.load(Ordering::Relaxed)
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

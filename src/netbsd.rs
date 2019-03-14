@@ -8,11 +8,12 @@
 
 //! Implementation for NetBSD
 
-use super::Error;
-use super::utils::use_init;
+use Error;
+use utils::use_init;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
+use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
@@ -32,3 +33,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         }, |f| f.read_exact(dest).map_err(From::from))
     })
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

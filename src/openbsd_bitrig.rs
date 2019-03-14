@@ -9,8 +9,9 @@
 //! Implementation for OpenBSD / Bitrig
 extern crate libc;
 
-use super::Error;
+use Error;
 use std::io;
+use std::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
@@ -21,8 +22,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 {
+            error!("libc::getentropy call failed");
             return Err(io::Error::last_os_error().into());
         }
     }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

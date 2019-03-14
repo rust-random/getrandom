@@ -9,9 +9,10 @@
 //! Implementation for FreeBSD
 extern crate libc;
 
-use super::Error;
+use Error;
 use core::ptr;
 use std::io;
+use std::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
@@ -25,8 +26,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             )
         };
         if ret == -1 || len != chunk.len() {
+            error!("freebsd: kern.arandom syscall failed");
             return Err(io::Error::last_os_error().into());
         }
     }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

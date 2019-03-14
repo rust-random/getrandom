@@ -10,13 +10,17 @@
 
 use std::cell::RefCell;
 use std::mem;
+use std::num::NonZeroU32;
 
 use wasm_bindgen::prelude::*;
 
-use super::__wbg_shims::*;
-use super::{Error, UNAVAILABLE_ERROR};
-use super::utils::use_init;
+use __wbg_shims::*;
+use Error;
+use utils::use_init;
 
+const CODE_PREFIX: u32 = ::error::CODE_PREFIX | 0x8e00;
+const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 1;
+const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 2;
 
 #[derive(Clone, Debug)]
 pub enum RngSource {
@@ -75,18 +79,29 @@ fn getrandom_init() -> Result<RngSource, Error> {
     // we're in an older web browser and the OS RNG isn't available.
     let crypto = this.crypto();
     if crypto.is_undefined() {
-        let msg = "self.crypto is undefined";
-        return Err(UNAVAILABLE_ERROR)   // TODO: report msg
+        return Err(Error::from(unsafe {
+            NonZeroU32::new_unchecked(CODE_CRYPTO_UNDEF)
+        }));
     }
 
     // Test if `crypto.getRandomValues` is undefined as well
     let crypto: BrowserCrypto = crypto.into();
     if crypto.get_random_values_fn().is_undefined() {
-        let msg = "crypto.getRandomValues is undefined";
-        return Err(UNAVAILABLE_ERROR)   // TODO: report msg
+        return Err(Error::from(unsafe {
+            NonZeroU32::new_unchecked(CODE_GRV_UNDEF)
+        }));
     }
 
     // Ok! `self.crypto.getRandomValues` is a defined value, so let's
     // assume we can do browser crypto.
     Ok(RngSource::Browser(crypto))
+}
+
+#[inline(always)]
+pub fn error_msg_inner(n: NonZeroU32) -> Option<&'static str> {
+    match n.get() {
+        CODE_CRYPTO_UNDEF => Some("getrandom: self.crypto is undefined"),
+        CODE_GRV_UNDEF => Some("crypto.getRandomValues is undefined"),
+        _ => None
+    }
 }

@@ -9,8 +9,9 @@
 //! Implementation for MacOS / iOS
 extern crate libc;
 
-use super::Error;
+use Error;
 use std::io;
+use std::num::NonZeroU32;
 use self::libc::{c_int, size_t};
 
 enum SecRandom {}
@@ -35,8 +36,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         )
     };
     if ret == -1 {
+        error!("SecRandomCopyBytes call failed");
         Err(io::Error::last_os_error().into())
     } else {
         Ok(())
     }
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

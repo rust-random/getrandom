@@ -38,6 +38,9 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 
 This library is `no_std` compatible on SGX but requires `std` on most platforms.
 
+The `log` library is supported as an optional dependency. If enabled, error
+reporting will be improved on some platforms.
+
 For WebAssembly (`wasm32`), Enscripten targets are supported directly; otherwise
 one of the following features must be enabled:
 

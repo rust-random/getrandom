@@ -10,12 +10,13 @@
 
 use std::cell::RefCell;
 use std::mem;
+use std::num::NonZeroU32;
 
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
-use super::{Error, UNAVAILABLE_ERROR, UNKNOWN_ERROR};
-use super::utils::use_init;
+use {Error, ERROR_UNAVAILABLE, ERROR_UNKNOWN};
+use utils::use_init;
 
 #[derive(Clone, Debug)]
 enum RngSource {
@@ -65,7 +66,8 @@ fn getrandom_init() -> Result<RngSource, Error> {
         else { unreachable!() }
     } else {
         let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-        Err(UNAVAILABLE_ERROR)  // TODO: forward err
+        error!("getrandom unavailable: {}", err);
+        Err(ERROR_UNAVAILABLE)
     }
 }
 
@@ -100,8 +102,12 @@ fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> 
 
         if js!{ return @{ result.as_ref() }.success } != true {
             let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
-            return Err(UNKNOWN_ERROR)  // TODO: forward err
+            error!("getrandom failed: {}", err);
+            return Err(ERROR_UNKNOWN)
         }
     }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }

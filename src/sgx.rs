@@ -7,10 +7,11 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use super::{Error, UNKNOWN_ERROR};
+use {Error, ERROR_UNKNOWN};
 
 use core::{mem, ptr};
 use core::arch::x86_64::_rdrand64_step;
+use core::num::NonZeroU32;
 
 #[cfg(not(target_feature = "rdrand"))]
 compile_error!("enable rdrand target feature!");
@@ -26,7 +27,7 @@ fn get_rand_u64() -> Result<u64, Error> {
             }
         };
     }
-    Err(UNKNOWN_ERROR)
+    Err(ERROR_UNKNOWN)
 }
 
 pub fn getrandom_inner(mut dest: &mut [u8]) -> Result<(), Error> {
@@ -46,3 +47,6 @@ pub fn getrandom_inner(mut dest: &mut [u8]) -> Result<(), Error> {
     }
     Ok(())
 }
+
+#[inline(always)]
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
