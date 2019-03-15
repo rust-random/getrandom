@@ -18,9 +18,8 @@ use __wbg_shims::*;
 use Error;
 use utils::use_init;
 
-const CODE_PREFIX: u32 = ::error::CODE_PREFIX | 0x8e00;
-const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 1;
-const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 2;
+const CODE_CRYPTO_UNDEF: u32 = 0x57f4c580;
+const CODE_GRV_UNDEF: u32 = 0x57f4c581;
 
 #[derive(Clone, Debug)]
 pub enum RngSource {
