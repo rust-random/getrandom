@@ -71,8 +71,26 @@
 //! If an error does occur, then it is likely that it will occur on every call to
 //! `getrandom`, hence after the first successful call one can be reasonably
 //! confident that no errors will occur.
-//! 
+//!
 //! On unsupported platforms, `getrandom` always fails with [`Error::UNAVAILABLE`].
+//!
+//! ## Error codes
+//! The crate uses the following custom error codes:
+//! - `0x57f4c500` (dec: 1475659008) - an unknown error. Constant:
+//! [`Error::UNKNOWN`]
+//! - `0x57f4c501` (dec: 1475659009) - no generator is available. Constant:
+//! [`Error::UNAVAILABLE`]
+//! - `0x57f4c580` (dec: 1475659136) - `self.crypto` is undefined,
+//! `wasm-bindgen` specific error.
+//! - `0x57f4c581` (dec: 1475659137) - `crypto.getRandomValues` is undefined,
+//! `wasm-bindgen` specific error.
+//!
+//! These codes are provided for reference only and should not be matched upon
+//! (but you can match on `Error` constants). The codes may change in future and
+//! such change will not be considered a breaking one.
+//!
+//! Other error codes will originate from an underlying system. In case if such
+//! error is encountered, please consult with your system documentation.
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
@@ -131,7 +149,7 @@ mod error;
 pub use error::Error;
 
 // System-specific implementations.
-// 
+//
 // These should all provide getrandom_inner with the same signature as getrandom.
 
 macro_rules! mod_use {
@@ -215,12 +233,12 @@ mod_use!(
 
 /// Fill `dest` with random bytes from the system's preferred random number
 /// source.
-/// 
+///
 /// This function returns an error on any failure, including partial reads. We
 /// make no guarantees regarding the contents of `dest` on error.
-/// 
+///
 /// Blocking is possible, at least during early boot; see module documentation.
-/// 
+///
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).

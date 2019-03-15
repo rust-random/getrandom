@@ -14,46 +14,36 @@ use std::{io, error};
 
 // A randomly-chosen 24-bit prefix for our codes
 pub(crate) const CODE_PREFIX: u32 = 0x57f4c500;
-const CODE_UNKNOWN: u32 = CODE_PREFIX | 0;
-const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
+const CODE_UNKNOWN: u32 = CODE_PREFIX | 0x00;
+const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 0x01;
 
 /// The error type.
-/// 
+///
 /// This type is small and no-std compatible.
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
 impl Error {
     /// An unknown error.
-    /// 
-    /// This is the following constant: 57f4c500 (hex) / 1475659008 (decimal).
-    ///
-    /// The constant value is provided for reference only. It may change in
-    /// future and it will not be considered a breaking change.
     pub const UNKNOWN: Error = Error(unsafe {
         NonZeroU32::new_unchecked(CODE_UNKNOWN)
     });
 
     /// No generator is available.
-    /// 
-    /// This is the following constant: 0x57f4c501 (hex) / 1475659009 (decimal).
-    ///
-    /// The constant value is provided for reference only. It may change in
-    /// future and it will not be considered a breaking change.
     pub const UNAVAILABLE: Error = Error(unsafe {
         NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
     });
 
     /// Extract the error code.
-    /// 
+    ///
     /// This may equal one of the codes defined in this library or may be a
     /// system error code.
-    /// 
+    ///
     /// One may attempt to format this error via the `Display` implementation.
     pub fn code(&self) -> NonZeroU32 {
         self.0
     }
-    
+
     fn msg(&self) -> Option<&'static str> {
         if let Some(msg) = super::error_msg_inner(self.0) {
             Some(msg)
@@ -119,7 +109,7 @@ impl error::Error for Error { }
 mod tests {
     use std::mem::size_of;
     use super::Error;
-    
+
     #[test]
     fn test_size() {
         assert_eq!(size_of::<Error>(), 4);
