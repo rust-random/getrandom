@@ -72,7 +72,7 @@
 //! `getrandom`, hence after the first successful call one can be reasonably
 //! confident that no errors will occur.
 //! 
-//! On unsupported platforms, `getrandom` always fails with [`Error::UNKNOWN`].
+//! On unsupported platforms, `getrandom` always fails with [`Error::UNAVAILABLE`].
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
