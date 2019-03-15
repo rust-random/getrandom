@@ -12,7 +12,7 @@ use core::fmt;
 #[cfg(not(target_env = "sgx"))]
 use std::{io, error};
 
-// A randomly-chosen 16-bit prefix for our codes
+// A randomly-chosen 24-bit prefix for our codes
 pub(crate) const CODE_PREFIX: u32 = 0x57f4c500;
 const CODE_UNKNOWN: u32 = CODE_PREFIX | 0;
 const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
