@@ -67,12 +67,12 @@
 //! # Error handling
 //!
 //! We always choose failure over returning insecure "random" bytes. In general,
-//! on supported platforms, failure is unlikely, though not impossible. If an
-//! error does occur, then it is likely that it will occur on every call to
+//! on supported platforms, failure is highly unlikely, though not impossible.
+//! If an error does occur, then it is likely that it will occur on every call to
 //! `getrandom`, hence after the first successful call one can be reasonably
 //! confident that no errors will occur.
 //! 
-//! On unsupported platforms, `getrandom` always fails.
+//! On unsupported platforms, `getrandom` always fails with [`Error::UNKNOWN`].
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
@@ -128,7 +128,7 @@ extern crate wasm_bindgen;
 ))]
 mod utils;
 mod error;
-pub use error::{Error, ERROR_UNKNOWN, ERROR_UNAVAILABLE};
+pub use error::Error;
 
 // System-specific implementations.
 // 
