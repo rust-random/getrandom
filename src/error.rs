@@ -12,49 +12,45 @@ use core::fmt;
 #[cfg(not(target_env = "sgx"))]
 use std::{io, error};
 
-// A randomly-chosen 16-bit prefix for our codes
-pub(crate) const CODE_PREFIX: u32 = 0x57f40000;
-const CODE_UNKNOWN: u32 = CODE_PREFIX | 0;
-const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 1;
-
-/// An unknown error.
-/// 
-/// This is the following constant: 57F40000 (hex) / 1475608576 (decimal).
-pub const ERROR_UNKNOWN: Error = Error(unsafe {
-    NonZeroU32::new_unchecked(CODE_UNKNOWN)
-});
-
-/// No generator is available.
-/// 
-/// This is the following constant: 57F40001 (hex) / 1475608577 (decimal).
-pub const ERROR_UNAVAILABLE: Error = Error(unsafe {
-    NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
-});
+// A randomly-chosen 24-bit prefix for our codes
+pub(crate) const CODE_PREFIX: u32 = 0x57f4c500;
+const CODE_UNKNOWN: u32 = CODE_PREFIX | 0x00;
+const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 0x01;
 
 /// The error type.
-/// 
+///
 /// This type is small and no-std compatible.
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
 impl Error {
+    /// An unknown error.
+    pub const UNKNOWN: Error = Error(unsafe {
+        NonZeroU32::new_unchecked(CODE_UNKNOWN)
+    });
+
+    /// No generator is available.
+    pub const UNAVAILABLE: Error = Error(unsafe {
+        NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
+    });
+
     /// Extract the error code.
-    /// 
+    ///
     /// This may equal one of the codes defined in this library or may be a
     /// system error code.
-    /// 
+    ///
     /// One may attempt to format this error via the `Display` implementation.
     pub fn code(&self) -> NonZeroU32 {
         self.0
     }
-    
+
     fn msg(&self) -> Option<&'static str> {
         if let Some(msg) = super::error_msg_inner(self.0) {
             Some(msg)
         } else {
             match *self {
-                ERROR_UNKNOWN => Some("getrandom: unknown error"),
-                ERROR_UNAVAILABLE => Some("getrandom: unavailable"),
+                Error::UNKNOWN => Some("getrandom: unknown error"),
+                Error::UNAVAILABLE => Some("getrandom: unavailable"),
                 _ => None
             }
         }
@@ -92,7 +88,7 @@ impl From<io::Error> for Error {
             .and_then(|code| NonZeroU32::new(code as u32))
             .map(|code| Error(code))
             // in practice this should never happen
-            .unwrap_or(ERROR_UNKNOWN)
+            .unwrap_or(Error::UNKNOWN)
     }
 }
 
@@ -113,7 +109,7 @@ impl error::Error for Error { }
 mod tests {
     use std::mem::size_of;
     use super::Error;
-    
+
     #[test]
     fn test_size() {
         assert_eq!(size_of::<Error>(), 4);

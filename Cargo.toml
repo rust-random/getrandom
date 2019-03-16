@@ -3,7 +3,11 @@ name = "getrandom"
 version = "0.1.0"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
-description = "A small cross-platform library to securely get random data (entropy)"
+description = "A small cross-platform library for retrieving random data from system source"
+documentation = "https://docs.rs/getrandom"
+repository = "https://github.com/rust-random/getrandom"
+categories = ["os", "no-std"]
+exclude = ["utils/*", ".*", "appveyor.yml"]
 
 [badges]
 travis-ci = { repository = "rust-random/getrandom" }
@@ -18,8 +22,7 @@ members = [
 log = { version = "0.4", optional = true }
 
 [target.'cfg(unix)'.dependencies]
-# In general, we need at least 0.2.27. On Solaris, we need some unknown newer version.
-libc = "0.2.50"
+libc = "0.2.29"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.6", features = ["minwindef", "ntsecapi", "winnt"] }

@@ -16,11 +16,11 @@ use wasm_bindgen::prelude::*;
 
 use __wbg_shims::*;
 use Error;
+use error::CODE_PREFIX;
 use utils::use_init;
 
-const CODE_PREFIX: u32 = ::error::CODE_PREFIX | 0x8e00;
-const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 1;
-const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 2;
+const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 0x80;
+const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 0x81;
 
 #[derive(Clone, Debug)]
 pub enum RngSource {

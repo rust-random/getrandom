@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use {Error, ERROR_UNKNOWN};
+use Error;
 
 use core::{mem, ptr};
 use core::arch::x86_64::_rdrand64_step;
@@ -27,7 +27,7 @@ fn get_rand_u64() -> Result<u64, Error> {
             }
         };
     }
-    Err(ERROR_UNKNOWN)
+    Err(Error::UNKNOWN)
 }
 
 pub fn getrandom_inner(mut dest: &mut [u8]) -> Result<(), Error> {
