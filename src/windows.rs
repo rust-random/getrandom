@@ -7,14 +7,14 @@
 // except according to those terms.
 
 //! Implementation for Windows
-extern crate winapi;
+extern crate std;
 
-use self::winapi::shared::minwindef::ULONG;
-use self::winapi::um::ntsecapi::RtlGenRandom;
-use self::winapi::um::winnt::PVOID;
+use winapi::shared::minwindef::ULONG;
+use winapi::um::ntsecapi::RtlGenRandom;
+use winapi::um::winnt::PVOID;
 use std::io;
-use std::num::NonZeroU32;
-use Error;
+use core::num::NonZeroU32;
+use crate::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {

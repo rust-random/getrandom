@@ -7,23 +7,24 @@
 // except according to those terms.
 
 //! Implementation for WASM via wasm-bindgen
+extern crate std;
 
-use std::cell::RefCell;
-use std::mem;
-use std::num::NonZeroU32;
+use core::cell::RefCell;
+use core::mem;
+use core::num::NonZeroU32;
+use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use __wbg_shims::*;
-use Error;
-use error::CODE_PREFIX;
-use utils::use_init;
+use crate::Error;
+use crate::error::CODE_PREFIX;
+use crate::utils::use_init;
 
 const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 0x80;
 const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 0x81;
 
 #[derive(Clone, Debug)]
-pub enum RngSource {
+enum RngSource {
     Node(NodeCrypto),
     Browser(BrowserCrypto),
 }
@@ -104,4 +105,39 @@ pub fn error_msg_inner(n: NonZeroU32) -> Option<&'static str> {
         CODE_GRV_UNDEF => Some("crypto.getRandomValues is undefined"),
         _ => None
     }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type Function;
+    #[wasm_bindgen(constructor)]
+    fn new(s: &str) -> Function;
+    #[wasm_bindgen(method)]
+    fn call(this: &Function, self_: &JsValue) -> JsValue;
+
+    type This;
+    #[wasm_bindgen(method, getter, structural, js_name = self)]
+    fn self_(me: &This) -> JsValue;
+    #[wasm_bindgen(method, getter, structural)]
+    fn crypto(me: &This) -> JsValue;
+
+    #[derive(Clone, Debug)]
+    type BrowserCrypto;
+
+    // TODO: these `structural` annotations here ideally wouldn't be here to
+    // avoid a JS shim, but for now with feature detection they're
+    // unavoidable.
+    #[wasm_bindgen(method, js_name = getRandomValues, structural, getter)]
+    fn get_random_values_fn(me: &BrowserCrypto) -> JsValue;
+    #[wasm_bindgen(method, js_name = getRandomValues, structural)]
+    fn get_random_values(me: &BrowserCrypto, buf: &mut [u8]);
+
+    #[wasm_bindgen(js_name = require)]
+    fn node_require(s: &str) -> NodeCrypto;
+
+    #[derive(Clone, Debug)]
+    type NodeCrypto;
+
+    #[wasm_bindgen(method, js_name = randomFillSync, structural)]
+    fn random_fill_sync(me: &NodeCrypto, buf: &mut [u8]);
 }

@@ -7,11 +7,8 @@
 // except according to those terms.
 
 //! Implementation for CloudABI
-
-extern crate cloudabi;
-
 use core::num::NonZeroU32;
-use Error;
+use crate::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let errno = unsafe { cloudabi::random_get(dest) };

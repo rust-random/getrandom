@@ -7,16 +7,14 @@
 // except according to those terms.
 
 //! Implementation for Linux / Android
-extern crate libc;
+extern crate std;
 
-use Error;
-use utils::use_init;
-use std::fs::File;
-use std::io;
-use std::io::Read;
-use std::cell::RefCell;
-use std::num::NonZeroU32;
-use std::sync::atomic::{AtomicBool, Ordering};
+use crate::Error;
+use crate::utils::use_init;
+use std::{thread_local, io::{self, Read}, fs::File};
+use core::cell::RefCell;
+use core::num::NonZeroU32;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
 

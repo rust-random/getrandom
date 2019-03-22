@@ -7,12 +7,11 @@
 // except according to those terms.
 
 //! Implementation for MacOS / iOS
-extern crate libc;
+extern crate std;
 
-use Error;
+use crate::Error;
 use std::io;
-use std::num::NonZeroU32;
-use self::libc::{c_int, size_t};
+use core::num::NonZeroU32;
 
 enum SecRandom {}
 
@@ -23,15 +22,15 @@ const kSecRandomDefault: *const SecRandom = 0 as *const SecRandom;
 #[link(name = "Security", kind = "framework")]
 extern {
     fn SecRandomCopyBytes(
-        rnd: *const SecRandom, count: size_t, bytes: *mut u8,
-    ) -> c_int;
+        rnd: *const SecRandom, count: libc::size_t, bytes: *mut u8,
+    ) -> libc::c_int;
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe {
         SecRandomCopyBytes(
             kSecRandomDefault,
-            dest.len() as size_t,
+            dest.len() as libc::size_t,
             dest.as_mut_ptr(),
         )
     };

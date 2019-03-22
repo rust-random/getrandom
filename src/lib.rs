@@ -112,26 +112,15 @@
 #![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
        html_favicon_url = "https://www.rust-lang.org/favicon.ico",
        html_root_url = "https://rust-random.github.io/rand/")]
-
 #![no_std]
-
 #![cfg_attr(feature = "stdweb", recursion_limit="128")]
 
-#[cfg(not(target_env = "sgx"))]
-#[macro_use] extern crate std;
-
-// We have to do it here because we load macros
-#[cfg(all(target_arch = "wasm32", not(target_os = "emscripten"),
-          feature = "wasm-bindgen"))]
-extern crate wasm_bindgen;
-#[cfg(all(target_arch = "wasm32", not(target_os = "emscripten"),
-          not(feature = "wasm-bindgen"),
-          feature = "stdweb"))]
-#[macro_use] extern crate stdweb;
-
-#[cfg(feature = "log")] #[macro_use] extern crate log;
+#[cfg(feature = "log")]
+#[macro_use]
+extern crate log;
+#[cfg(not(feature = "log"))]
 #[allow(unused)]
-#[cfg(not(feature = "log"))] macro_rules! error { ($($x:tt)*) => () }
+macro_rules! error { ($($x:tt)*) => () }
 
 #[cfg(any(
     target_os = "android",
@@ -146,7 +135,7 @@ extern crate wasm_bindgen;
 ))]
 mod utils;
 mod error;
-pub use error::Error;
+pub use crate::error::Error;
 
 // System-specific implementations.
 //
@@ -157,25 +146,34 @@ macro_rules! mod_use {
         #[$cond]
         mod $module;
         #[$cond]
-        use $module::{getrandom_inner, error_msg_inner};
+        use crate::$module::{getrandom_inner, error_msg_inner};
     }
 }
+
+#[cfg(any(
+    feature = "std",
+    windows, unix,
+    target_os = "redox",
+    target_arch = "wasm32",
+))]
+mod error_impls;
 
 mod_use!(cfg(target_os = "android"), linux_android);
 mod_use!(cfg(target_os = "bitrig"), openbsd_bitrig);
 mod_use!(cfg(target_os = "cloudabi"), cloudabi);
-mod_use!(cfg(target_os = "dragonfly"), dragonfly_haiku);
-mod_use!(cfg(target_os = "emscripten"), emscripten);
+mod_use!(cfg(target_os = "dragonfly"), use_file);
+mod_use!(cfg(target_os = "emscripten"), use_file);
 mod_use!(cfg(target_os = "freebsd"), freebsd);
 mod_use!(cfg(target_os = "fuchsia"), fuchsia);
-mod_use!(cfg(target_os = "haiku"), dragonfly_haiku);
+mod_use!(cfg(target_os = "haiku"), use_file);
+mod_use!(cfg(target_os = "illumos"), solaris_illumos);
 mod_use!(cfg(target_os = "ios"), macos);
 mod_use!(cfg(target_os = "linux"), linux_android);
 mod_use!(cfg(target_os = "macos"), macos);
-mod_use!(cfg(target_os = "netbsd"), netbsd);
+mod_use!(cfg(target_os = "netbsd"), use_file);
 mod_use!(cfg(target_os = "openbsd"), openbsd_bitrig);
-mod_use!(cfg(target_os = "redox"), redox);
-mod_use!(cfg(any(target_os = "solaris", target_os = "illumos")), solarish);
+mod_use!(cfg(target_os = "redox"), use_file);
+mod_use!(cfg(target_os = "solaris"), solaris_illumos);
 mod_use!(cfg(windows), windows);
 mod_use!(cfg(target_env = "sgx"), sgx);
 
@@ -244,59 +242,4 @@ mod_use!(
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 pub fn getrandom(dest: &mut [u8]) -> Result<(), error::Error> {
     getrandom_inner(dest)
-}
-
-// Due to rustwasm/wasm-bindgen#201 this can't be defined in the inner os
-// modules, so hack around it for now and place it at the root.
-#[cfg(all(feature = "wasm-bindgen", target_arch = "wasm32"))]
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-pub mod __wbg_shims {
-
-    // `extern { type Foo; }` isn't supported on 1.22 syntactically, so use a
-    // macro to work around that.
-    macro_rules! rust_122_compat {
-        ($($t:tt)*) => ($($t)*)
-    }
-
-    rust_122_compat! {
-        extern crate wasm_bindgen;
-
-        pub use wasm_bindgen::prelude::*;
-
-        #[wasm_bindgen]
-        extern "C" {
-            pub type Function;
-            #[wasm_bindgen(constructor)]
-            pub fn new(s: &str) -> Function;
-            #[wasm_bindgen(method)]
-            pub fn call(this: &Function, self_: &JsValue) -> JsValue;
-
-            pub type This;
-            #[wasm_bindgen(method, getter, structural, js_name = self)]
-            pub fn self_(me: &This) -> JsValue;
-            #[wasm_bindgen(method, getter, structural)]
-            pub fn crypto(me: &This) -> JsValue;
-
-            #[derive(Clone, Debug)]
-            pub type BrowserCrypto;
-
-            // TODO: these `structural` annotations here ideally wouldn't be here to
-            // avoid a JS shim, but for now with feature detection they're
-            // unavoidable.
-            #[wasm_bindgen(method, js_name = getRandomValues, structural, getter)]
-            pub fn get_random_values_fn(me: &BrowserCrypto) -> JsValue;
-            #[wasm_bindgen(method, js_name = getRandomValues, structural)]
-            pub fn get_random_values(me: &BrowserCrypto, buf: &mut [u8]);
-
-            #[wasm_bindgen(js_name = require)]
-            pub fn node_require(s: &str) -> NodeCrypto;
-
-            #[derive(Clone, Debug)]
-            pub type NodeCrypto;
-
-            #[wasm_bindgen(method, js_name = randomFillSync, structural)]
-            pub fn random_fill_sync(me: &NodeCrypto, buf: &mut [u8]);
-        }
-    }
 }

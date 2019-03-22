@@ -5,12 +5,9 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-
 use core::num::NonZeroU32;
 use core::convert::From;
 use core::fmt;
-#[cfg(not(target_env = "sgx"))]
-use std::{io, error};
 
 // A randomly-chosen 24-bit prefix for our codes
 pub(crate) const CODE_PREFIX: u32 = 0x57f4c500;
@@ -21,7 +18,7 @@ const CODE_UNAVAILABLE: u32 = CODE_PREFIX | 0x01;
 ///
 /// This type is small and no-std compatible.
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Error(NonZeroU32);
+pub struct Error(pub(crate) NonZeroU32);
 
 impl Error {
     /// An unknown error.
@@ -44,7 +41,7 @@ impl Error {
         self.0
     }
 
-    fn msg(&self) -> Option<&'static str> {
+    pub(crate) fn msg(&self) -> Option<&'static str> {
         if let Some(msg) = super::error_msg_inner(self.0) {
             Some(msg)
         } else {
@@ -81,33 +78,9 @@ impl From<NonZeroU32> for Error {
     }
 }
 
-#[cfg(not(target_env = "sgx"))]
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        err.raw_os_error()
-            .and_then(|code| NonZeroU32::new(code as u32))
-            .map(|code| Error(code))
-            // in practice this should never happen
-            .unwrap_or(Error::UNKNOWN)
-    }
-}
-
-#[cfg(not(target_env = "sgx"))]
-impl From<Error> for io::Error {
-    fn from(err: Error) -> Self {
-        match err.msg() {
-            Some(msg) => io::Error::new(io::ErrorKind::Other, msg),
-            None => io::Error::from_raw_os_error(err.0.get() as i32),
-        }
-    }
-}
-
-#[cfg(not(target_env = "sgx"))]
-impl error::Error for Error { }
-
 #[cfg(test)]
 mod tests {
-    use std::mem::size_of;
+    use core::mem::size_of;
     use super::Error;
 
     #[test]

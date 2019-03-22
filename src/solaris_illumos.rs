@@ -17,15 +17,13 @@
 //! To make sure we can compile on both Solaris and its derivatives, as well as
 //! function, we check for the existance of getrandom(2) in libc by calling
 //! libc::dlsym.
-extern crate libc;
+extern crate std;
 
-use Error;
-use std::cell::RefCell;
-use std::fs::File;
-use std::io;
-use std::io::Read;
-use std::num::NonZeroU32;
-use utils::use_init;
+use crate::Error;
+use crate::utils::use_init;
+use std::{thread_local, io::{self, Read}, fs::File};
+use core::cell::RefCell;
+use core::num::NonZeroU32;
 
 #[cfg(target_os = "illumos")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
