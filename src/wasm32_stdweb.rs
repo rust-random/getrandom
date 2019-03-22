@@ -8,6 +8,7 @@
 
 //! Implementation for WASM via stdweb
 extern crate std;
+#[macro_use] extern crate stdweb;
 
 use core::cell::RefCell;
 use core::mem;
