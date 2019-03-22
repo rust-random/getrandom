@@ -7,14 +7,12 @@
 // except according to those terms.
 
 //! Implementation for WASM via stdweb
-extern crate std;
-
 use core::cell::RefCell;
 use core::mem;
 use core::num::NonZeroU32;
 use std::thread_local;
 
-use stdweb::js;
+use stdweb::{js, _js_impl};
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 

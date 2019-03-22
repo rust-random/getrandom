@@ -122,6 +122,10 @@ extern crate log;
 #[allow(unused)]
 macro_rules! error { ($($x:tt)*) => () }
 
+// temp fix for stdweb
+#[cfg(target_arch = "wasm32")]
+extern crate std;
+
 #[cfg(any(
     target_os = "android",
     target_os = "netbsd",
