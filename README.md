@@ -16,7 +16,7 @@ the same set of platforms as Rust's `std` lib.
 This is a low-level API. Most users should prefer using high-level random-number
 library like [`rand`].
 
-[Rand]: https://crates.io/crates/rand
+[`rand`]: https://crates.io/crates/rand
 
 
 ## Usage
@@ -53,7 +53,7 @@ one of the following features must be enabled:
 
 ## Minimum Supported Rust Version
 
-This crate requires Rustc version 1.28.0 or later due to usage of `NonZeroU32`.
+This crate requires Rust 1.32.0 or later.
 
 
 # License
