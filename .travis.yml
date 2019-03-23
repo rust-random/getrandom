@@ -3,12 +3,12 @@ sudo: false
 
 matrix:
   include:
-    - rust: 1.28.0
-      env: DESCRIPTION="Linux, 1.28.0"
+    - rust: 1.32.0
+      env: DESCRIPTION="Linux, 1.32.0"
       os: linux
 
-    - rust: 1.28.0
-      env: DESCRIPTION="OSX, 1.22.0"
+    - rust: 1.32.0
+      env: DESCRIPTION="OSX, 1.32.0"
       os: osx
 
     - rust: stable
@@ -123,7 +123,7 @@ matrix:
         - source ~/.cargo/env || true
       script:
         - bash utils/ci/script.sh
-    
+
     - rust: stable
       sudo: required
       dist: trusty

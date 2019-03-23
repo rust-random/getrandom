@@ -7,16 +7,17 @@
 // except according to those terms.
 
 //! Implementation for WASM via stdweb
+use core::cell::RefCell;
+use core::mem;
+use core::num::NonZeroU32;
+use std::thread_local;
 
-use std::cell::RefCell;
-use std::mem;
-use std::num::NonZeroU32;
-
+use stdweb::{js, _js_impl};
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
-use Error;
-use utils::use_init;
+use crate::Error;
+use crate::utils::use_init;
 
 #[derive(Clone, Debug)]
 enum RngSource {

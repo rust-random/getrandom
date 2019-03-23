@@ -7,8 +7,7 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use Error;
-
+use crate::Error;
 use core::{mem, ptr};
 use core::arch::x86_64::_rdrand64_step;
 use core::num::NonZeroU32;

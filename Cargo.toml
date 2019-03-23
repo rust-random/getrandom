@@ -1,6 +1,7 @@
 [package]
 name = "getrandom"
 version = "0.1.0"
+edition = "2018"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
 description = "A small cross-platform library for retrieving random data from system source"
@@ -14,9 +15,7 @@ travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
 [workspace]
-members = [
-    "tests/wasm_bindgen",
-]
+members = ["tests/wasm_bindgen"]
 
 [dependencies]
 log = { version = "0.4", optional = true }
@@ -36,3 +35,6 @@ fuchsia-cprng = "0.1"
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { version = "0.2.29", optional = true }
 stdweb = { version = "0.4.9", optional = true }
+
+[features]
+std = []

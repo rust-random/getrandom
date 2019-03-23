@@ -7,9 +7,9 @@
 // except according to those terms.
 
 //! Implementation for OpenBSD / Bitrig
-extern crate libc;
+extern crate std;
 
-use Error;
+use crate::Error;
 use std::io;
 use std::num::NonZeroU32;
 

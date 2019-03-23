@@ -5,7 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use Error;
+use crate::Error;
 use core::cell::RefCell;
 use core::ops::DerefMut;
 

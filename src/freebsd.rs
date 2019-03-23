@@ -7,12 +7,12 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD
-extern crate libc;
+extern crate std;
 
-use Error;
-use core::ptr;
+use crate::Error;
 use std::io;
-use std::num::NonZeroU32;
+use core::ptr;
+use core::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let mib = [libc::CTL_KERN, libc::KERN_ARND];
