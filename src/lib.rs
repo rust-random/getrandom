@@ -157,6 +157,7 @@ macro_rules! mod_use {
 #[cfg(any(
     feature = "std",
     windows, unix,
+    target_os = "cloudabi",
     target_os = "redox",
     target_arch = "wasm32",
 ))]
