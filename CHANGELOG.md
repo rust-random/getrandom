@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.1] - 2019-04-05
+- Enable std functionality for CloudABI by default.
+
 ## [0.1.0] - 2019-03-23
 Publish initial implementation.
 

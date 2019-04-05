@@ -3,6 +3,12 @@ extern crate getrandom;
 use getrandom::getrandom;
 
 #[test]
+fn test_zero() {
+    // Test that APIs are happy with zero-length requests
+    getrandom(&mut [0u8; 0]).unwrap();
+}
+
+#[test]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
     getrandom(&mut v1).unwrap();
