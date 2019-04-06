@@ -7,18 +7,15 @@
 // except according to those terms.
 
 //! Implementation for WASM via wasm-bindgen
-extern crate std;
-
-use core::cell::RefCell;
-use core::mem;
-use core::num::NonZeroU32;
+use std::cell::RefCell;
 use std::thread_local;
+use std::num::NonZeroU32;
+use core::ops::DerefMut;
 
 use wasm_bindgen::prelude::*;
 
 use crate::Error;
 use crate::error::CODE_PREFIX;
-use crate::utils::use_init;
 
 const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 0x80;
 const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 0x81;
@@ -34,11 +31,15 @@ thread_local!(
 );
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    assert_eq!(mem::size_of::<usize>(), 4);
-
     RNG_SOURCE.with(|f| {
-        use_init(f, getrandom_init, |source| {
-            match *source {
+        let mut f = f.borrow_mut();
+        let f: &mut Option<RngSource> = f.deref_mut();
+        match f {
+            None => *f = Some(getrandom_init()?),
+            _ => (),
+        }
+        if let Some(source) = f {
+            match source {
                 RngSource::Node(ref n) => n.random_fill_sync(dest),
                 RngSource::Browser(ref n) => {
                     // see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
@@ -52,10 +53,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     }
                 }
             }
-            Ok(())
-        })
+        }
+        Ok(())
     })
-
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {

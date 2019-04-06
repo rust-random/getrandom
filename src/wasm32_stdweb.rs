@@ -7,38 +7,41 @@
 // except according to those terms.
 
 //! Implementation for WASM via stdweb
-use core::cell::RefCell;
-use core::mem;
-use core::num::NonZeroU32;
-use std::thread_local;
+use std::num::NonZeroU32;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use stdweb::{js, _js_impl};
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
 use crate::Error;
-use crate::utils::use_init;
 
-#[derive(Clone, Debug)]
-enum RngSource {
-    Browser,
-    Node
-}
+// replace with AtomicU8 on stabilization and MSRV bump
+static RNG_STATE: AtomicUsize = AtomicUsize::new(0);
 
-thread_local!(
-    static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
-);
+const STATE_INIT_DONE: usize = 1 << 0;
+const STATE_USE_BROWSER: usize = 1 << 1;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    assert_eq!(mem::size_of::<usize>(), 4);
-
-    RNG_SOURCE.with(|f| {
-        use_init(f, getrandom_init, |source| getrandom_fill(source, dest))
-    })
-
+    let state = RNG_STATE.load(Ordering::Acquire);
+    let use_browser = if state & STATE_INIT_DONE != 0 {
+        state & STATE_USE_BROWSER != 0
+    } else {
+        let use_browser = getrandom_init()?;
+        RNG_STATE.store(
+            if use_browser {
+                STATE_INIT_DONE | STATE_USE_BROWSER
+            } else {
+                STATE_INIT_DONE
+            },
+            Ordering::Release,
+        );
+        use_browser
+    };
+    getrandom_fill(use_browser, dest)
 }
 
-fn getrandom_init() -> Result<RngSource, Error> {
+fn getrandom_init() -> Result<bool, Error> {
     let result = js! {
         try {
             if (
@@ -62,8 +65,8 @@ fn getrandom_init() -> Result<RngSource, Error> {
     if js!{ return @{ result.as_ref() }.success } == true {
         let ty = js!{ return @{ result }.ty };
 
-        if ty == 1 { Ok(RngSource::Browser) }
-        else if ty == 2 { Ok(RngSource::Node) }
+        if ty == 1 { Ok(true) }
+        else if ty == 2 { Ok(false) }
         else { unreachable!() }
     } else {
         let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
@@ -72,13 +75,13 @@ fn getrandom_init() -> Result<RngSource, Error> {
     }
 }
 
-fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> {
+fn getrandom_fill(use_browser: bool, dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(65536) {
         let len = chunk.len() as u32;
         let ptr = chunk.as_mut_ptr() as i32;
 
-        let result = match source {
-            RngSource::Browser => js! {
+        let result = match use_browser {
+            true => js! {
                 try {
                     let array = new Uint8Array(@{ len });
                     self.crypto.getRandomValues(array);
@@ -89,7 +92,7 @@ fn getrandom_fill(source: &mut RngSource, dest: &mut [u8]) -> Result<(), Error> 
                     return { success: false, error: err };
                 }
             },
-            RngSource::Node => js! {
+            false => js! {
                 try {
                     let bytes = require("crypto").randomBytes(@{ len });
                     HEAPU8.set(new Uint8Array(bytes), @{ ptr });
