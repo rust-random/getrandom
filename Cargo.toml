@@ -36,5 +36,8 @@ fuchsia-cprng = "0.1"
 wasm-bindgen = { version = "0.2.29", optional = true }
 stdweb = { version = "0.4.9", optional = true }
 
+[target.wasm32-unknown-wasi.dependencies]
+libc = "0.2.51"
+
 [features]
 std = []
