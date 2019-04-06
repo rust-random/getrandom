@@ -27,6 +27,7 @@
 //! | SGX              | RDRAND
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
+//! | WASI             | [`__wasi_random_get`][17]
 //!
 //! Getrandom doesn't have a blanket implementation for all Unix-like operating
 //! systems that reads from `/dev/urandom`. This ensures all supported operating
@@ -44,6 +45,10 @@
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! `getrandom` will always fail.
+//! 
+//! The WASI target `wasm32-unknown-wasi` uses the `__wasi_random_get` 
+//! function defined by the WASI standard.
+//! 
 //!
 //! ## Early boot
 //!
@@ -108,6 +113,7 @@
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
 //! [16]: #support-for-webassembly-and-amsjs
+//! [17]: https://github.com/CraneStation/wasmtime/blob/master/docs/WASI-api.md#__wasi_random_get
 
 #![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
        html_favicon_url = "https://www.rust-lang.org/favicon.ico",
@@ -135,7 +141,10 @@ extern crate std;
     target_os = "dragonfly",
     target_os = "haiku",
     target_os = "linux",
-    target_arch = "wasm32",
+    all(
+        target_arch = "wasm32", 
+        not(target_env = "wasi")
+    ),
 ))]
 mod utils;
 mod error;
@@ -181,11 +190,13 @@ mod_use!(cfg(target_os = "redox"), use_file);
 mod_use!(cfg(target_os = "solaris"), solaris_illumos);
 mod_use!(cfg(windows), windows);
 mod_use!(cfg(target_env = "sgx"), sgx);
+mod_use!(cfg(target_env = "wasi"), wasi);
 
 mod_use!(
     cfg(all(
         target_arch = "wasm32",
         not(target_os = "emscripten"),
+        not(target_env = "wasi"),
         feature = "wasm-bindgen"
     )),
     wasm32_bindgen
@@ -195,6 +206,7 @@ mod_use!(
     cfg(all(
         target_arch = "wasm32",
         not(target_os = "emscripten"),
+        not(target_env = "wasi"),
         not(feature = "wasm-bindgen"),
         feature = "stdweb",
     )),
@@ -225,6 +237,7 @@ mod_use!(
             target_arch = "wasm32",
             any(
                 target_os = "emscripten",
+                target_env = "wasi",
                 feature = "wasm-bindgen",
                 feature = "stdweb",
             ),
