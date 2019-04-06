@@ -45,7 +45,7 @@ This library is `no_std` compatible, but uses `std` on most platforms.
 The `log` library is supported as an optional dependency. If enabled, error
 reporting will be improved on some platforms.
 
-For WebAssembly (`wasm32`), Enscripten targets are supported directly; otherwise
+For WebAssembly (`wasm32`), WASI and Emscripten targets are supported directly; otherwise
 one of the following features must be enabled:
 
 -   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
