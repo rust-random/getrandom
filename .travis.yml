@@ -64,7 +64,7 @@ matrix:
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
-        - rustup target add wasm32-unknown-wasi
+        - rustup target add wasm32-wasi
         - nvm install 9
         - ./utils/ci/install_cargo_web.sh
         - cargo web prepare-emscripten
@@ -81,7 +81,7 @@ matrix:
         #- cargo web test --target wasm32-unknown-emscripten
         #- cargo web test --nodejs --target wasm32-unknown-emscripten
         #- cargo build --target wasm32-unknown-unknown # without any features
-        - cargo build --target wasm32-unknown-wasi
+        - cargo build --target wasm32-wasi
         - cargo build --target wasm32-unknown-unknown --features=wasm-bindgen
         - cargo web test --target wasm32-unknown-unknown --features=stdweb
         - cargo build --manifest-path tests/wasm_bindgen/Cargo.toml --target wasm32-unknown-unknown
