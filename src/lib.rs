@@ -46,8 +46,8 @@
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! `getrandom` will always fail.
 //! 
-//! The WASI target `wasm32-unknown-wasi` uses the `__wasi_random_get` 
-//! function defined by the WASI standard.
+//! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
+//! by the WASI standard.
 //! 
 //!
 //! ## Early boot
@@ -175,13 +175,13 @@ mod_use!(cfg(target_os = "solaris"), solaris_illumos);
 mod_use!(cfg(target_os = "illumos"), solaris_illumos);
 mod_use!(cfg(windows), windows);
 mod_use!(cfg(target_env = "sgx"), sgx);
-mod_use!(cfg(target_env = "wasi"), wasi);
+mod_use!(cfg(target_os = "wasi"), wasi);
 
 mod_use!(
     cfg(all(
         target_arch = "wasm32",
         not(target_os = "emscripten"),
-        not(target_env = "wasi"),
+        not(target_os = "wasi"),
         feature = "wasm-bindgen"
     )),
     wasm32_bindgen
@@ -191,7 +191,7 @@ mod_use!(
     cfg(all(
         target_arch = "wasm32",
         not(target_os = "emscripten"),
-        not(target_env = "wasi"),
+        not(target_os = "wasi"),
         not(feature = "wasm-bindgen"),
         feature = "stdweb",
     )),
@@ -222,7 +222,7 @@ mod_use!(
             target_arch = "wasm32",
             any(
                 target_os = "emscripten",
-                target_env = "wasi",
+                target_os = "wasi",
                 feature = "wasm-bindgen",
                 feature = "stdweb",
             ),

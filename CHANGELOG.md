@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.3] - 2019-05-15
+- Update for `wasm32-unknown-wasi` being renamed to `wasm32-wasi`, and for
+  WASI being categorized as an OS.
+
 ## [0.1.2] - 2019-04-06
 - Add support for `wasm32-unknown-wasi` target.
 
