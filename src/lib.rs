@@ -45,10 +45,10 @@
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! `getrandom` will always fail.
-//! 
+//!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
-//! 
+//!
 //!
 //! ## Early boot
 //!
@@ -165,6 +165,7 @@ mod_use!(cfg(target_os = "emscripten"), use_file);
 mod_use!(cfg(target_os = "freebsd"), freebsd);
 mod_use!(cfg(target_os = "fuchsia"), fuchsia);
 mod_use!(cfg(target_os = "haiku"), use_file);
+mod_use!(cfg(target_os = "illumos"), solaris_illumos);
 mod_use!(cfg(target_os = "ios"), macos);
 mod_use!(cfg(target_os = "linux"), linux_android);
 mod_use!(cfg(target_os = "macos"), macos);
@@ -172,10 +173,9 @@ mod_use!(cfg(target_os = "netbsd"), use_file);
 mod_use!(cfg(target_os = "openbsd"), openbsd_bitrig);
 mod_use!(cfg(target_os = "redox"), use_file);
 mod_use!(cfg(target_os = "solaris"), solaris_illumos);
-mod_use!(cfg(target_os = "illumos"), solaris_illumos);
-mod_use!(cfg(windows), windows);
-mod_use!(cfg(target_env = "sgx"), sgx);
 mod_use!(cfg(target_os = "wasi"), wasi);
+mod_use!(cfg(target_env = "sgx"), sgx);
+mod_use!(cfg(windows), windows);
 
 mod_use!(
     cfg(all(
@@ -216,16 +216,12 @@ mod_use!(
         target_os = "openbsd",
         target_os = "redox",
         target_os = "solaris",
+        target_os = "wasi",
         target_env = "sgx",
         windows,
         all(
             target_arch = "wasm32",
-            any(
-                target_os = "emscripten",
-                target_os = "wasi",
-                feature = "wasm-bindgen",
-                feature = "stdweb",
-            ),
+            any(feature = "wasm-bindgen", feature = "stdweb"),
         ),
     ))),
     dummy
