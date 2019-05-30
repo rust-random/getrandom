@@ -68,7 +68,7 @@ fn init_loop() -> Result<RawFd, Error> {
             }
         }
         // initialization is not finished, so wait
-        thread::sleep(time::Duration::from_nanos(1));
+        thread::yield_now();
     }
 }
 

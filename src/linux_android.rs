@@ -42,8 +42,7 @@ fn init_loop(dest: &mut [u8]) -> Result<(), Error> {
         let state = RNG_STATE.fetch_or(STATE_INIT_ONGOING, Ordering::AcqRel);
 
         if state & STATE_INIT_ONGOING != 0 {
-            // initialization is not finished, so wait
-            thread::sleep(time::Duration::from_nanos(1));
+            thread::yield_now();
             continue;
         }
         return if state & STATE_USE_SYSCALL != 0 {
