@@ -26,7 +26,7 @@ use std::io::Read;
 use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::os::unix::io::{RawFd, AsRawFd, FromRawFd};
-use std::{io, mem, thread, time};
+use std::{io, mem};
 
 #[cfg(target_os = "illumos")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
@@ -57,7 +57,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         let state = RNG_STATE.fetch_or(STATE_INIT_ONGOING, Ordering::AcqRel);
         if state & STATE_INIT_DONE != 0 { break; }
         if state & STATE_INIT_ONGOING != 0 {
-            thread::yield_now()
+            std::thread::yield_now();
             continue;
         }
 

@@ -15,7 +15,7 @@ use std::io::Read;
 use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::os::unix::io::{AsRawFd, FromRawFd};
-use std::{io, mem, thread, time};
+use std::{io, mem};
 
 // replace with AtomicU8 on stabilization and MSRV bump
 static RNG_STATE: AtomicUsize = AtomicUsize::new(0);
@@ -42,7 +42,7 @@ fn init_loop(dest: &mut [u8]) -> Result<(), Error> {
         let state = RNG_STATE.fetch_or(STATE_INIT_ONGOING, Ordering::AcqRel);
 
         if state & STATE_INIT_ONGOING != 0 {
-            thread::yield_now();
+            std::thread::yield_now();
             continue;
         }
         return if state & STATE_USE_SYSCALL != 0 {

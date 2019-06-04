@@ -15,7 +15,7 @@ use std::io::Read;
 use std::num::NonZeroU32;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::os::unix::io::{RawFd, AsRawFd, FromRawFd};
-use std::{io, thread, mem, time};
+use std::{io, mem};
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &'static str = "rand:";
@@ -67,8 +67,7 @@ fn init_loop() -> Result<RawFd, Error> {
                 }
             }
         }
-        // initialization is not finished, so wait
-        thread::yield_now();
+        std::thread::yield_now();
     }
 }
 
