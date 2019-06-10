@@ -189,7 +189,7 @@ mod_use!(cfg(target_os = "openbsd"), openbsd_bitrig);
 mod_use!(cfg(target_os = "redox"), use_file);
 mod_use!(cfg(target_os = "solaris"), solaris_illumos);
 mod_use!(cfg(windows), windows);
-mod_use!(cfg(target_env = "sgx"), sgx);
+mod_use!(cfg(target_env = "sgx"), rdrand);
 mod_use!(cfg(target_os = "wasi"), wasi);
 
 mod_use!(
