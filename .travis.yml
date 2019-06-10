@@ -23,6 +23,13 @@ matrix:
     - rust: beta
       env: DESCRIPTION="Linux, beta"
 
+    - rust: stable
+      env: DESCRIPTION="Rustfmt"
+      install:
+        - rustup component add rustfmt
+      script:
+        - cargo fmt --all -- src/*.rs --check
+
     - rust: nightly
       os: linux
       env: DESCRIPTION="Linux, nightly, docs"
@@ -136,6 +143,10 @@ matrix:
         - source ~/.cargo/env || true
       script:
         - bash utils/ci/script.sh
+
+  allow_failures:
+    # Formatting errors should appear in Travis, but not break the build.
+    - env: DESCRIPTION="Rustfmt"
 
 before_install:
   - set -e
