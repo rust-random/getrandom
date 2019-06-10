@@ -25,11 +25,12 @@ static RNG_FD: AtomicIsize = AtomicIsize::new(-1);
 const STATE_INIT_ONGOING: usize = 1 << 0;
 const STATE_USE_SYSCALL: usize = 1 << 1;
 const STATE_USE_FD: usize = 1 << 2;
+const GRND_NONBLOCK: libc::c_uint = 0x0001;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let state = RNG_STATE.load(Ordering::Acquire);
     if state & STATE_USE_SYSCALL != 0 {
-        use_syscall(dest)
+        use_syscall(dest, true)
     } else if state & STATE_USE_FD != 0 {
         use_fd(dest)
     } else {
@@ -46,7 +47,7 @@ fn init_loop(dest: &mut [u8]) -> Result<(), Error> {
             continue;
         }
         return if state & STATE_USE_SYSCALL != 0 {
-            use_syscall(dest)
+            use_syscall(dest, true)
         } else if state & STATE_USE_FD != 0 {
             use_fd(dest)
         } else {
@@ -56,10 +57,10 @@ fn init_loop(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn init(dest: &mut [u8]) -> Result<(), Error> {
-    match use_syscall(&mut []) {
+    match use_syscall(&mut [], false) {
         Ok(()) => {
             RNG_STATE.store(STATE_USE_SYSCALL, Ordering::Release);
-            use_syscall(dest)
+            use_syscall(dest, true)
         },
         Err(err) if err.code().get() as i32 == libc::ENOSYS => {
             match init_fd() {
@@ -87,9 +88,10 @@ fn init_fd() -> io::Result<i32> {
     Ok(fd)
 }
 
-fn use_syscall(dest: &mut [u8]) -> Result<(), Error> {
+fn use_syscall(dest: &mut [u8], block: bool) -> Result<(), Error> {
+    let flags = if block { 0 } else { GRND_NONBLOCK };
     let ret = unsafe {
-        libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), 0)
+        libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), flags)
     };
     if ret < 0 || (ret as usize) != dest.len() {
         return Err(io::Error::last_os_error().into());
