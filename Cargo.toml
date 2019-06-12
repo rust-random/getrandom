@@ -39,5 +39,8 @@ stdweb = { version = "0.4.9", optional = true }
 [target.wasm32-wasi.dependencies]
 libc = "0.2.54"
 
+[target.'cfg(any(target_env = "sgx", target_os = "uefi"))'.dependencies]
+std_detect = { version = "0.1.5", default-features = false }
+
 [features]
 std = []
