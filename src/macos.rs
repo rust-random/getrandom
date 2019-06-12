@@ -11,7 +11,6 @@ extern crate std;
 
 use crate::Error;
 use std::io;
-use core::ffi::c_void;
 use core::num::NonZeroU32;
 
 // TODO: Make extern once extern_types feature is stabilized. See:
