@@ -17,7 +17,6 @@ use core::num::NonZeroU32;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 // This flag tells getrandom() to return EAGAIN instead of blocking.
-const GRND_NONBLOCK: libc::c_uint = 0x0001;
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
 enum RngSource {
@@ -30,7 +29,7 @@ thread_local!(
 );
 
 fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<(), io::Error> {
-    let flags = if block { 0 } else { GRND_NONBLOCK };
+    let flags = if block { 0 } else { libc::GRND_NONBLOCK };
     let ret = unsafe {
         libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), flags)
     };
