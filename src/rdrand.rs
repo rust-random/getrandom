@@ -9,9 +9,9 @@
 //! Implementation for SGX using RDRAND instruction
 use crate::Error;
 use core::mem;
-use core::arch::x86_64::_rdrand64_step;
+use core::arch::x86_64::{__cpuid, _rdrand64_step};
 use core::num::NonZeroU32;
-use std_detect::is_x86_feature_detected;
+use lazy_static::lazy_static;
 
 // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
@@ -31,8 +31,25 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     Err(Error::UNKNOWN)
 }
 
+// TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
+//   https://github.com/rust-lang-nursery/stdsimd/issues/464
+fn is_rdrand_supported() -> bool {
+    if cfg!(target_feature = "rdrand") {
+        true
+    } else if cfg!(target_env = "sgx") {
+        false // No CPUID in SGX enclaves
+    } else {
+        // SAFETY: All x86_64 CPUs support CPUID leaf 1
+        const FLAG: u32 = 1 << 30;
+        lazy_static! {
+            static ref HAS_RDRAND: bool = unsafe { __cpuid(1).ecx & FLAG != 0 };
+        }
+        *HAS_RDRAND
+    }
+}
+
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    if !is_x86_feature_detected!("rdrand") {
+    if is_rdrand_supported() {
         return Err(Error::UNAVAILABLE);
     }
 
