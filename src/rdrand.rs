@@ -31,7 +31,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     Err(Error::UNKNOWN)
 }
 
-#[cfg(and(target_env = "sgx", not(target_feature = "rdrand")))]
+#[cfg(all(target_env = "sgx", not(target_feature = "rdrand")))]
 compile_error!("SGX targets must enable RDRAND to get randomness");
 
 // TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
