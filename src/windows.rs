@@ -17,12 +17,13 @@ use core::num::NonZeroU32;
 use crate::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let ret = unsafe {
-        RtlGenRandom(dest.as_mut_ptr() as PVOID, dest.len() as ULONG)
-    };
-    if ret == 0 {
-        error!("RtlGenRandom call failed");
-        return Err(io::Error::last_os_error().into());
+    // Prevent overflow of ULONG
+    for chunk in dest.chunks_mut(ULONG::max_value() as usize) {
+        let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr() as PVOID, chunk.len() as ULONG) };
+        if ret == 0 {
+            error!("RtlGenRandom call failed");
+            return Err(io::Error::last_os_error().into());
+        }
     }
     Ok(())
 }
