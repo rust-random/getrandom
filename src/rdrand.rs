@@ -49,7 +49,7 @@ fn is_rdrand_supported() -> bool {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    if is_rdrand_supported() {
+    if !is_rdrand_supported() {
         return Err(Error::UNAVAILABLE);
     }
 
