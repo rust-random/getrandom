@@ -31,13 +31,14 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     Err(Error::UNKNOWN)
 }
 
+#[cfg(and(target_env = "sgx", not(target_feature = "rdrand")))]
+compile_error!("SGX targets must enable RDRAND to get randomness");
+
 // TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
 //   https://github.com/rust-lang-nursery/stdsimd/issues/464
 fn is_rdrand_supported() -> bool {
     if cfg!(target_feature = "rdrand") {
         true
-    } else if cfg!(target_env = "sgx") {
-        false // No CPUID in SGX enclaves
     } else {
         // SAFETY: All x86_64 CPUs support CPUID leaf 1
         const FLAG: u32 = 1 << 30;
