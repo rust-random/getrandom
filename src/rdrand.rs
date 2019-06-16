@@ -31,8 +31,11 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     Err(Error::UNKNOWN)
 }
 
+// "rdrand" target feature requires "+rdrnd" flag, see https://github.com/rust-lang/rust/issues/49653.
 #[cfg(all(target_env = "sgx", not(target_feature = "rdrand")))]
-compile_error!("SGX targets must enable RDRAND to get randomness");
+compile_error!(
+    "SGX targets require 'rdrand' target feature. Enable by using -C target-feature=+rdrnd."
+);
 
 // TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
 //   https://github.com/rust-lang-nursery/stdsimd/issues/464
