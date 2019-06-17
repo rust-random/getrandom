@@ -190,6 +190,7 @@ mod_use!(cfg(target_os = "redox"), use_file);
 mod_use!(cfg(target_os = "solaris"), solaris_illumos);
 mod_use!(cfg(windows), windows);
 mod_use!(cfg(target_env = "sgx"), rdrand);
+mod_use!(cfg(all(target_arch = "x86_64", target_os = "uefi")), rdrand);
 mod_use!(cfg(target_os = "wasi"), wasi);
 
 mod_use!(
@@ -231,6 +232,7 @@ mod_use!(
         target_os = "openbsd",
         target_os = "redox",
         target_os = "solaris",
+        all(target_arch = "x86_64", target_os = "uefi"),
         target_env = "sgx",
         windows,
         all(

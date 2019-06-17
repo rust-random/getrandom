@@ -106,6 +106,9 @@ matrix:
         - rustup target add x86_64-unknown-netbsd
         - rustup target add x86_64-unknown-redox
         - rustup target add x86_64-fortanix-unknown-sgx
+        # For no_std targets
+        - rustup component add rust-src
+        - cargo install cargo-xbuild || true
       script:
         - cargo build --target=x86_64-sun-solaris --all-features
         - cargo build --target=x86_64-unknown-cloudabi --all-features
@@ -114,6 +117,7 @@ matrix:
         - cargo build --target=x86_64-unknown-netbsd --all-features
         - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
+        - cargo xbuild --target=x86_64-unknown-uefi
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
         - cargo build --target=x86_64-sun-solaris --all-features
@@ -123,6 +127,7 @@ matrix:
         - cargo build --target=x86_64-unknown-netbsd --all-features
         - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
+        - cargo xbuild --target=x86_64-unknown-uefi
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
     - rust: stable
