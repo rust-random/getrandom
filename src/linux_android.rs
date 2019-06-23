@@ -45,10 +45,13 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    let mut buf: [u8; 0] = [];
-    match syscall_getrandom(&mut buf, false) {
+    match syscall_getrandom(&mut [], false) {
+        Err(err) => match err.raw_os_error() {
+            Some(libc::ENOSYS) => false, // No kernel support
+            Some(libc::EPERM) => false, // Blocked by seccomp
+            _ => true,
+        }
         Ok(_) => true,
-        Err(err) => err.raw_os_error() != Some(libc::ENOSYS),
     }
 }
 
