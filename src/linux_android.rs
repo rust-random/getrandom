@@ -9,24 +9,10 @@
 //! Implementation for Linux / Android
 extern crate std;
 
-use crate::Error;
-use crate::utils::use_init;
-use std::{thread_local, io::{self, Read}, fs::File};
-use core::cell::RefCell;
+use crate::{use_file, Error};
 use core::num::NonZeroU32;
-use core::sync::atomic::{AtomicBool, Ordering};
-
-// This flag tells getrandom() to return EAGAIN instead of blocking.
-static RNG_INIT: AtomicBool = AtomicBool::new(false);
-
-enum RngSource {
-    GetRandom,
-    Device(File),
-}
-
-thread_local!(
-    static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
-);
+use lazy_static::lazy_static;
+use std::io;
 
 fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
     let flags = if block { 0 } else { libc::GRND_NONBLOCK };
@@ -45,52 +31,28 @@ fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    RNG_SOURCE.with(|f| {
-        use_init(f,
-        || {
-            let s = if is_getrandom_available() {
-                RngSource::GetRandom
-            } else {
-                // read one byte from "/dev/random" to ensure that
-                // OS RNG has initialized
-                if !RNG_INIT.load(Ordering::Relaxed) {
-                    File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
-                    RNG_INIT.store(true, Ordering::Relaxed)
-                }
-                RngSource::Device(File::open("/dev/urandom")?)
-            };
-            Ok(s)
-        }, |f| {
-            match f {
-                RngSource::GetRandom => {
-                    let mut start = 0;
-                    while start < dest.len() {
-                        start += syscall_getrandom(&mut dest[start..], true)?;
-                    }
-                    Ok(())
-                }
-                RngSource::Device(f) => f.read_exact(dest).map_err(From::from),
+    lazy_static! { static ref HAS_GETRANDOM: bool = is_getrandom_available(); }
+    match *HAS_GETRANDOM {
+        true => {
+            let mut start = 0;
+            while start < dest.len() {
+                start += syscall_getrandom(&mut dest[start..], true)?;
             }
-        })
-    })
+            Ok(())
+        },
+        false => use_file::getrandom_inner(dest),
+    }
 }
 
 fn is_getrandom_available() -> bool {
-    use std::sync::{Once, ONCE_INIT};
-
-    static CHECKER: Once = ONCE_INIT;
-    static AVAILABLE: AtomicBool = AtomicBool::new(false);
-
-    CHECKER.call_once(|| {
-        let mut buf: [u8; 0] = [];
-        let available = match syscall_getrandom(&mut buf, false) {
-            Ok(_) => true,
-            Err(err) => err.raw_os_error() != Some(libc::ENOSYS),
-        };
-        AVAILABLE.store(available, Ordering::Relaxed);
-    });
-
-    AVAILABLE.load(Ordering::Relaxed)
+    match syscall_getrandom(&mut [], false) {
+        Err(err) => match err.raw_os_error() {
+            Some(libc::ENOSYS) => false, // No kernel support
+            Some(libc::EPERM) => false, // Blocked by seccomp
+            _ => true,
+        }
+        Ok(_) => true,
+    }
 }
 
 #[inline(always)]

@@ -132,21 +132,6 @@ macro_rules! error { ($($x:tt)*) => () }
 #[cfg(target_arch = "wasm32")]
 extern crate std;
 
-#[cfg(any(
-    target_os = "android",
-    target_os = "netbsd",
-    target_os = "solaris",
-    target_os = "illumos",
-    target_os = "redox",
-    target_os = "dragonfly",
-    target_os = "haiku",
-    target_os = "linux",
-    all(
-        target_arch = "wasm32", 
-        not(target_os = "wasi")
-    ),
-))]
-mod utils;
 mod error;
 pub use crate::error::Error;
 
@@ -171,6 +156,15 @@ macro_rules! mod_use {
     target_arch = "wasm32",
 ))]
 mod error_impls;
+
+// These targets read from a file as a fallback method.
+#[cfg(any(
+    target_os = "android",
+    target_os = "linux",
+    target_os = "solaris",
+    target_os = "illumos",
+))]
+mod use_file;
 
 mod_use!(cfg(target_os = "android"), linux_android);
 mod_use!(cfg(target_os = "bitrig"), openbsd_bitrig);
@@ -233,16 +227,12 @@ mod_use!(
         target_os = "redox",
         target_os = "solaris",
         all(target_arch = "x86_64", target_os = "uefi"),
+        target_os = "wasi",
         target_env = "sgx",
         windows,
         all(
             target_arch = "wasm32",
-            any(
-                target_os = "emscripten",
-                target_os = "wasi",
-                feature = "wasm-bindgen",
-                feature = "stdweb",
-            ),
+            any(feature = "wasm-bindgen", feature = "stdweb"),
         ),
     ))),
     dummy
