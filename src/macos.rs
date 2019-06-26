@@ -10,8 +10,8 @@
 extern crate std;
 
 use crate::Error;
-use std::io;
 use core::num::NonZeroU32;
+use std::io;
 
 // TODO: Make extern once extern_types feature is stabilized. See:
 //   https://github.com/rust-lang/rust/issues/43467
@@ -19,7 +19,7 @@ use core::num::NonZeroU32;
 struct SecRandom([u8; 0]);
 
 #[link(name = "Security", kind = "framework")]
-extern {
+extern "C" {
     static kSecRandomDefault: *const SecRandom;
 
     fn SecRandomCopyBytes(rnd: *const SecRandom, count: usize, bytes: *mut u8) -> libc::c_int;
@@ -36,4 +36,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

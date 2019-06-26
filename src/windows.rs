@@ -9,12 +9,12 @@
 //! Implementation for Windows
 extern crate std;
 
+use crate::Error;
+use core::num::NonZeroU32;
+use std::io;
 use winapi::shared::minwindef::ULONG;
 use winapi::um::ntsecapi::RtlGenRandom;
 use winapi::um::winnt::PVOID;
-use std::io;
-use core::num::NonZeroU32;
-use crate::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // Prevent overflow of ULONG
@@ -29,4 +29,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

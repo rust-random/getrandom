@@ -15,8 +15,8 @@ extern crate wasm_bindgen;
 extern crate wasm_bindgen_test;
 
 use std::slice;
-use wasm_bindgen_test::*;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_test::*;
 
 use getrandom::getrandom;
 

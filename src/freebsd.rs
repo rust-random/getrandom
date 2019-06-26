@@ -10,9 +10,9 @@
 extern crate std;
 
 use crate::Error;
-use std::io;
-use core::ptr;
 use core::num::NonZeroU32;
+use core::ptr;
+use std::io;
 
 fn kern_arnd(buf: &mut [u8]) -> Result<usize, Error> {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
@@ -43,4 +43,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

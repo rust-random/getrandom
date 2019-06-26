@@ -45,10 +45,10 @@
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! `getrandom` will always fail.
-//! 
+//!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
-//! 
+//!
 //!
 //! ## Early boot
 //!
@@ -115,18 +115,22 @@
 //! [16]: #support-for-webassembly-and-amsjs
 //! [17]: https://github.com/CraneStation/wasmtime/blob/master/docs/WASI-api.md#__wasi_random_get
 
-#![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
-       html_favicon_url = "https://www.rust-lang.org/favicon.ico",
-       html_root_url = "https://rust-random.github.io/rand/")]
+#![doc(
+    html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
+    html_favicon_url = "https://www.rust-lang.org/favicon.ico",
+    html_root_url = "https://rust-random.github.io/rand/"
+)]
 #![no_std]
-#![cfg_attr(feature = "stdweb", recursion_limit="128")]
+#![cfg_attr(feature = "stdweb", recursion_limit = "128")]
 
 #[cfg(feature = "log")]
 #[macro_use]
 extern crate log;
 #[cfg(not(feature = "log"))]
 #[allow(unused)]
-macro_rules! error { ($($x:tt)*) => () }
+macro_rules! error {
+    ($($x:tt)*) => {};
+}
 
 // temp fix for stdweb
 #[cfg(target_arch = "wasm32")]
@@ -144,13 +148,14 @@ macro_rules! mod_use {
         #[$cond]
         mod $module;
         #[$cond]
-        use crate::$module::{getrandom_inner, error_msg_inner};
-    }
+        use crate::$module::{error_msg_inner, getrandom_inner};
+    };
 }
 
 #[cfg(any(
     feature = "std",
-    windows, unix,
+    windows,
+    unix,
     target_os = "cloudabi",
     target_os = "redox",
     target_arch = "wasm32",
@@ -237,7 +242,6 @@ mod_use!(
     ))),
     dummy
 );
-
 
 /// Fill `dest` with random bytes from the system's preferred random number
 /// source.

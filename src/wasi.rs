@@ -12,9 +12,8 @@ use core::num::NonZeroU32;
 use std::io;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let ret = unsafe { 
-        libc::__wasi_random_get(dest.as_mut_ptr() as *mut libc::c_void, dest.len())
-    };
+    let ret =
+        unsafe { libc::__wasi_random_get(dest.as_mut_ptr() as *mut libc::c_void, dest.len()) };
     if ret == libc::__WASI_ESUCCESS {
         Ok(())
     } else {
@@ -24,4 +23,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

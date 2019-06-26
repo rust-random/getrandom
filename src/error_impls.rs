@@ -7,10 +7,10 @@
 // except according to those terms.
 extern crate std;
 
-use std::{io, error};
+use crate::error::Error;
 use core::convert::From;
 use core::num::NonZeroU32;
-use crate::error::Error;
+use std::{error, io};
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
@@ -31,4 +31,4 @@ impl From<Error> for io::Error {
     }
 }
 
-impl error::Error for Error { }
+impl error::Error for Error {}

@@ -42,7 +42,9 @@ fn libc_getrandom(rand: GetRandomFn, dest: &mut [u8]) -> Result<(), Error> {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! { static ref GETRANDOM_FUNC: Option<GetRandomFn> = fetch_getrandom(); }
+    lazy_static! {
+        static ref GETRANDOM_FUNC: Option<GetRandomFn> = fetch_getrandom();
+    }
 
     // 256 bytes is the lowest common denominator across all the Solaris
     // derived platforms for atomically obtaining random data.
@@ -62,4 +64,6 @@ fn fetch_getrandom() -> Option<GetRandomFn> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}
