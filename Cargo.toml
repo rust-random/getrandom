@@ -23,19 +23,18 @@ log = { version = "0.4", optional = true }
 [target.'cfg(any(unix, target_os = "wasi"))'.dependencies]
 libc = "0.2.54"
 
-[target.'cfg(unix)'.dependencies]
+# For holding file descriptors
+[target.'cfg(any(unix, target_os = "redox"))'.dependencies]
 lazy_static = "1.3.0"
 
-[target.'cfg(target_os = "redox")'.dependencies]
-lazy_static = "1.3.0"
+# For caching result of CPUID check for RDRAND
+[target.'cfg(any(target_env = "sgx", target_os = "uefi"))'.dependencies]
+lazy_static = { version = "1.3.0", features = ["spin_no_std"] }
 
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { version = "0.2.29", optional = true }
 stdweb = { version = "0.4.9", optional = true }
 lazy_static = "1.3.0"
-
-[target.'cfg(any(target_env = "sgx", target_os = "uefi"))'.dependencies]
-lazy_static = { version = "1.3.0", features = ["spin_no_std"] }
 
 [features]
 std = []
