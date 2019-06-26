@@ -8,8 +8,8 @@
 
 //! A dummy implementation for unsupported targets which always returns
 //! `Err(Error::UNAVAILABLE)`
-use core::num::NonZeroU32;
 use crate::Error;
+use core::num::NonZeroU32;
 
 pub fn getrandom_inner(_: &mut [u8]) -> Result<(), Error> {
     error!("no support for this platform");
@@ -17,4 +17,6 @@ pub fn getrandom_inner(_: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

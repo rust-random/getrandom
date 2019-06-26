@@ -8,8 +8,8 @@
 
 //! Implementation for SGX using RDRAND instruction
 use crate::Error;
-use core::mem;
 use core::arch::x86_64::{__cpuid, _rdrand64_step};
+use core::mem;
 use core::num::NonZeroU32;
 use lazy_static::lazy_static;
 
@@ -80,4 +80,6 @@ unsafe fn rdrand_exact(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

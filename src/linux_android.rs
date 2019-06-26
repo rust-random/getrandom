@@ -16,9 +16,7 @@ use std::io;
 
 fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
     let flags = if block { 0 } else { libc::GRND_NONBLOCK };
-    let ret = unsafe {
-        libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), flags)
-    };
+    let ret = unsafe { libc::syscall(libc::SYS_getrandom, dest.as_mut_ptr(), dest.len(), flags) };
     if ret < 0 {
         let err = io::Error::last_os_error();
         if err.raw_os_error() == Some(libc::EINTR) {
@@ -31,7 +29,9 @@ fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! { static ref HAS_GETRANDOM: bool = is_getrandom_available(); }
+    lazy_static! {
+        static ref HAS_GETRANDOM: bool = is_getrandom_available();
+    }
     match *HAS_GETRANDOM {
         true => {
             let mut start = 0;
@@ -39,7 +39,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                 start += syscall_getrandom(&mut dest[start..], true)?;
             }
             Ok(())
-        },
+        }
         false => use_file::getrandom_inner(dest),
     }
 }
@@ -48,12 +48,14 @@ fn is_getrandom_available() -> bool {
     match syscall_getrandom(&mut [], false) {
         Err(err) => match err.raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
-            Some(libc::EPERM) => false, // Blocked by seccomp
+            Some(libc::EPERM) => false,  // Blocked by seccomp
             _ => true,
-        }
+        },
         Ok(_) => true,
     }
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

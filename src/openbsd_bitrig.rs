@@ -15,12 +15,7 @@ use std::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
-        let ret = unsafe {
-            libc::getentropy(
-                chunk.as_mut_ptr() as *mut libc::c_void,
-                chunk.len()
-            )
-        };
+        let ret = unsafe { libc::getentropy(chunk.as_mut_ptr() as *mut libc::c_void, chunk.len()) };
         if ret == -1 {
             error!("libc::getentropy call failed");
             return Err(io::Error::last_os_error().into());
@@ -30,4 +25,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

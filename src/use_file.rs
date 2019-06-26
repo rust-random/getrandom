@@ -32,7 +32,9 @@ const FILE_PATH: &str = "/dev/urandom";
 const FILE_PATH: &str = "/dev/random";
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! { static ref RNG_FD: Result<RawFd, Error> = init_file(); }
+    lazy_static! {
+        static ref RNG_FD: Result<RawFd, Error> = init_file();
+    }
     let mut f = unsafe { File::from_raw_fd((*RNG_FD)?) };
 
     if cfg!(target_os = "emscripten") {
@@ -56,4 +58,6 @@ fn init_file() -> Result<RawFd, Error> {
 
 #[inline(always)]
 #[allow(dead_code)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

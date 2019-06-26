@@ -31,18 +31,18 @@ fn test_huge() {
     getrandom(&mut huge).unwrap();
 }
 
-#[cfg(any(unix, windows, target_os="redox", target_os = "fuchsia"))]
+#[cfg(any(unix, windows, target_os = "redox", target_os = "fuchsia"))]
 #[test]
 fn test_multithreading() {
     use std::sync::mpsc::channel;
     use std::thread;
 
-    let mut txs = vec!();
+    let mut txs = vec![];
     for _ in 0..20 {
         let (tx, rx) = channel();
         txs.push(tx);
 
-        thread::spawn(move|| {
+        thread::spawn(move || {
             // wait until all the tasks are ready to go.
             rx.recv().unwrap();
             let mut v = [0u8; 1000];

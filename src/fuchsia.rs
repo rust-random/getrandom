@@ -7,8 +7,8 @@
 // except according to those terms.
 
 //! Implementation for Fuchsia Zircon
-use core::num::NonZeroU32;
 use crate::Error;
+use core::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     fuchsia_cprng::cprng_draw(dest);
@@ -16,4 +16,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

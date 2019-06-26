@@ -10,9 +10,9 @@
 use core::mem;
 use core::num::NonZeroU32;
 
-use stdweb::{js, _js_impl};
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
+use stdweb::{_js_impl, js};
 
 use crate::Error;
 use lazy_static::lazy_static;
@@ -20,13 +20,15 @@ use lazy_static::lazy_static;
 #[derive(Clone, Copy, Debug)]
 enum RngSource {
     Browser,
-    Node
+    Node,
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
 
-    lazy_static! { static ref RNG_SOURCE: Result<RngSource, Error> = getrandom_init(); }
+    lazy_static! {
+        static ref RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
+    }
     getrandom_fill((*RNG_SOURCE)?, dest)
 }
 
@@ -51,14 +53,18 @@ fn getrandom_init() -> Result<RngSource, Error> {
         }
     };
 
-    if js!{ return @{ result.as_ref() }.success } == true {
-        let ty = js!{ return @{ result }.ty };
+    if js! { return @{ result.as_ref() }.success } == true {
+        let ty = js! { return @{ result }.ty };
 
-        if ty == 1 { Ok(RngSource::Browser) }
-        else if ty == 2 { Ok(RngSource::Node) }
-        else { unreachable!() }
+        if ty == 1 {
+            Ok(RngSource::Browser)
+        } else if ty == 2 {
+            Ok(RngSource::Node)
+        } else {
+            unreachable!()
+        }
     } else {
-        let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
+        let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
         error!("getrandom unavailable: {}", err);
         Err(Error::UNAVAILABLE)
     }
@@ -90,17 +96,19 @@ fn getrandom_fill(source: RngSource, dest: &mut [u8]) -> Result<(), Error> {
                 } catch(err) {
                     return { success: false, error: err };
                 }
-            }
+            },
         };
 
-        if js!{ return @{ result.as_ref() }.success } != true {
-            let err: WebError = js!{ return @{ result }.error }.try_into().unwrap();
+        if js! { return @{ result.as_ref() }.success } != true {
+            let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
             error!("getrandom failed: {}", err);
-            return Err(Error::UNKNOWN)
+            return Err(Error::UNKNOWN);
         }
     }
     Ok(())
 }
 
 #[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> { None }
+pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
+    None
+}

@@ -28,7 +28,7 @@ matrix:
       install:
         - rustup component add rustfmt
       script:
-        - cargo fmt --all -- src/*.rs --check
+        - cargo fmt --all -- */*.rs --check
 
     - rust: nightly
       os: linux

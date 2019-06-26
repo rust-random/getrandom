@@ -5,9 +5,9 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use core::num::NonZeroU32;
 use core::convert::From;
 use core::fmt;
+use core::num::NonZeroU32;
 
 // A randomly-chosen 24-bit prefix for our codes
 pub(crate) const CODE_PREFIX: u32 = 0x57f4c500;
@@ -22,14 +22,10 @@ pub struct Error(pub(crate) NonZeroU32);
 
 impl Error {
     /// An unknown error.
-    pub const UNKNOWN: Error = Error(unsafe {
-        NonZeroU32::new_unchecked(CODE_UNKNOWN)
-    });
+    pub const UNKNOWN: Error = Error(unsafe { NonZeroU32::new_unchecked(CODE_UNKNOWN) });
 
     /// No generator is available.
-    pub const UNAVAILABLE: Error = Error(unsafe {
-        NonZeroU32::new_unchecked(CODE_UNAVAILABLE)
-    });
+    pub const UNAVAILABLE: Error = Error(unsafe { NonZeroU32::new_unchecked(CODE_UNAVAILABLE) });
 
     /// Extract the error code.
     ///
@@ -48,7 +44,7 @@ impl Error {
             match *self {
                 Error::UNKNOWN => Some("getrandom: unknown error"),
                 Error::UNAVAILABLE => Some("getrandom: unavailable"),
-                _ => None
+                _ => None,
             }
         }
     }
@@ -80,8 +76,8 @@ impl From<NonZeroU32> for Error {
 
 #[cfg(test)]
 mod tests {
-    use core::mem::size_of;
     use super::Error;
+    use core::mem::size_of;
 
     #[test]
     fn test_size() {

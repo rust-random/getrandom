@@ -14,8 +14,8 @@ use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use crate::Error;
 use crate::error::CODE_PREFIX;
+use crate::Error;
 
 const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 0x80;
 const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 0x81;
@@ -72,7 +72,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
     let is_browser = this.self_() != JsValue::undefined();
 
     if !is_browser {
-        return Ok(RngSource::Node(node_require("crypto")))
+        return Ok(RngSource::Node(node_require("crypto")));
     }
 
     // If `self` is defined then we're in a browser somehow (main window
@@ -104,7 +104,7 @@ pub fn error_msg_inner(n: NonZeroU32) -> Option<&'static str> {
     match n.get() {
         CODE_CRYPTO_UNDEF => Some("getrandom: self.crypto is undefined"),
         CODE_GRV_UNDEF => Some("crypto.getRandomValues is undefined"),
-        _ => None
+        _ => None,
     }
 }
 
