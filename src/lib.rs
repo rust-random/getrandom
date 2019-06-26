@@ -107,7 +107,7 @@
 //! [8]: https://leaf.dragonflybsd.org/cgi/web-man?command=random&section=4
 //! [9]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
-//! [11]: https://fuchsia.googlesource.com/zircon/+/HEAD/docs/syscalls/cprng_draw.md
+//! [11]: https://fuchsia.googlesource.com/fuchsia/+/master/zircon/docs/syscalls/cprng_draw.md
 //! [12]: https://github.com/redox-os/randd/blob/master/src/main.rs
 //! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
