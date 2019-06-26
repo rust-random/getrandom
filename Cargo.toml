@@ -29,9 +29,6 @@ lazy_static = "1.3.0"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.6", features = ["minwindef", "ntsecapi", "winnt"] }
 
-[target.'cfg(target_os = "cloudabi")'.dependencies]
-cloudabi = "0.0.3"
-
 [target.'cfg(fuchsia)'.dependencies]
 fuchsia-cprng = "0.1"
 
