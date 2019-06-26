@@ -26,9 +26,6 @@ libc = "0.2.54"
 [target.'cfg(unix)'.dependencies]
 lazy_static = "1.3.0"
 
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.6", features = ["minwindef", "ntsecapi", "winnt"] }
-
 [target.'cfg(fuchsia)'.dependencies]
 fuchsia-cprng = "0.1"
 
