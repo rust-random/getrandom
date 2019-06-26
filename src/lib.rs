@@ -24,7 +24,7 @@
 //! | Redox            | [`rand:`][12]
 //! | CloudABI         | [`random_get`][13]
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
-//! | SGX              | RDRAND
+//! | SGX, UEFI        | [RDRAND][18]
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
@@ -114,6 +114,7 @@
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
 //! [16]: #support-for-webassembly-and-amsjs
 //! [17]: https://github.com/CraneStation/wasmtime/blob/master/docs/WASI-api.md#__wasi_random_get
+//! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 
 #![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
        html_favicon_url = "https://www.rust-lang.org/favicon.ico",
