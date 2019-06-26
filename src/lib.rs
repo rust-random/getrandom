@@ -153,11 +153,11 @@ macro_rules! mod_use {
     };
 }
 
+// These targets use std anyway, so we use the std declarations.
 #[cfg(any(
     feature = "std",
     windows,
     unix,
-    target_os = "cloudabi",
     target_os = "redox",
     target_arch = "wasm32",
 ))]
