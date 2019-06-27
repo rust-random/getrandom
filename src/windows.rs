@@ -12,14 +12,16 @@ extern crate std;
 use crate::Error;
 use core::num::NonZeroU32;
 use std::io;
-use winapi::shared::minwindef::ULONG;
-use winapi::um::ntsecapi::RtlGenRandom;
-use winapi::um::winnt::PVOID;
+
+extern "system" {
+    #[link_name = "SystemFunction036"]
+    fn RtlGenRandom(RandomBuffer: *mut u8, RandomBufferLength: u32) -> u8;
+}
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    // Prevent overflow of ULONG
-    for chunk in dest.chunks_mut(ULONG::max_value() as usize) {
-        let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr() as PVOID, chunk.len() as ULONG) };
+    // Prevent overflow of u32
+    for chunk in dest.chunks_mut(u32::max_value() as usize) {
+        let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr(), chunk.len() as u32) };
         if ret == 0 {
             error!("RtlGenRandom call failed");
             return Err(io::Error::last_os_error().into());

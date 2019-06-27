@@ -22,7 +22,7 @@
 //! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS       | [`cprng_draw`][11]
 //! | Redox            | [`rand:`][12]
-//! | CloudABI         | [`random_get`][13]
+//! | CloudABI         | [`cloudabi_sys_random_get`][13]
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
 //! | SGX, UEFI        | [RDRAND][18]
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
@@ -99,7 +99,7 @@
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
-//! [3]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa387694.aspx
+//! [3]: https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/nf-ntsecapi-rtlgenrandom
 //! [4]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
 //! [6]: https://man.openbsd.org/getentropy.2
@@ -107,9 +107,9 @@
 //! [8]: https://leaf.dragonflybsd.org/cgi/web-man?command=random&section=4
 //! [9]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
-//! [11]: https://fuchsia.googlesource.com/zircon/+/HEAD/docs/syscalls/cprng_draw.md
+//! [11]: https://fuchsia.googlesource.com/fuchsia/+/master/zircon/docs/syscalls/cprng_draw.md
 //! [12]: https://github.com/redox-os/randd/blob/master/src/main.rs
-//! [13]: https://github.com/NuxiNL/cloudabi/blob/v0.20/cloudabi.txt#L1826
+//! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
 //! [16]: #support-for-webassembly-and-amsjs
@@ -153,11 +153,11 @@ macro_rules! mod_use {
     };
 }
 
+// These targets use std anyway, so we use the std declarations.
 #[cfg(any(
     feature = "std",
     windows,
     unix,
-    target_os = "cloudabi",
     target_os = "redox",
     target_arch = "wasm32",
 ))]

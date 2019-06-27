@@ -22,7 +22,7 @@ struct SecRandom([u8; 0]);
 extern "C" {
     static kSecRandomDefault: *const SecRandom;
 
-    fn SecRandomCopyBytes(rnd: *const SecRandom, count: usize, bytes: *mut u8) -> libc::c_int;
+    fn SecRandomCopyBytes(rnd: *const SecRandom, count: usize, bytes: *mut u8) -> i32;
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
