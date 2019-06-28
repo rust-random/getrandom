@@ -25,6 +25,7 @@ const FILE_PATH: &str = "/dev/urandom";
     target_os = "dragonfly",
     target_os = "emscripten",
     target_os = "haiku",
+    target_os = "macos",
     target_os = "solaris",
     target_os = "illumos"
 ))]

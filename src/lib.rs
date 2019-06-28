@@ -167,6 +167,7 @@ mod error_impls;
 #[cfg(any(
     target_os = "android",
     target_os = "linux",
+    target_os = "macos",
     target_os = "solaris",
     target_os = "illumos",
 ))]
