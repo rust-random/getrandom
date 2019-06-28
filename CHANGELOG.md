@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2019-06-28
+### Added
+- Add support for `x86_64-unknown-uefi` target by using RDRAND with CPUID
+feature detection. [#30]
+
+### Fixed
+- Fix long buffer issues on Windows and Linux. [#31] [#32]
+- Check `EPERM` in addition to `ENOSYS` on Linux. [#37]
+
+### Changed
+- Improve efficiency by sharing file descriptor across threads. [#13]
+- Remove `cloudabi`, `winapi`, and `fuchsia-cprng` dependencies. [#40]
+- Improve RDRAND implementation. [#24]
+- Don't block during syscall detection on Linux. [#26]
+- Increase consistency with libc implementation on FreeBSD. [#36]
+- Apply `rustfmt`. [#39]
+
+[#30]: https://github.com/rust-random/getrandom/pull/30
+[#13]: https://github.com/rust-random/getrandom/issues/13
+[#40]: https://github.com/rust-random/getrandom/pull/40
+[#26]: https://github.com/rust-random/getrandom/pull/26
+[#24]: https://github.com/rust-random/getrandom/pull/24
+[#39]: https://github.com/rust-random/getrandom/pull/39
+[#36]: https://github.com/rust-random/getrandom/pull/36
+[#31]: https://github.com/rust-random/getrandom/issues/31
+[#32]: https://github.com/rust-random/getrandom/issues/32
+[#37]: https://github.com/rust-random/getrandom/issues/37
 
 ## [0.1.3] - 2019-05-15
 - Update for `wasm32-unknown-wasi` being renamed to `wasm32-wasi`, and for
