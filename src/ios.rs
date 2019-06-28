@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation for MacOS / iOS
+//! Implementation for iOS
 extern crate std;
 
 use crate::Error;
