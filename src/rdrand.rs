@@ -11,7 +11,6 @@ use crate::Error;
 use core::arch::x86_64::{__cpuid, _rdrand64_step};
 use core::mem;
 use core::num::NonZeroU32;
-use lazy_static::lazy_static;
 
 // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
@@ -43,6 +42,7 @@ fn is_rdrand_supported() -> bool {
     if cfg!(target_feature = "rdrand") {
         true
     } else {
+        use lazy_static::lazy_static;
         // SAFETY: All x86_64 CPUs support CPUID leaf 1
         const FLAG: u32 = 1 << 30;
         lazy_static! {
