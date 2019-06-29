@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2019-06-29
+### Fixed
+- Use shared `File` instead of shared file descriptor. [#44]
+- Workaround for RDRAND hardware bug present on some AMD CPUs. [#43]
+
+### Changed
+- Try `getentropy` and then fallback to `/dev/random` on macOS. [#38]
+
+[#38]: https://github.com/rust-random/getrandom/issues/38
+[#43]: https://github.com/rust-random/getrandom/pull/43
+[#44]: https://github.com/rust-random/getrandom/issues/44
+
 ## [0.1.4] - 2019-06-28
 ### Added
 - Add support for `x86_64-unknown-uefi` target by using RDRAND with CPUID

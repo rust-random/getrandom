@@ -19,6 +19,10 @@ matrix:
       os: osx
       install:
         - rustup target add aarch64-apple-ios
+      script:
+        - cargo test
+        - cargo test --examples
+        - cargo build --target aarch64-apple-ios
 
     - rust: beta
       env: DESCRIPTION="Linux, beta"

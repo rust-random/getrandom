@@ -28,7 +28,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
             if cfg!(not(target_env = "sgx")) && (el == 0 || el == !0) {
                 error!("RDRAND returned suspicious value {}, CPU RNG is broken", el);
-                return Err(Error::UNKNOWN)
+                return Err(Error::UNKNOWN);
             }
             return Ok(el.to_ne_bytes());
         }
