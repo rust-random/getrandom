@@ -15,7 +15,6 @@ use lazy_static::lazy_static;
 use std::{
     fs::File,
     io::Read,
-    os::unix::io::{FromRawFd, IntoRawFd, RawFd},
 };
 
 #[cfg(target_os = "redox")]
@@ -33,9 +32,9 @@ const FILE_PATH: &str = "/dev/random";
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     lazy_static! {
-        static ref RNG_FD: Result<RawFd, Error> = init_file();
+        static ref FILE: Result<File, Error> = init_file();
     }
-    let mut f = unsafe { File::from_raw_fd((*RNG_FD)?) };
+    let mut f = FILE.as_ref()?;
 
     if cfg!(target_os = "emscripten") {
         // `Crypto.getRandomValues` documents `dest` should be at most 65536 bytes.
@@ -48,12 +47,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     Ok(())
 }
 
-fn init_file() -> Result<RawFd, Error> {
+fn init_file() -> Result<File, Error> {
     if FILE_PATH == "/dev/urandom" {
         // read one byte from "/dev/random" to ensure that OS RNG has initialized
         File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
     }
-    Ok(File::open(FILE_PATH)?.into_raw_fd())
+    Ok(File::open(FILE_PATH)?)
 }
 
 #[inline(always)]

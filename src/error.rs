@@ -74,6 +74,12 @@ impl From<NonZeroU32> for Error {
     }
 }
 
+impl From<&Error> for Error {
+    fn from(error: &Error) -> Self {
+        *error
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Error;
