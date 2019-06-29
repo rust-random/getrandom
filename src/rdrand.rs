@@ -27,7 +27,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             // set CF on bogus random data, so we check these values explictly.
             // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
             // We perform this check regardless of target to guard against
-            // future implementations that incorrectly set CF.
+            // any implementation that incorrectly fails to set CF.
             if el != 0 && el != !0 {
                 return Ok(el.to_ne_bytes());
             }
