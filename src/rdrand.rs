@@ -26,7 +26,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             // AMD CPUs from families 14h to 16h (pre Ryzen) will sometimes give
             // bogus random data. Discard these values and warn the user.
             // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
-            if el == 0 || el == !0 {
+            if cfg!(not(target_env = "sgx")) && (el == 0 || el == !0) {
                 error!("RDRAND returned suspicious value {}, CPU RNG is broken", el);
                 return Err(Error::UNKNOWN)
             }
