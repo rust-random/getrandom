@@ -23,6 +23,13 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     for _ in 0..RETRY_LIMIT {
         let mut el = mem::uninitialized();
         if _rdrand64_step(&mut el) == 1 {
+            // AMD CPUs from families 14h to 16h (pre Ryzen) will sometimes give
+            // bogus random data. Discard these values and warn the user.
+            // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
+            if cfg!(not(target_env = "sgx")) && (el == 0 || el == !0) {
+                error!("RDRAND returned suspicious value {}, CPU RNG is broken", el);
+                return Err(Error::UNKNOWN)
+            }
             return Ok(el.to_ne_bytes());
         }
     }
@@ -36,14 +43,14 @@ compile_error!(
     "SGX targets require 'rdrand' target feature. Enable by using -C target-feature=+rdrnd."
 );
 
-#[cfg(any(target_env = "sgx", target_feature = "rdrand"))]
+#[cfg(target_feature = "rdrand")]
 fn is_rdrand_supported() -> bool {
     true
 }
 
 // TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
 // https://github.com/rust-lang-nursery/stdsimd/issues/464
-#[cfg(not(any(target_env = "sgx", target_feature = "rdrand")))]
+#[cfg(not(target_feature = "rdrand"))]
 fn is_rdrand_supported() -> bool {
     use core::arch::x86_64::__cpuid;
     use lazy_static::lazy_static;
