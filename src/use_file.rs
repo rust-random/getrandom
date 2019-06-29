@@ -12,10 +12,7 @@ extern crate std;
 use crate::Error;
 use core::num::NonZeroU32;
 use lazy_static::lazy_static;
-use std::{
-    fs::File,
-    io::Read,
-};
+use std::{fs::File, io::Read};
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &str = "rand:";
