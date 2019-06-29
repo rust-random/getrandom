@@ -14,7 +14,8 @@
 //! |------------------|---------------------------------------------------------
 //! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after reading from `/dev/random` once
 //! | Windows          | [`RtlGenRandom`][3]
-//! | macOS, iOS       | [`SecRandomCopyBytes`][4]
+//! | macOS            | [`getentropy()`][19] if available, otherise [`/dev/random`][20] (identical to `/dev/urandom`)
+//! | iOS              | [`SecRandomCopyBytes`][4]
 //! | FreeBSD          | [`kern.arandom`][5]
 //! | OpenBSD, Bitrig  | [`getentropy`][6]
 //! | NetBSD           | [`/dev/urandom`][7] after reading from `/dev/random` once
@@ -115,6 +116,8 @@
 //! [16]: #support-for-webassembly-and-amsjs
 //! [17]: https://github.com/CraneStation/wasmtime/blob/master/docs/WASI-api.md#__wasi_random_get
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
+//! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
+//! [20]: https://www.unix.com/man-page/mojave/4/random/
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
