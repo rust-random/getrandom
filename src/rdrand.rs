@@ -23,14 +23,16 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     for _ in 0..RETRY_LIMIT {
         let mut el = mem::uninitialized();
         if _rdrand64_step(&mut el) == 1 {
-            // AMD CPUs from families 14h to 16h (pre Ryzen) will sometimes give
-            // bogus random data. Discard these values and warn the user.
+            // AMD CPUs from families 14h to 16h (pre Ryzen) sometimes fail to
+            // set CF on bogus random data, so we check these values explictly.
             // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
-            if cfg!(not(target_env = "sgx")) && (el == 0 || el == !0) {
-                error!("RDRAND returned suspicious value {}, CPU RNG is broken", el);
-                return Err(Error::UNKNOWN);
+            // We perform this check regardless of target to guard against
+            // future implementations that incorrectly set CF.
+            if el != 0 && el != !0 {
+                return Ok(el.to_ne_bytes());
             }
-            return Ok(el.to_ne_bytes());
+            error!("RDRAND returned {:X}, CPU RNG may be broken", el);
+            // Keep looping in case this was a false positive.
         }
     }
     error!("RDRAND failed, CPU issue likely");
