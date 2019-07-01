@@ -7,6 +7,7 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
+use crate::util::LazyBool;
 use crate::Error;
 use core::arch::x86_64::_rdrand64_step;
 use core::mem;
@@ -55,13 +56,10 @@ fn is_rdrand_supported() -> bool {
 #[cfg(not(target_feature = "rdrand"))]
 fn is_rdrand_supported() -> bool {
     use core::arch::x86_64::__cpuid;
-    use lazy_static::lazy_static;
     // SAFETY: All x86_64 CPUs support CPUID leaf 1
     const FLAG: u32 = 1 << 30;
-    lazy_static! {
-        static ref HAS_RDRAND: bool = unsafe { __cpuid(1).ecx & FLAG != 0 };
-    }
-    *HAS_RDRAND
+    static HAS_RDRAND: LazyBool = LazyBool::new();
+    HAS_RDRAND.unsync_init(|| unsafe { (__cpuid(1).ecx & FLAG) != 0 })
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
