@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Minor change of RDRAND AMD bug handling. [#48]
 
-[#43]: https://github.com/rust-random/getrandom/pull/43
+[#48]: https://github.com/rust-random/getrandom/pull/48
 
 ## [0.1.5] - 2019-06-29
 ### Fixed
