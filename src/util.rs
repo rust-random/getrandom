@@ -14,20 +14,24 @@ pub struct LazyUsize(AtomicUsize);
 
 impl LazyUsize {
     pub const fn new() -> Self {
-        Self(AtomicUsize::new(usize::max_value()))
+        Self(AtomicUsize::new(Self::UNINIT))
     }
+
+    // The initialization is not completed.
+    pub const UNINIT: usize = usize::max_value();
 
     // Runs the init() function at least once, returning the value of some run
     // of init(). Unlike std::sync::Once, the init() function may be run
-    // multiple times. If init() returns usize::max_value(), the init() function
-    // will always be retried on a future call to unsync_init(). This makes it
-    // ideal for representing failure.
+    // multiple times. If init() returns UNINIT, future calls to unsync_init()
+    // will always retry. This makes UNINIT ideal for representing failure.
     pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
         // Relaxed ordering is fine, as we only have a single atomic variable.
-        if self.0.load(Ordering::Relaxed) == usize::max_value() {
-            self.0.store(init(), Ordering::Relaxed)
+        let mut val = self.0.load(Ordering::Relaxed);
+        if val == Self::UNINIT {
+            val = init();
+            self.0.store(val, Ordering::Relaxed);
         }
-        self.0.load(Ordering::Relaxed)
+        val
     }
 }
 
