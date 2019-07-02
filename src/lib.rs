@@ -147,7 +147,7 @@ mod util;
 
 // These targets need weak linkage to libc randomness functions.
 #[cfg(any(target_os = "macos", target_os = "solaris", target_os = "illumos"))]
-mod weak;
+mod util_libc;
 
 // System-specific implementations.
 //

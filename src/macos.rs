@@ -9,7 +9,7 @@
 //! Implementation for macOS
 extern crate std;
 
-use crate::weak::Weak;
+use crate::util_libc::Weak;
 use crate::{use_file, Error};
 use core::num::NonZeroU32;
 use std::io;

@@ -19,7 +19,7 @@
 //! libc::dlsym.
 extern crate std;
 
-use crate::weak::Weak;
+use crate::util_libc::Weak;
 use crate::{use_file, Error};
 use core::mem;
 use core::num::NonZeroU32;

@@ -23,7 +23,7 @@ impl LazyUsize {
     // will always be retried on a future call to unsync_init(). This makes it
     // ideal for representing failure.
     pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
-        // Relaxed ordering is fine, as init() is allowed to run mulitple times.
+        // Relaxed ordering is fine, as we only have a single atomic variable.
         if self.0.load(Ordering::Relaxed) == usize::max_value() {
             self.0.store(init(), Ordering::Relaxed)
         }
