@@ -230,8 +230,6 @@ cfg_if! {
             if #[cfg(feature = "wasm-bindgen")] {
                 #[path = "wasm32_bindgen.rs"] mod imp;
             } else if #[cfg(feature = "stdweb")] {
-                // temp fix for stdweb
-                extern crate std;
                 #[path = "wasm32_stdweb.rs"] mod imp;
             } else {
                 #[path = "dummy.rs"] mod imp;
