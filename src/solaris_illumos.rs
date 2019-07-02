@@ -19,10 +19,10 @@
 //! libc::dlsym.
 extern crate std;
 
+use crate::util_libc::Weak;
 use crate::{use_file, Error};
 use core::mem;
 use core::num::NonZeroU32;
-use lazy_static::lazy_static;
 use std::io;
 
 #[cfg(target_os = "illumos")]
@@ -30,37 +30,23 @@ type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> 
 #[cfg(target_os = "solaris")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::c_int;
 
-fn libc_getrandom(rand: GetRandomFn, dest: &mut [u8]) -> Result<(), Error> {
-    let ret = unsafe { rand(dest.as_mut_ptr(), dest.len(), 0) as libc::ssize_t };
-
-    if ret == -1 || ret != dest.len() as libc::ssize_t {
-        error!("getrandom syscall failed with ret={}", ret);
-        Err(io::Error::last_os_error().into())
-    } else {
-        Ok(())
-    }
-}
-
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! {
-        static ref GETRANDOM_FUNC: Option<GetRandomFn> = fetch_getrandom();
+    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+    if let Some(fptr) = GETRANDOM.ptr() {
+        let func: GetRandomFn = unsafe { mem::transmute(fptr) };
+        // 256 bytes is the lowest common denominator across all the Solaris
+        // derived platforms for atomically obtaining random data.
+        for chunk in dest.chunks_mut(256) {
+            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len(), 0) };
+            if ret != chunk.len() as _ {
+                error!("getrandom syscall failed with ret={}", ret);
+                return Err(io::Error::last_os_error().into());
+            }
+        }
+        Ok(())
+    } else {
+        use_file::getrandom_inner(dest)
     }
-
-    // 256 bytes is the lowest common denominator across all the Solaris
-    // derived platforms for atomically obtaining random data.
-    for chunk in dest.chunks_mut(256) {
-        match *GETRANDOM_FUNC {
-            Some(fptr) => libc_getrandom(fptr, chunk)?,
-            None => use_file::getrandom_inner(chunk)?,
-        };
-    }
-    Ok(())
-}
-
-fn fetch_getrandom() -> Option<GetRandomFn> {
-    let name = "getrandom\0";
-    let addr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, name.as_ptr() as *const _) };
-    unsafe { mem::transmute(addr) }
 }
 
 #[inline(always)]

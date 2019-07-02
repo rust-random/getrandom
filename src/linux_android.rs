@@ -9,9 +9,9 @@
 //! Implementation for Linux / Android
 extern crate std;
 
+use crate::util::LazyBool;
 use crate::{use_file, Error};
 use core::num::NonZeroU32;
-use lazy_static::lazy_static;
 use std::io;
 
 fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
@@ -29,18 +29,15 @@ fn syscall_getrandom(dest: &mut [u8], block: bool) -> Result<usize, io::Error> {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! {
-        static ref HAS_GETRANDOM: bool = is_getrandom_available();
-    }
-    match *HAS_GETRANDOM {
-        true => {
-            let mut start = 0;
-            while start < dest.len() {
-                start += syscall_getrandom(&mut dest[start..], true)?;
-            }
-            Ok(())
+    static HAS_GETRANDOM: LazyBool = LazyBool::new();
+    if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
+        let mut start = 0;
+        while start < dest.len() {
+            start += syscall_getrandom(&mut dest[start..], true)?;
         }
-        false => use_file::getrandom_inner(dest),
+        Ok(())
+    } else {
+        use_file::getrandom_inner(dest)
     }
 }
 
