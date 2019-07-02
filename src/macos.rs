@@ -11,16 +11,18 @@ extern crate std;
 
 use crate::util_libc::Weak;
 use crate::{use_file, Error};
+use core::mem;
 use core::num::NonZeroU32;
 use std::io;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    static GETENTROPY: Weak<GetEntropyFn> = unsafe { Weak::new("getentropy\0") };
-    if let Some(fptr) = GETENTROPY.func() {
+    static GETENTROPY: Weak = unsafe { Weak::new("getentropy\0") };
+    if let Some(fptr) = GETENTROPY.ptr() {
+        let func: GetEntropyFn = unsafe { mem::transmute(fptr) };
         for chunk in dest.chunks_mut(256) {
-            let ret = unsafe { fptr(chunk.as_mut_ptr(), chunk.len()) };
+            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len()) };
             if ret != 0 {
                 error!("getentropy syscall failed with ret={}", ret);
                 return Err(io::Error::last_os_error().into());

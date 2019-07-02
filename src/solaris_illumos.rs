@@ -31,12 +31,13 @@ type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> 
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::c_int;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    static GETRANDOM: Weak<GetRandomFn> = unsafe { Weak::new("getrandom\0") };
-    if let Some(fptr) = GETRANDOM.func() {
+    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+    if let Some(fptr) = GETRANDOM.ptr() {
+        let func: GetRandomFn = unsafe { mem::transmute(fptr) };
         // 256 bytes is the lowest common denominator across all the Solaris
         // derived platforms for atomically obtaining random data.
         for chunk in dest.chunks_mut(256) {
-            let ret = unsafe { fptr(chunk.as_mut_ptr(), chunk.len(), 0) };
+            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len(), 0) };
             if ret != chunk.len() as _ {
                 error!("getrandom syscall failed with ret={}", ret);
                 return Err(io::Error::last_os_error().into());
