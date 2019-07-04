@@ -102,13 +102,14 @@ matrix:
 
     - rust: nightly
       env: DESCRIPTION="cross-platform build only"
+      # Redox: wait for https://github.com/rust-lang/rust/issues/60139
       install:
         - rustup target add x86_64-sun-solaris
         - rustup target add x86_64-unknown-cloudabi
         - rustup target add x86_64-unknown-freebsd
         - rustup target add x86_64-fuchsia
         - rustup target add x86_64-unknown-netbsd
-        - rustup target add x86_64-unknown-redox
+        # - rustup target add x86_64-unknown-redox
         - rustup target add x86_64-fortanix-unknown-sgx
         # For no_std targets
         - rustup component add rust-src
@@ -119,7 +120,7 @@ matrix:
         - cargo build --target=x86_64-unknown-freebsd --all-features
         - cargo build --target=x86_64-fuchsia --all-features
         - cargo build --target=x86_64-unknown-netbsd --all-features
-        - cargo build --target=x86_64-unknown-redox --all-features
+        # - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
         - cargo xbuild --target=x86_64-unknown-uefi
         # also test minimum dependency versions are usable
@@ -129,7 +130,7 @@ matrix:
         - cargo build --target=x86_64-unknown-freebsd --all-features
         - cargo build --target=x86_64-fuchsia --all-features
         - cargo build --target=x86_64-unknown-netbsd --all-features
-        - cargo build --target=x86_64-unknown-redox --all-features
+        # - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
         - cargo xbuild --target=x86_64-unknown-uefi
 
