@@ -20,7 +20,7 @@ members = ["tests/wasm_bindgen"]
 [dependencies]
 log = { version = "0.4", optional = true }
 
-[target.'cfg(any(unix, target_os = "wasi"))'.dependencies]
+[target.'cfg(any(unix, target_os = "redox", target_os = "wasi"))'.dependencies]
 libc = "0.2.54"
 
 # For holding file descriptors

@@ -142,11 +142,11 @@ extern crate std;
 
 mod error;
 pub use crate::error::Error;
+
 #[allow(dead_code)]
 mod util;
-
-// These targets need weak linkage to libc randomness functions.
-#[cfg(any(target_os = "macos", target_os = "solaris", target_os = "illumos"))]
+#[cfg(any(unix, target_os = "redox"))]
+#[allow(dead_code)]
 mod util_libc;
 
 // System-specific implementations.
