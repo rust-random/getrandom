@@ -9,10 +9,15 @@
 //! Implementations that just need to read from a file
 extern crate std;
 
+use crate::util_libc::LazyFd;
 use crate::Error;
+use core::mem::ManuallyDrop;
 use core::num::NonZeroU32;
-use lazy_static::lazy_static;
-use std::{fs::File, io::Read};
+use std::os::unix::io::{FromRawFd, IntoRawFd, RawFd};
+use std::{
+    fs::File,
+    io::{self, Read},
+};
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &str = "rand:";
@@ -29,28 +34,31 @@ const FILE_PATH: &str = "/dev/urandom";
 const FILE_PATH: &str = "/dev/random";
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    lazy_static! {
-        static ref FILE: Result<File, Error> = init_file();
-    }
-    let mut f = FILE.as_ref()?;
+    static FD: LazyFd = LazyFd::new();
+    let fd = FD.init(init_file).ok_or(io::Error::last_os_error())?;
+    let file = ManuallyDrop::new(unsafe { File::from_raw_fd(fd) });
+    let mut file_ref: &File = &file;
 
     if cfg!(target_os = "emscripten") {
         // `Crypto.getRandomValues` documents `dest` should be at most 65536 bytes.
         for chunk in dest.chunks_mut(65536) {
-            f.read_exact(chunk)?;
+            file_ref.read_exact(chunk)?;
         }
     } else {
-        f.read_exact(dest)?;
+        file_ref.read_exact(dest)?;
     }
     Ok(())
 }
 
-fn init_file() -> Result<File, Error> {
+fn init_file() -> Option<RawFd> {
     if FILE_PATH == "/dev/urandom" {
         // read one byte from "/dev/random" to ensure that OS RNG has initialized
-        File::open("/dev/random")?.read_exact(&mut [0u8; 1])?;
+        File::open("/dev/random")
+            .ok()?
+            .read_exact(&mut [0u8; 1])
+            .ok()?;
     }
-    Ok(File::open(FILE_PATH)?)
+    Some(File::open(FILE_PATH).ok()?.into_raw_fd())
 }
 
 #[inline(always)]

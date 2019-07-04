@@ -15,7 +15,7 @@ use stdweb::web::error::Error as WebError;
 use stdweb::{_js_impl, js};
 
 use crate::Error;
-use lazy_static::lazy_static;
+use std::sync::Once;
 
 #[derive(Clone, Copy, Debug)]
 enum RngSource {
@@ -25,11 +25,14 @@ enum RngSource {
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
+    static ONCE: Once = Once::new();
+    static mut RNG_SOURCE: Result<RngSource, Error> = Err(Error::UNAVAILABLE);
 
-    lazy_static! {
-        static ref RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
-    }
-    getrandom_fill((*RNG_SOURCE)?, dest)
+    // SAFETY: RNG_SOURCE is only written once, before being read.
+    ONCE.call_once(|| unsafe {
+        RNG_SOURCE = getrandom_init();
+    });
+    getrandom_fill(unsafe { RNG_SOURCE }?, dest)
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {
