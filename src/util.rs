@@ -6,10 +6,26 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use core::sync::atomic::{AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
 // This structure represents a laziliy initialized static usize value. Useful
 // when it is perferable to just rerun initialization instead of locking.
+// Both unsync_init and sync_init will invoke an init() function until it
+// succeeds, then return the cached value for future calls.
+//
+// Both methods support init() "failing". If the init() method returns UNINIT,
+// that value will be returned as normal, but will not be cached.
+//
+// Users should only depend on the _value_ returned by init() functions.
+// Specifically, for the following init() function:
+//      fn init() -> usize {
+//          a();
+//          let v = b();
+//          c();
+//          v
+//      }
+// the effects of c() or writes to shared memory will not necessarily be
+// observed and additional syncronization methods with be needed.
 pub struct LazyUsize(AtomicUsize);
 
 impl LazyUsize {
@@ -19,19 +35,43 @@ impl LazyUsize {
 
     // The initialization is not completed.
     pub const UNINIT: usize = usize::max_value();
+    // The initialization is currently running.
+    pub const ACTIVE: usize = usize::max_value() - 1;
 
     // Runs the init() function at least once, returning the value of some run
-    // of init(). Unlike std::sync::Once, the init() function may be run
-    // multiple times. If init() returns UNINIT, future calls to unsync_init()
-    // will always retry. This makes UNINIT ideal for representing failure.
+    // of init(). Multiple callers can run their init() functions in parallel.
+    // init() should always return the same value, if it succeeds.
     pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
         // Relaxed ordering is fine, as we only have a single atomic variable.
-        let mut val = self.0.load(Ordering::Relaxed);
+        let mut val = self.0.load(Relaxed);
         if val == Self::UNINIT {
             val = init();
-            self.0.store(val, Ordering::Relaxed);
+            self.0.store(val, Relaxed);
         }
         val
+    }
+
+    // Synchronously runs the init() function. Only one caller will have their
+    // init() function running at a time, and exactly one successful call will
+    // be run. The init() function should never return LazyUsize::ACTIVE.
+    pub fn sync_init(&self, init: impl FnOnce() -> usize, mut wait: impl FnMut()) -> usize {
+        // Common and fast path with no contention. Don't wast time on CAS.
+        match self.0.load(Relaxed) {
+            Self::UNINIT | Self::ACTIVE => {}
+            val => return val,
+        }
+        // Relaxed ordering is fine, as we only have a single atomic variable.
+        loop {
+            match self.0.compare_and_swap(Self::UNINIT, Self::ACTIVE, Relaxed) {
+                Self::UNINIT => {
+                    let val = init();
+                    self.0.store(val, Relaxed);
+                    return val;
+                }
+                Self::ACTIVE => wait(),
+                val => return val,
+            }
+        }
     }
 }
 
