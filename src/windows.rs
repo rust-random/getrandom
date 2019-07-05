@@ -11,7 +11,6 @@ extern crate std;
 
 use crate::Error;
 use core::num::NonZeroU32;
-use std::io;
 
 extern "system" {
     #[link_name = "SystemFunction036"]
@@ -24,7 +23,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr(), chunk.len() as u32) };
         if ret == 0 {
             error!("RtlGenRandom call failed");
-            return Err(io::Error::last_os_error().into());
+            return Err(Error::UNKNOWN);
         }
     }
     Ok(())

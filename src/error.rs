@@ -38,7 +38,7 @@ impl Error {
     }
 
     pub(crate) fn msg(&self) -> Option<&'static str> {
-        if let Some(msg) = super::error_msg_inner(self.0) {
+        if let Some(msg) = crate::imp::error_msg_inner(self.0) {
             Some(msg)
         } else {
             match *self {

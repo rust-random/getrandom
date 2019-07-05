@@ -7,6 +7,7 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
+#[cfg(not(target_feature = "rdrand"))]
 use crate::util::LazyBool;
 use crate::Error;
 use core::arch::x86_64::_rdrand64_step;
