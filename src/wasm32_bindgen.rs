@@ -7,6 +7,8 @@
 // except according to those terms.
 
 //! Implementation for WASM via wasm-bindgen
+extern crate std;
+
 use core::cell::RefCell;
 use core::mem;
 use core::num::NonZeroU32;
