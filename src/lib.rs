@@ -209,9 +209,12 @@ cfg_if! {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(target_env = "sgx")] {
-        #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "x86_64", target_os = "uefi"))] {
+    } else if #[cfg(all(target_arch = "x86_64", any(
+                  target_os = "hermit",
+                  target_os = "l4re",
+                  target_os = "uefi",
+                  target_env = "sgx",
+              )))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(target_arch = "wasm32")] {
         cfg_if! {
