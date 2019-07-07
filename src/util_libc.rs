@@ -5,12 +5,27 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-extern crate std;
-
 use crate::util::LazyUsize;
 use crate::Error;
 use core::ptr::NonNull;
-use std::io;
+
+cfg_if! {
+    if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
+        use libc::__errno as errno_location;
+    } else if #[cfg(any(target_os = "linux", target_os = "emscripten", target_os = "redox"))] {
+        use libc::__errno_location as errno_location;
+    } else if #[cfg(any(target_os = "solaris", target_os = "illumos"))] {
+        use libc::___errno as errno_location;
+    } else if #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly"))] {
+        use libc::__error as errno_location;
+    } else if #[cfg(target_os = "haiku")] {
+        use libc::_errnop as errno_location;
+    }
+}
+
+pub fn last_os_error() -> Error {
+    Error::from_os_error(unsafe { *errno_location() })
+}
 
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
 //   - should return -1 and set errno on failure
@@ -22,10 +37,10 @@ pub fn sys_fill_exact(
     while !buf.is_empty() {
         let res = sys_fill(buf);
         if res < 0 {
-            let err = io::Error::last_os_error();
+            let err = last_os_error();
             // We should try again if the call was interrupted.
             if err.raw_os_error() != Some(libc::EINTR) {
-                return Err(err.into());
+                return Err(err);
             }
         } else {
             // We don't check for EOF (ret = 0) as the data we are reading

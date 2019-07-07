@@ -7,12 +7,12 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
+use crate::error::{FAILED_RDRAND, NO_RDRAND};
 #[cfg(not(target_feature = "rdrand"))]
 use crate::util::LazyBool;
 use crate::Error;
 use core::arch::x86_64::_rdrand64_step;
 use core::mem;
-use core::num::NonZeroU32;
 
 // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
@@ -37,8 +37,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             // Keep looping in case this was a false positive.
         }
     }
-    error!("RDRAND failed, CPU issue likely");
-    Err(Error::UNKNOWN)
+    Err(Error::internal(FAILED_RDRAND))
 }
 
 // "rdrand" target feature requires "+rdrnd" flag, see https://github.com/rust-lang/rust/issues/49653.
@@ -65,7 +64,7 @@ fn is_rdrand_supported() -> bool {
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     if !is_rdrand_supported() {
-        return Err(Error::UNAVAILABLE);
+        return Err(Error::internal(NO_RDRAND));
     }
 
     // SAFETY: After this point, rdrand is supported, so calling the rdrand
@@ -88,9 +87,4 @@ unsafe fn rdrand_exact(dest: &mut [u8]) -> Result<(), Error> {
         tail.copy_from_slice(&rdrand()?[..n]);
     }
     Ok(())
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

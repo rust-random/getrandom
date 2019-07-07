@@ -20,7 +20,6 @@
 use crate::util_libc::{sys_fill_exact, Weak};
 use crate::{use_file, Error};
 use core::mem;
-use core::num::NonZeroU32;
 
 #[cfg(target_os = "illumos")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
@@ -42,9 +41,4 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     } else {
         use_file::getrandom_inner(dest)
     }
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

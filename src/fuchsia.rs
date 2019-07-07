@@ -8,7 +8,6 @@
 
 //! Implementation for Fuchsia Zircon
 use crate::Error;
-use core::num::NonZeroU32;
 
 #[link(name = "zircon")]
 extern "C" {
@@ -18,9 +17,4 @@ extern "C" {
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     unsafe { zx_cprng_draw(dest.as_mut_ptr(), dest.len()) }
     Ok(())
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }
