@@ -199,7 +199,7 @@ cfg_if! {
     } else if #[cfg(target_os = "netbsd")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
-        #[path = "openbsd_bitrig.rs"] mod imp;
+        #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(target_os = "redox")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "solaris")] {
