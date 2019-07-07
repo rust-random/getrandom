@@ -17,7 +17,7 @@
 //! | macOS            | [`getentropy()`][19] if available, otherise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS              | [`SecRandomCopyBytes`][4]
 //! | FreeBSD          | [`kern.arandom`][5]
-//! | OpenBSD, Bitrig  | [`getentropy`][6]
+//! | OpenBSD          | [`getentropy`][6]
 //! | NetBSD           | [`/dev/urandom`][7] after reading from `/dev/random` once
 //! | Dragonfly BSD    | [`/dev/random`][8]
 //! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]
@@ -176,8 +176,6 @@ mod use_file;
 cfg_if! {
     if #[cfg(target_os = "android")] {
         #[path = "linux_android.rs"] mod imp;
-    } else if #[cfg(target_os = "bitrig")] {
-        #[path = "openbsd_bitrig.rs"] mod imp;
     } else if #[cfg(target_os = "cloudabi")] {
         #[path = "cloudabi.rs"] mod imp;
     } else if #[cfg(target_os = "dragonfly")] {
@@ -201,7 +199,7 @@ cfg_if! {
     } else if #[cfg(target_os = "netbsd")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
-        #[path = "openbsd_bitrig.rs"] mod imp;
+        #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(target_os = "redox")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "solaris")] {
