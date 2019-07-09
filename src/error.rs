@@ -24,6 +24,7 @@ const BLOCK_SIZE: u32 = 1 << 16;
 
 impl Error {
     /// Create a new error from a raw OS error number (errno).
+    #[inline]
     pub fn from_os_error(errno: i32) -> Self {
         assert!(errno > 0);
         Self(NonZeroU32::new(errno as u32).unwrap())
@@ -32,9 +33,10 @@ impl Error {
     /// Crate a custom error in the provided block (group of 2^16 error codes).
     /// The provided block must not be negative, and block 0 is reserved for
     /// custom errors in the `getrandom` crate.
+    #[inline]
     pub fn custom_error(block: i16, code: u16) -> Self {
         assert!(block >= 0);
-        let n = CUSTOM_START + (block as u32) * BLOCK_SIZE + (code as u32);
+        let n = CUSTOM_START + (block as u16 as u32) * BLOCK_SIZE + (code as u32);
         Self(NonZeroU32::new(n).unwrap())
     }
 
@@ -43,6 +45,7 @@ impl Error {
     /// This method is identical to `std::io::Error::raw_os_error()`, except
     /// that it works in `no_std` contexts. If this method returns `None`, the
     /// error value can still be formatted via the `Diplay` implementation.
+    #[inline]
     pub fn raw_os_error(&self) -> Option<i32> {
         self.try_os_error().ok()
     }
@@ -51,6 +54,7 @@ impl Error {
     ///
     /// This code can either come from the underlying OS, or be a custom error.
     /// Use [`raw_os_error()`] to disambiguate.
+    #[inline]
     pub fn code(&self) -> NonZeroU32 {
         self.0
     }
