@@ -14,9 +14,9 @@
 //! |------------------|---------------------------------------------------------
 //! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after reading from `/dev/random` once
 //! | Windows          | [`RtlGenRandom`][3]
-//! | macOS            | [`getentropy()`][19] if available, otherise [`/dev/random`][20] (identical to `/dev/urandom`)
+//! | macOS            | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS              | [`SecRandomCopyBytes`][4]
-//! | FreeBSD          | [`getrandom()`][21] if available, otherise [`kern.arandom`][5]
+//! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
 //! | OpenBSD          | [`getentropy`][6]
 //! | NetBSD           | [`/dev/urandom`][7] after reading from `/dev/random` once
 //! | Dragonfly BSD    | [`/dev/random`][8]
