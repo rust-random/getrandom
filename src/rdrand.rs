@@ -23,7 +23,7 @@ const WORD_SIZE: usize = mem::size_of::<u64>();
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     for _ in 0..RETRY_LIMIT {
-        let mut el = mem::uninitialized();
+        let mut el = mem::zeroed();
         if _rdrand64_step(&mut el) == 1 {
             // AMD CPUs from families 14h to 16h (pre Ryzen) sometimes fail to
             // set CF on bogus random data, so we check these values explictly.
