@@ -12,9 +12,15 @@ use crate::Error;
 use core::ptr::NonNull;
 use std::io;
 
-pub fn fill_exact(mut buf: &mut [u8], f: impl Fn(&mut [u8]) -> libc::ssize_t) -> Result<(), Error> {
+// Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
+//   - should return -1 and set errno on failure
+//   - should return the number of bytes written on success
+pub fn sys_fill_exact(
+    mut buf: &mut [u8],
+    sys_fill: impl Fn(&mut [u8]) -> libc::ssize_t,
+) -> Result<(), Error> {
     while !buf.is_empty() {
-        let res = f(buf);
+        let res = sys_fill(buf);
         if res < 0 {
             let err = io::Error::last_os_error();
             // We should try again if the call was interrupted.

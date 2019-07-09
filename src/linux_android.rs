@@ -10,7 +10,7 @@
 extern crate std;
 
 use crate::util::LazyBool;
-use crate::util_libc::fill_exact;
+use crate::util_libc::sys_fill_exact;
 use crate::{use_file, Error};
 use core::num::NonZeroU32;
 use std::io;
@@ -18,7 +18,7 @@ use std::io;
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
-        fill_exact(dest, |buf| unsafe {
+        sys_fill_exact(dest, |buf| unsafe {
             libc::syscall(libc::SYS_getrandom, buf.as_mut_ptr(), buf.len(), 0) as libc::ssize_t
         })
     } else {

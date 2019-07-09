@@ -17,7 +17,7 @@
 //! To make sure we can compile on both Solaris and its derivatives, as well as
 //! function, we check for the existance of getrandom(2) in libc by calling
 //! libc::dlsym.
-use crate::util_libc::{fill_exact, Weak};
+use crate::util_libc::{sys_fill_exact, Weak};
 use crate::{use_file, Error};
 use core::mem;
 use core::num::NonZeroU32;
@@ -34,7 +34,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         // 256 bytes is the lowest common denominator across all the Solaris
         // derived platforms for atomically obtaining random data.
         for chunk in dest.chunks_mut(256) {
-            fill_exact(chunk, |buf| unsafe {
+            sys_fill_exact(chunk, |buf| unsafe {
                 func(buf.as_mut_ptr(), buf.len(), 0) as libc::ssize_t
             })?
         }
