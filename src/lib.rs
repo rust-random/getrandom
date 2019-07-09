@@ -14,9 +14,9 @@
 //! |------------------|---------------------------------------------------------
 //! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after reading from `/dev/random` once
 //! | Windows          | [`RtlGenRandom`][3]
-//! | macOS            | [`getentropy()`][19] if available, otherise [`/dev/random`][20] (identical to `/dev/urandom`)
+//! | macOS            | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS              | [`SecRandomCopyBytes`][4]
-//! | FreeBSD          | [`kern.arandom`][5]
+//! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
 //! | OpenBSD          | [`getentropy`][6]
 //! | NetBSD           | [`/dev/urandom`][7] after reading from `/dev/random` once
 //! | Dragonfly BSD    | [`/dev/random`][8]
@@ -118,6 +118,7 @@
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
+//! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",

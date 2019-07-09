@@ -7,14 +7,14 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD
-extern crate std;
-
+use crate::util_libc::{sys_fill_exact, Weak};
 use crate::Error;
 use core::num::NonZeroU32;
-use core::ptr;
-use std::io;
+use core::{mem, ptr};
 
-fn kern_arnd(buf: &mut [u8]) -> Result<usize, Error> {
+type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
+
+fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
     let mut len = buf.len();
     let ret = unsafe {
@@ -29,17 +29,20 @@ fn kern_arnd(buf: &mut [u8]) -> Result<usize, Error> {
     };
     if ret == -1 {
         error!("freebsd: kern.arandom syscall failed");
-        return Err(io::Error::last_os_error().into());
+        -1
+    } else {
+        len as libc::ssize_t
     }
-    Ok(len)
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let mut start = 0;
-    while start < dest.len() {
-        start += kern_arnd(&mut dest[start..])?;
+    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+    if let Some(fptr) = GETRANDOM.ptr() {
+        let func: GetRandomFn = unsafe { mem::transmute(fptr) };
+        sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) })
+    } else {
+        sys_fill_exact(dest, kern_arnd)
     }
-    Ok(())
 }
 
 #[inline(always)]

@@ -17,13 +17,10 @@
 //! To make sure we can compile on both Solaris and its derivatives, as well as
 //! function, we check for the existance of getrandom(2) in libc by calling
 //! libc::dlsym.
-extern crate std;
-
-use crate::util_libc::Weak;
+use crate::util_libc::{sys_fill_exact, Weak};
 use crate::{use_file, Error};
 use core::mem;
 use core::num::NonZeroU32;
-use std::io;
 
 #[cfg(target_os = "illumos")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
@@ -37,11 +34,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         // 256 bytes is the lowest common denominator across all the Solaris
         // derived platforms for atomically obtaining random data.
         for chunk in dest.chunks_mut(256) {
-            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len(), 0) };
-            if ret != chunk.len() as _ {
-                error!("getrandom syscall failed with ret={}", ret);
-                return Err(io::Error::last_os_error().into());
-            }
+            sys_fill_exact(chunk, |buf| unsafe {
+                func(buf.as_mut_ptr(), buf.len(), 0) as libc::ssize_t
+            })?
         }
         Ok(())
     } else {
