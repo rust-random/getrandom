@@ -129,14 +129,12 @@ cfg_if! {
     }
 }
 
-#[cfg(feature = "std")]
-extern crate std;
-
 mod error;
 pub use crate::error::Error;
 
 #[allow(dead_code)]
 mod util;
+// Unlike the other Unix, Fuchsia and iOS don't use the libc to make any calls.
 #[cfg(any(
     target_os = "android",
     target_os = "dragonfly",
