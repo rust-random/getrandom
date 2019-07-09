@@ -7,14 +7,12 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD
-extern crate std;
-
+use crate::util_libc::fill_exact;
 use crate::Error;
 use core::num::NonZeroU32;
 use core::ptr;
-use std::io;
 
-fn kern_arnd(buf: &mut [u8]) -> Result<usize, Error> {
+fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
     let mut len = buf.len();
     let ret = unsafe {
@@ -29,17 +27,14 @@ fn kern_arnd(buf: &mut [u8]) -> Result<usize, Error> {
     };
     if ret == -1 {
         error!("freebsd: kern.arandom syscall failed");
-        return Err(io::Error::last_os_error().into());
+        -1
+    } else {
+        len as libc::ssize_t
     }
-    Ok(len)
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let mut start = 0;
-    while start < dest.len() {
-        start += kern_arnd(&mut dest[start..])?;
-    }
-    Ok(())
+    fill_exact(dest, kern_arnd)
 }
 
 #[inline(always)]

@@ -5,9 +5,30 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+extern crate std;
 
 use crate::util::LazyUsize;
+use crate::Error;
 use core::ptr::NonNull;
+use std::io;
+
+pub fn fill_exact(mut buf: &mut [u8], f: impl Fn(&mut [u8]) -> libc::ssize_t) -> Result<(), Error> {
+    while !buf.is_empty() {
+        let res = f(buf);
+        if res < 0 {
+            let err = io::Error::last_os_error();
+            // We should try again if the call was interrupted.
+            if err.raw_os_error() != Some(libc::EINTR) {
+                return Err(err.into());
+            }
+        } else {
+            // We don't check for EOF (ret = 0) as the data we are reading
+            // should be an infinite stream of random bytes.
+            buf = &mut buf[(res as usize)..];
+        }
+    }
+    Ok(())
+}
 
 // A "weak" binding to a C function that may or may not be present at runtime.
 // Used for supporting newer OS features while still building on older systems.
