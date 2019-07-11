@@ -25,7 +25,8 @@
 //! | Redox            | [`rand:`][12]
 //! | CloudABI         | [`cloudabi_sys_random_get`][13]
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
-//! | SGX, UEFI        | [RDRAND][18]
+//! | L4RE, SGX, UEFI  | [RDRAND][18]
+//! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
@@ -119,6 +120,7 @@
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
+//! [22]: https://github.com/hermitcore/libhermit-rs/blob/09c38b0371cee6f56a541400ba453e319e43db53/src/syscalls/random.rs#L21
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
