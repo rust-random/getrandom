@@ -65,6 +65,7 @@ impl LazyUsize {
             match self.0.compare_and_swap(Self::UNINIT, Self::ACTIVE, Relaxed) {
                 Self::UNINIT => {
                     let val = init();
+                    assert!(val != Self::ACTIVE);
                     self.0.store(val, Relaxed);
                     return val;
                 }

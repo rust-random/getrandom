@@ -80,7 +80,12 @@ impl LazyFd {
                 None => LazyUsize::UNINIT,
             },
             || unsafe {
-                libc::usleep(1000);
+                // We are usually waiting on an open(2) syscall to complete,
+                // which typically takes < 10us if the file is a device.
+                // However, we might end up waiting much longer if the entropy
+                // pool isn't initialized, but even in that case, this loop will
+                // consume a negligible amount of CPU on most platforms.
+                libc::usleep(10);
             },
         );
         match fd {
