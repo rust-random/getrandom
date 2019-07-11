@@ -53,7 +53,8 @@ impl LazyUsize {
 
     // Synchronously runs the init() function. Only one caller will have their
     // init() function running at a time, and exactly one successful call will
-    // be run. The init() function should never return LazyUsize::ACTIVE.
+    // be run. init() returning UNINIT or ACTIVE will be considered a failure,
+    // and future calls to sync_init will rerun their init() function.
     pub fn sync_init(&self, init: impl FnOnce() -> usize, mut wait: impl FnMut()) -> usize {
         // Common and fast path with no contention. Don't wast time on CAS.
         match self.0.load(Relaxed) {
@@ -65,8 +66,13 @@ impl LazyUsize {
             match self.0.compare_and_swap(Self::UNINIT, Self::ACTIVE, Relaxed) {
                 Self::UNINIT => {
                     let val = init();
-                    assert!(val != Self::ACTIVE);
-                    self.0.store(val, Relaxed);
+                    self.0.store(
+                        match val {
+                            Self::UNINIT | Self::ACTIVE => Self::UNINIT,
+                            val => val,
+                        },
+                        Relaxed,
+                    );
                     return val;
                 }
                 Self::ACTIVE => wait(),
