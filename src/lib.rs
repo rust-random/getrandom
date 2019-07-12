@@ -25,7 +25,8 @@
 //! | Redox            | [`rand:`][12]
 //! | CloudABI         | [`cloudabi_sys_random_get`][13]
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
-//! | SGX, UEFI        | [RDRAND][18]
+//! | L4RE, SGX, UEFI  | [RDRAND][18]
+//! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
@@ -119,6 +120,7 @@
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
+//! [22]: https://github.com/hermitcore/libhermit-rs/blob/09c38b0371cee6f56a541400ba453e319e43db53/src/syscalls/random.rs#L21
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -152,12 +154,39 @@ pub use crate::error::Error;
 
 #[allow(dead_code)]
 mod util;
-#[cfg(any(unix, target_os = "redox"))]
+#[cfg(any(
+    target_os = "android",
+    target_os = "dragonfly",
+    target_os = "emscripten",
+    target_os = "freebsd",
+    target_os = "haiku",
+    target_os = "illumos",
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "netbsd",
+    target_os = "openbsd",
+    target_os = "redox",
+    target_os = "solaris",
+))]
 #[allow(dead_code)]
 mod util_libc;
 
 // std-only trait definitions (also need for use_file)
-#[cfg(any(feature = "std", unix, target_os = "redox"))]
+#[cfg(any(
+    feature = "std",
+    target_os = "android",
+    target_os = "dragonfly",
+    target_os = "emscripten",
+    target_os = "freebsd",
+    target_os = "haiku",
+    target_os = "illumos",
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "netbsd",
+    target_os = "openbsd",
+    target_os = "redox",
+    target_os = "solaris",
+))]
 mod error_impls;
 
 // These targets read from a file as a fallback method.
@@ -209,9 +238,12 @@ cfg_if! {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(target_env = "sgx")] {
-        #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "x86_64", target_os = "uefi"))] {
+    } else if #[cfg(all(target_arch = "x86_64", any(
+                  target_os = "hermit",
+                  target_os = "l4re",
+                  target_os = "uefi",
+                  target_env = "sgx",
+              )))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(target_arch = "wasm32")] {
         cfg_if! {

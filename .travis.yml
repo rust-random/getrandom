@@ -123,6 +123,8 @@ matrix:
         # - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
         - cargo xbuild --target=x86_64-unknown-uefi
+        - cargo xbuild --target=x86_64-unknown-hermit
+        - cargo xbuild --target=x86_64-unknown-l4re-uclibc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
         - cargo build --target=x86_64-sun-solaris --all-features
@@ -133,6 +135,8 @@ matrix:
         # - cargo build --target=x86_64-unknown-redox --all-features
         - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
         - cargo xbuild --target=x86_64-unknown-uefi
+        - cargo xbuild --target=x86_64-unknown-hermit
+        - cargo xbuild --target=x86_64-unknown-l4re-uclibc
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
     - rust: stable
