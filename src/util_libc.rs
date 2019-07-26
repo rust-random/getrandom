@@ -7,6 +7,7 @@
 // except according to those terms.
 use crate::util::LazyUsize;
 use crate::Error;
+use core::num::NonZeroU32;
 use core::ptr::NonNull;
 
 cfg_if! {
@@ -24,7 +25,7 @@ cfg_if! {
 }
 
 pub fn last_os_error() -> Error {
-    Error::from_os_error(unsafe { *errno_location() })
+    Error::from(NonZeroU32::new(unsafe { *errno_location() } as u32).unwrap())
 }
 
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:

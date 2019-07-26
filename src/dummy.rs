@@ -10,5 +10,5 @@
 use crate::{error::UNSUPPORTED, Error};
 
 pub fn getrandom_inner(_: &mut [u8]) -> Result<(), Error> {
-    Err(Error::internal(UNSUPPORTED))
+    Err(UNSUPPORTED)
 }

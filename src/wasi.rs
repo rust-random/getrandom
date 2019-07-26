@@ -8,13 +8,14 @@
 
 //! Implementation for WASI
 use crate::Error;
+use core::num::NonZeroU32;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret =
         unsafe { libc::__wasi_random_get(dest.as_mut_ptr() as *mut libc::c_void, dest.len()) };
-    if ret != 0 {
-        error!("WASI: __wasi_random_get: failed with {}", ret);
-        Err(Error::from_os_error(ret.into()))
+    if let Some(code) = NonZeroU32::new(ret as u32) {
+        error!("WASI: __wasi_random_get: failed with {}", errno);
+        Err(Error::from(code))
     } else {
         Ok(()) // Zero means success for WASI
     }

@@ -69,7 +69,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
     } else {
         let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
         error!("getrandom unavailable: {}", err);
-        Err(Error::internal(STDWEB_NO_RNG))
+        Err(STDWEB_NO_RNG)
     }
 }
 
@@ -105,7 +105,7 @@ fn getrandom_fill(source: RngSource, dest: &mut [u8]) -> Result<(), Error> {
         if js! { return @{ result.as_ref() }.success } != true {
             let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
             error!("getrandom failed: {}", err);
-            return Err(Error::internal(STDWEB_RNG_FAILED));
+            return Err(STDWEB_RNG_FAILED);
         }
     }
     Ok(())

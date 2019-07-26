@@ -79,13 +79,13 @@ fn getrandom_init() -> Result<RngSource, Error> {
     // we're in an older web browser and the OS RNG isn't available.
     let crypto = this.crypto();
     if crypto.is_undefined() {
-        return Err(Error::internal(BINDGEN_CRYPTO_UNDEF));
+        return Err(BINDGEN_CRYPTO_UNDEF);
     }
 
     // Test if `crypto.getRandomValues` is undefined as well
     let crypto: BrowserCrypto = crypto.into();
     if crypto.get_random_values_fn().is_undefined() {
-        return Err(Error::internal(BINDGEN_GRV_UNDEF));
+        return Err(BINDGEN_GRV_UNDEF);
     }
 
     // Ok! `self.crypto.getRandomValues` is a defined value, so let's
