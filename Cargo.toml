@@ -25,7 +25,7 @@ cfg-if = "0.1"
 libc = "0.2.54"
 
 [target.'cfg(any(target_os = "wasi"))'.dependencies]
-wasi-core = "0.2"
+wasi = "0.5"
 
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { version = "0.2.29", optional = true }

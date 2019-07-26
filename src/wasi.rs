@@ -9,7 +9,7 @@
 //! Implementation for WASI
 use crate::Error;
 use core::num::NonZeroU32;
-use wasi_core::wasi_unstable::random_get;
+use wasi::wasi_unstable::random_get;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = random_get(dest);
