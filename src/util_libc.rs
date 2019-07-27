@@ -5,6 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+use crate::error::ERRNO_NOT_POSITIVE;
 use crate::util::LazyUsize;
 use crate::Error;
 use core::num::NonZeroU32;
@@ -25,7 +26,12 @@ cfg_if! {
 }
 
 pub fn last_os_error() -> Error {
-    Error::from(NonZeroU32::new(unsafe { *errno_location() } as u32).unwrap())
+    let errno = unsafe { *errno_location() };
+    if errno > 0 {
+        Error::from(NonZeroU32::new(errno as u32).unwrap())
+    } else {
+        ERRNO_NOT_POSITIVE
+    }
 }
 
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
