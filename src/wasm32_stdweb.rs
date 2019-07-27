@@ -8,12 +8,12 @@
 
 //! Implementation for WASM via stdweb
 use core::mem;
-use core::num::NonZeroU32;
 
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 use stdweb::{_js_impl, js};
 
+use crate::error::{STDWEB_NO_RNG, STDWEB_RNG_FAILED};
 use crate::Error;
 use std::sync::Once;
 
@@ -26,7 +26,7 @@ enum RngSource {
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
     static ONCE: Once = Once::new();
-    static mut RNG_SOURCE: Result<RngSource, Error> = Err(Error::UNAVAILABLE);
+    static mut RNG_SOURCE: Result<RngSource, Error> = Ok(RngSource::Node);
 
     // SAFETY: RNG_SOURCE is only written once, before being read.
     ONCE.call_once(|| unsafe {
@@ -69,7 +69,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
     } else {
         let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
         error!("getrandom unavailable: {}", err);
-        Err(Error::UNAVAILABLE)
+        Err(STDWEB_NO_RNG)
     }
 }
 
@@ -105,13 +105,8 @@ fn getrandom_fill(source: RngSource, dest: &mut [u8]) -> Result<(), Error> {
         if js! { return @{ result.as_ref() }.success } != true {
             let err: WebError = js! { return @{ result }.error }.try_into().unwrap();
             error!("getrandom failed: {}", err);
-            return Err(Error::UNKNOWN);
+            return Err(STDWEB_RNG_FAILED);
         }
     }
     Ok(())
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

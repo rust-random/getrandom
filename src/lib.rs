@@ -79,25 +79,8 @@
 //! `getrandom`, hence after the first successful call one can be reasonably
 //! confident that no errors will occur.
 //!
-//! On unsupported platforms, `getrandom` always fails with [`Error::UNAVAILABLE`].
-//!
-//! ## Error codes
-//! The crate uses the following custom error codes:
-//! - `0x57f4c500` (dec: 1475659008) - an unknown error. Constant:
-//! [`Error::UNKNOWN`]
-//! - `0x57f4c501` (dec: 1475659009) - no generator is available. Constant:
-//! [`Error::UNAVAILABLE`]
-//! - `0x57f4c580` (dec: 1475659136) - `self.crypto` is undefined,
-//! `wasm-bindgen` specific error.
-//! - `0x57f4c581` (dec: 1475659137) - `crypto.getRandomValues` is undefined,
-//! `wasm-bindgen` specific error.
-//!
-//! These codes are provided for reference only and should not be matched upon
-//! (but you can match on `Error` constants). The codes may change in future and
-//! such change will not be considered a breaking one.
-//!
-//! Other error codes will originate from an underlying system. In case if such
-//! error is encountered, please consult with your system documentation.
+//! On unsupported platforms, `getrandom` always fails. See the [`Error`] type
+//! for more information on what data is returned on failure.
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
@@ -146,14 +129,12 @@ cfg_if! {
     }
 }
 
-#[cfg(feature = "std")]
-extern crate std;
-
 mod error;
 pub use crate::error::Error;
 
 #[allow(dead_code)]
 mod util;
+// Unlike the other Unix, Fuchsia and iOS don't use the libc to make any calls.
 #[cfg(any(
     target_os = "android",
     target_os = "dragonfly",
@@ -197,7 +178,6 @@ mod error_impls;
     target_os = "solaris",
     target_os = "illumos",
 ))]
-#[allow(dead_code)]
 mod use_file;
 
 // System-specific implementations.

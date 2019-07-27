@@ -22,7 +22,7 @@ log = { version = "0.4", optional = true }
 cfg-if = "0.1"
 
 [target.'cfg(any(unix, target_os = "redox", target_os = "wasi"))'.dependencies]
-libc = "0.2.54"
+libc = "0.2.60"
 
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { version = "0.2.29", optional = true }

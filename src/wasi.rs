@@ -14,14 +14,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret =
         unsafe { libc::__wasi_random_get(dest.as_mut_ptr() as *mut libc::c_void, dest.len()) };
     if let Some(code) = NonZeroU32::new(ret as u32) {
-        error!("WASI: __wasi_random_get failed with return value {}", code);
+        error!("WASI: __wasi_random_get: failed with {}", ret);
         Err(Error::from(code))
     } else {
         Ok(()) // Zero means success for WASI
     }
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }
