@@ -118,10 +118,9 @@ impl From<NonZeroU32> for Error {
 
 // TODO: Convert to a function when min_version >= 1.33
 macro_rules! internal_error {
-    ($code:expr) => {{
-        let n: u16 = $code;
-        Error(unsafe { NonZeroU32::new_unchecked(Error::INTERNAL_START + n as u32) })
-    }};
+    ($n:expr) => {
+        Error(unsafe { NonZeroU32::new_unchecked(Error::INTERNAL_START + $n as u16 as u32) })
+    };
 }
 
 /// Internal Error constants
