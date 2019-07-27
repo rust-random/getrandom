@@ -9,7 +9,6 @@
 //! Implementation for FreeBSD
 use crate::util_libc::{sys_fill_exact, Weak};
 use crate::Error;
-use core::num::NonZeroU32;
 use core::{mem, ptr};
 
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
@@ -43,9 +42,4 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     } else {
         sys_fill_exact(dest, kern_arnd)
     }
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

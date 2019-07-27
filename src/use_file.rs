@@ -9,15 +9,11 @@
 //! Implementations that just need to read from a file
 extern crate std;
 
-use crate::util_libc::LazyFd;
+use crate::util_libc::{last_os_error, LazyFd};
 use crate::Error;
 use core::mem::ManuallyDrop;
-use core::num::NonZeroU32;
 use std::os::unix::io::{FromRawFd, IntoRawFd, RawFd};
-use std::{
-    fs::File,
-    io::{self, Read},
-};
+use std::{fs::File, io::Read};
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &str = "rand:";
@@ -35,7 +31,7 @@ const FILE_PATH: &str = "/dev/random";
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static FD: LazyFd = LazyFd::new();
-    let fd = FD.init(init_file).ok_or(io::Error::last_os_error())?;
+    let fd = FD.init(init_file).ok_or(last_os_error())?;
     let file = ManuallyDrop::new(unsafe { File::from_raw_fd(fd) });
     let mut file_ref: &File = &file;
 
@@ -59,10 +55,4 @@ fn init_file() -> Option<RawFd> {
             .ok()?;
     }
     Some(File::open(FILE_PATH).ok()?.into_raw_fd())
-}
-
-#[inline(always)]
-#[allow(dead_code)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

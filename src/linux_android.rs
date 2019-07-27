@@ -7,13 +7,9 @@
 // except according to those terms.
 
 //! Implementation for Linux / Android
-extern crate std;
-
 use crate::util::LazyBool;
-use crate::util_libc::sys_fill_exact;
+use crate::util_libc::{last_os_error, sys_fill_exact};
 use crate::{use_file, Error};
-use core::num::NonZeroU32;
-use std::io;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
@@ -29,7 +25,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 fn is_getrandom_available() -> bool {
     let res = unsafe { libc::syscall(libc::SYS_getrandom, 0, 0, libc::GRND_NONBLOCK) };
     if res < 0 {
-        match io::Error::last_os_error().raw_os_error() {
+        match last_os_error().raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
             Some(libc::EPERM) => false,  // Blocked by seccomp
             _ => true,
@@ -37,9 +33,4 @@ fn is_getrandom_available() -> bool {
     } else {
         true
     }
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

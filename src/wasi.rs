@@ -20,8 +20,3 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         Ok(()) // Zero means success for WASI
     }
 }
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
-}

@@ -11,16 +11,12 @@ extern crate std;
 
 use core::cell::RefCell;
 use core::mem;
-use core::num::NonZeroU32;
 use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use crate::error::CODE_PREFIX;
+use crate::error::{BINDGEN_CRYPTO_UNDEF, BINDGEN_GRV_UNDEF};
 use crate::Error;
-
-const CODE_CRYPTO_UNDEF: u32 = CODE_PREFIX | 0x80;
-const CODE_GRV_UNDEF: u32 = CODE_PREFIX | 0x81;
 
 #[derive(Clone, Debug)]
 enum RngSource {
@@ -83,31 +79,18 @@ fn getrandom_init() -> Result<RngSource, Error> {
     // we're in an older web browser and the OS RNG isn't available.
     let crypto = this.crypto();
     if crypto.is_undefined() {
-        return Err(Error::from(unsafe {
-            NonZeroU32::new_unchecked(CODE_CRYPTO_UNDEF)
-        }));
+        return Err(BINDGEN_CRYPTO_UNDEF);
     }
 
     // Test if `crypto.getRandomValues` is undefined as well
     let crypto: BrowserCrypto = crypto.into();
     if crypto.get_random_values_fn().is_undefined() {
-        return Err(Error::from(unsafe {
-            NonZeroU32::new_unchecked(CODE_GRV_UNDEF)
-        }));
+        return Err(BINDGEN_GRV_UNDEF);
     }
 
     // Ok! `self.crypto.getRandomValues` is a defined value, so let's
     // assume we can do browser crypto.
     Ok(RngSource::Browser(crypto))
-}
-
-#[inline(always)]
-pub fn error_msg_inner(n: NonZeroU32) -> Option<&'static str> {
-    match n.get() {
-        CODE_CRYPTO_UNDEF => Some("getrandom: self.crypto is undefined"),
-        CODE_GRV_UNDEF => Some("crypto.getRandomValues is undefined"),
-        _ => None,
-    }
 }
 
 #[wasm_bindgen]

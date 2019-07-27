@@ -7,13 +7,9 @@
 // except according to those terms.
 
 //! Implementation for macOS
-extern crate std;
-
-use crate::util_libc::Weak;
+use crate::util_libc::{last_os_error, Weak};
 use crate::{use_file, Error};
 use core::mem;
-use core::num::NonZeroU32;
-use std::io;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
 
@@ -24,8 +20,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         for chunk in dest.chunks_mut(256) {
             let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len()) };
             if ret != 0 {
-                error!("getentropy syscall failed with ret={}", ret);
-                return Err(io::Error::last_os_error().into());
+                let err = last_os_error();
+                error!("getentropy syscall failed");
+                return Err(err);
             }
         }
         Ok(())
@@ -34,9 +31,4 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         // to avoid high startup costs and linking the Security framework.
         use_file::getrandom_inner(dest)
     }
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }

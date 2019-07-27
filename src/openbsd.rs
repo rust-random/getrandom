@@ -7,24 +7,17 @@
 // except according to those terms.
 
 //! Implementation for OpenBSD
-extern crate std;
-
+use crate::util_libc::last_os_error;
 use crate::Error;
-use core::num::NonZeroU32;
-use std::io;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe { libc::getentropy(chunk.as_mut_ptr() as *mut libc::c_void, chunk.len()) };
         if ret == -1 {
+            let err = last_os_error();
             error!("libc::getentropy call failed");
-            return Err(io::Error::last_os_error().into());
+            return Err(err);
         }
     }
     Ok(())
-}
-
-#[inline(always)]
-pub fn error_msg_inner(_: NonZeroU32) -> Option<&'static str> {
-    None
 }
