@@ -7,6 +7,8 @@
 // except according to those terms.
 
 //! Implementation for WASM via stdweb
+extern crate std;
+
 use core::mem;
 
 use stdweb::unstable::TryInto;
