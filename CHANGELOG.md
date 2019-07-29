@@ -7,12 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.7] - 2019-07-30
 ### Added
 - Support for hermit and l4re. [#61]
+- `Error::raw_os_error` method, `Error::INTERNAL_START` and
+`Error::CUSTOM_START` constants. Use `libc` for retrieving OS error descriptions. [#54]
 
 ### Changed
 - Remove `lazy_static` dependency and use custom structures for lock-free
 initialization. [#51] [#52]
-- Improve `Error` type. Add `Error::raw_os_error` method,
-`Error::INTERNAL_START` and `Error::CUSTOM_START` constants. [#54]
 - Try `getrandom()` first on FreeBSD. [#57]
 
 ### Removed
