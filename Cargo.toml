@@ -24,7 +24,7 @@ cfg-if = "0.1"
 [target.'cfg(any(unix, target_os = "redox"))'.dependencies]
 libc = "0.2.60"
 
-[target.'cfg(any(target_os = "wasi"))'.dependencies]
+[target.'cfg(target_os = "wasi")'.dependencies]
 wasi = "0.5"
 
 [target.wasm32-unknown-unknown.dependencies]
