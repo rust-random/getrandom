@@ -11,11 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Remove `lazy_static` dependency and use custom structures for lock-free
 initialization. [#51] [#52]
-- Improve `Error` type. [#54]
+- Improve `Error` type. Add `Error::raw_os_error` method,
+`Error::INTERNAL_START` and `Error::CUSTOM_START` constants. [#54]
 - Try `getrandom()` first on FreeBSD. [#57]
 
 ### Removed
 -  Bitrig support. [#56]
+
+### Deprecated
+- `Error::UNKNOWN`, `Error::UNAVAILABLE`. [#54]
 
 [#51]: https://github.com/rust-random/getrandom/pull/51
 [#52]: https://github.com/rust-random/getrandom/pull/52
