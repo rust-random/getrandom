@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2019-07-30
+### Added
+- Support for hermit and l4re. [#61]
+
+### Changed
+- Remove `lazy_static` dependency and use custom structures for lock-free
+initialization. [#51] [#52]
+- Improve `Error` type. [#54]
+- Try `getrandom()` first on FreeBSD. [#57]
+
+### Removed
+-  Bitrig support. [#56]
+
+[#51]: https://github.com/rust-random/getrandom/pull/51
+[#52]: https://github.com/rust-random/getrandom/pull/52
+[#54]: https://github.com/rust-random/getrandom/pull/54
+[#56]: https://github.com/rust-random/getrandom/pull/56
+[#57]: https://github.com/rust-random/getrandom/pull/57
+[#61]: https://github.com/rust-random/getrandom/pull/61
+
 ## [0.1.6] - 2019-06-30
 ### Changed
 - Minor change of RDRAND AMD bug handling. [#48]
