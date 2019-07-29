@@ -127,6 +127,7 @@ cfg_if! {
 
 // SAFETY: path must be null terminated, FD must be manually closed.
 pub unsafe fn open_readonly(path: &str) -> Option<libc::c_int> {
+    debug_assert!(path.as_bytes().last() == Some(&0));
     // We don't care about Linux OSes too old to support O_CLOEXEC.
     let fd = open(path.as_ptr() as *mut _, libc::O_RDONLY | libc::O_CLOEXEC);
     if fd < 0 {
