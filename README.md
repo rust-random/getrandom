@@ -10,7 +10,7 @@
 A Rust library for retrieving random data from (operating) system source. It is
 assumed that system always provides high-quality cryptographically secure random
 data, ideally backed by hardware entropy sources. This crate derives its name
-from Linux's `getrandom` function, but is cross platform, aiming to support
+from Linux's `getrandom` function, but is cross platform, roughly supporting
 the same set of platforms as Rust's `std` lib.
 
 This is a low-level API. Most users should prefer using high-level random-number
