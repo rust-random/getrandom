@@ -135,6 +135,6 @@ pub unsafe fn open_readonly(path: &str) -> Option<libc::c_int> {
     // O_CLOEXEC works on all Unix targets except for older Linux kernels (pre
     // 2.6.23), so we also use an ioctl to make sure FD_CLOEXEC is set.
     #[cfg(target_os = "linux")]
-    libc::ioctl(self.fd, libc::FIOCLEX);
+    libc::ioctl(fd, libc::FIOCLEX);
     Some(fd)
 }
