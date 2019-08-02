@@ -30,3 +30,5 @@ stdweb = { version = "0.4.18", optional = true }
 
 [features]
 std = []
+# enables support for UWP targets, bumps MSRV to Rust 1.33
+uwp = []

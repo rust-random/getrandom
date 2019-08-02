@@ -224,14 +224,7 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
-    } else if #[cfg(any(
-        // target_vendor was stabilized only in Rust 1.33
-        target = "i686-uwp-windows-gnu",
-        target = "x86_64-uwp-windows-gnu",
-        target = "aarch64-uwp-windows-msvc",
-        target = "x86_64-uwp-windows-msvc",
-        target = "i686-uwp-windows-msvc",
-    ))] {
+    } else if #[cfg(all(feature = "uwp", target_vendor = "uwp"))] {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
