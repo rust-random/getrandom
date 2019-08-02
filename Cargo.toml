@@ -30,3 +30,7 @@ stdweb = { version = "0.4.18", optional = true }
 
 [features]
 std = []
+# enables dummy implementation for wasm32-unknown-unknown
+wasm_dummy = []
+# enables dummy implementation for unsupported targets
+dummy = []

@@ -45,11 +45,16 @@ This library is `no_std` compatible, but uses `std` on most platforms.
 The `log` library is supported as an optional dependency. If enabled, error
 reporting will be improved on some platforms.
 
-For WebAssembly (`wasm32`), WASI and Emscripten targets are supported directly; otherwise
-one of the following features must be enabled:
+For `wasm32-unknown-unknown` target one of the following features must be
+enabled:
 
 -   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
 -   [`stdweb`](https://crates.io/crates/stdweb)
+
+By default compiling crate for an unsupported platform will result in a
+compilation error. You may either replace this crate with a custom one, which
+will include support for your target, or enable `dummy` feature to use an
+always erroring dummy implementation.
 
 ## Minimum Supported Rust Version
 

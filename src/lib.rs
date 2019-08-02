@@ -36,7 +36,7 @@
 //! systems are using the recommended interface and respect maximum buffer
 //! sizes.
 //!
-//! ## Support for WebAssembly and ams.js
+//! ## Support for WebAssembly and asm.js
 //!
 //! The three Emscripten targets `asmjs-unknown-emscripten`,
 //! `wasm32-unknown-emscripten` and `wasm32-experimental-emscripten` use
@@ -46,7 +46,9 @@
 //! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
-//! `getrandom` will always fail.
+//! compiling `getrandom` will result in a compilation error. It can be disabled
+//! by enabling `wasm_dummy` feature, with which `getrandom` will use an always
+//! erroring dummy implementation.
 //!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
@@ -231,12 +233,24 @@ cfg_if! {
                 #[path = "wasm32_bindgen.rs"] mod imp;
             } else if #[cfg(feature = "stdweb")] {
                 #[path = "wasm32_stdweb.rs"] mod imp;
-            } else {
+            } else if #[cfg(any(feature = "wasm_dummy", feature = "dummy"))] {
                 #[path = "dummy.rs"] mod imp;
+            } else {
+                compile_error!("\
+                    wasm32-unknown-unknown target requires one of the following
+                    features to be enabled: `stdweb`, `wasm-bindgen` or
+                    `dummy`/`wasm_dummy`\
+                ");
             }
         }
-    } else {
+    } else if #[cfg(feature = "dummy")] {
         #[path = "dummy.rs"] mod imp;
+    } else {
+        compile_error!("\
+            target is not supported, you may enable dummy implementation \
+            using `dummy` feature or replace `getrandom` crate with a custom \
+            crate which supports your target\
+        ");
     }
 }
 
