@@ -20,12 +20,14 @@ environment:
   CARGO_HTTP_CHECK_REVOKE: false
 
   matrix:
-  - TARGET: x86_64-pc-windows-msvc
-  - TARGET: i686-pc-windows-msvc
   - TARGET: x86_64-uwp-windows-gnu
     CHANNEL: nightly
   - TARGET: i686-uwp-windows-gnu
     CHANNEL: nightly
+  - TARGET: x86_64-pc-windows-msvc
+    CHANNEL: stable
+  - TARGET: i686-pc-windows-msvc
+    CHANNEL: stable
 install:
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
   - rustup-init.exe -y --default-host %TARGET% --default-toolchain %CHANNEL%
