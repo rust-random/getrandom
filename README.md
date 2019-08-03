@@ -18,7 +18,6 @@ library like [`rand`].
 
 [`rand`]: https://crates.io/crates/rand
 
-
 ## Usage
 
 Add this to your `Cargo.toml`:
@@ -45,21 +44,28 @@ This library is `no_std` compatible, but uses `std` on most platforms.
 The `log` library is supported as an optional dependency. If enabled, error
 reporting will be improved on some platforms.
 
-For `wasm32-unknown-unknown` target one of the following features must be
+For the `wasm32-unknown-unknown` target, one of the following features should be
 enabled:
 
 -   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
 -   [`stdweb`](https://crates.io/crates/stdweb)
 
-By default compiling crate for an unsupported platform will result in a
-compilation error. You may either replace this crate with a custom one, which
-will include support for your target, or enable `dummy` feature to use an
-always erroring dummy implementation.
+By default, compiling `getrandom` for an unsupported target will result in
+a compilation error. If want to build an application which uses `getrandom` for
+such target, you can either:
+- Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
+to switch to a custom implementation with a support of your target.
+- Enable the `dummy` feature to have getrandom use an implementation that always
+fails on unsupported targets.
+
+We also accept pull requests to support additional targets.
+
+[replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
+[patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
 
 ## Minimum Supported Rust Version
 
 This crate requires Rust 1.32.0 or later.
-
 
 # License
 
@@ -69,4 +75,3 @@ The `getrandom` library is distributed under either of
  * [MIT license](LICENSE-MIT)
 
 at your option.
-

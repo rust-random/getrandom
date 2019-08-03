@@ -227,20 +227,17 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(target_arch = "wasm32")] {
+    } else if #[cfg(all(
+        target_arch = "wasm32",
+        target_os = "unknown",
+        target_env="unknown",
+        any(feature = "wasm-bindgen", feature = "stdweb"),
+    ))] {
         cfg_if! {
             if #[cfg(feature = "wasm-bindgen")] {
                 #[path = "wasm32_bindgen.rs"] mod imp;
-            } else if #[cfg(feature = "stdweb")] {
-                #[path = "wasm32_stdweb.rs"] mod imp;
-            } else if #[cfg(any(feature = "wasm_dummy", feature = "dummy"))] {
-                #[path = "dummy.rs"] mod imp;
             } else {
-                compile_error!("\
-                    wasm32-unknown-unknown target requires one of the following
-                    features to be enabled: `stdweb`, `wasm-bindgen` or
-                    `dummy`/`wasm_dummy`\
-                ");
+                #[path = "wasm32_stdweb.rs"] mod imp;
             }
         }
     } else if #[cfg(feature = "dummy")] {
@@ -248,8 +245,9 @@ cfg_if! {
     } else {
         compile_error!("\
             target is not supported, you may enable dummy implementation \
-            using `dummy` feature or replace `getrandom` crate with a custom \
-            crate which supports your target\
+            using the `dummy` feature or overwrite `getrandom` crate with \
+            a custom one which supports your target using `[replace]` or \
+            `[patch]` section in your `Cargo.toml`\
         ");
     }
 }
