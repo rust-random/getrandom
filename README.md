@@ -34,7 +34,7 @@ Then invoke the `getrandom` function:
 fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
     let mut buf = [0u8; 32];
     getrandom::getrandom(&mut buf)?;
-    buf
+    Ok(buf)
 }
 ```
 
