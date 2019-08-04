@@ -51,8 +51,8 @@ enabled:
 -   [`stdweb`](https://crates.io/crates/stdweb)
 
 By default, compiling `getrandom` for an unsupported target will result in
-a compilation error. If want to build an application which uses `getrandom` for
-such target, you can either:
+a compilation error. If you want to build an application which uses `getrandom`
+for such target, you can either:
 - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
 to switch to a custom implementation with a support of your target.
 - Enable the `dummy` feature to have getrandom use an implementation that always

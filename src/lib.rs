@@ -47,8 +47,8 @@
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! compiling `getrandom` will result in a compilation error. It can be disabled
-//! by enabling `wasm_dummy` feature, with which `getrandom` will use an always
-//! erroring dummy implementation.
+//! by enabling the `dummy` feature, with which `getrandom` will use an always
+//! failing implementation.
 //!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
