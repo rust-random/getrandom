@@ -23,7 +23,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    let res = unsafe { libc::syscall(libc::SYS_getrandom, 0, 0, libc::GRND_NONBLOCK) };
+    let res = unsafe { libc::syscall(libc::SYS_getrandom, 0usize, 0usize, libc::GRND_NONBLOCK) };
     if res < 0 {
         match last_os_error().raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
