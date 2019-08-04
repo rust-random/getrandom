@@ -15,7 +15,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
         sys_fill_exact(dest, |buf| unsafe {
-            libc::syscall(libc::SYS_getrandom, buf.as_mut_ptr(), buf.len(), 0) as libc::ssize_t
+            getrandom(buf.as_mut_ptr() as *mut libc::c_void, buf.len(), 0)
         })
     } else {
         use_file::getrandom_inner(dest)
@@ -23,7 +23,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    let res = unsafe { libc::syscall(libc::SYS_getrandom, 0, 0, libc::GRND_NONBLOCK) };
+    let res = unsafe { getrandom(core::ptr::null_mut(), 0, libc::GRND_NONBLOCK) };
     if res < 0 {
         match last_os_error().raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
@@ -33,4 +33,12 @@ fn is_getrandom_available() -> bool {
     } else {
         true
     }
+}
+
+unsafe fn getrandom(
+    buf: *mut libc::c_void,
+    buflen: libc::size_t,
+    flags: libc::c_uint,
+) -> libc::ssize_t {
+    libc::syscall(libc::SYS_getrandom, buf, buflen, flags) as libc::ssize_t
 }
