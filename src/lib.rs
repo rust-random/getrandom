@@ -227,10 +227,12 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
+    // ideally we would like to use `target = "wasm32-unknown-unknown"`,
+    // but unfortunately it does not work, see:
+    // https://github.com/rust-lang/rust/issues/63217
     } else if #[cfg(all(
         target_arch = "wasm32",
         target_os = "unknown",
-        target_env="unknown",
         any(feature = "wasm-bindgen", feature = "stdweb"),
     ))] {
         cfg_if! {
