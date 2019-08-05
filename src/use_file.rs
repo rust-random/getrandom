@@ -48,24 +48,23 @@ cfg_if! {
                 revents: 0,
             };
 
-            let mut res = -1;
-            while res <= 0 {
+            loop {
                 // A negative timeout means an infinite timeout.
-                res = unsafe { libc::poll(&mut pfd, 1, -1) };
+                let res = unsafe { libc::poll(&mut pfd, 1, -1) };
+                if res == 1 {
+                    unsafe { libc::close(pfd.fd) };
+                    return unsafe { open_readonly("/dev/urandom\0") };
+                }
                 if res < 0 {
-                    match last_os_error().raw_os_error() {
-                        Some(libc::EINTR) | Some(libc::EAGAIN) => {}
-                        _ => break,
+                    let e = last_os_error().raw_os_error();
+                    if e == Some(libc::EINTR) || e == Some(libc::EAGAIN) {
+                        continue;
                     }
                 }
-            }
-
-            unsafe { libc::close(pfd.fd) };
-            if res != 1 {
                 // We either hard failed, or poll() returned the wrong pfd.
+                unsafe { libc::close(pfd.fd) };
                 return None;
             }
-            unsafe { open_readonly("/dev/urandom\0") }
         }
     } else {
         fn init_file() -> Option<libc::c_int> {
