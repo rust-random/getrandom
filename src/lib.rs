@@ -47,8 +47,8 @@
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
 //! compiling `getrandom` will result in a compilation error. It can be disabled
-//! by enabling the `dummy` feature, with which `getrandom` will use an always
-//! failing implementation.
+//! by enabling the `dummy` feature, which will make `getrandom` to use an
+//! always failing implementation.
 //!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
@@ -227,21 +227,13 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
-    // ideally we would like to use `target = "wasm32-unknown-unknown"`,
-    // but unfortunately it does not work, see:
-    // https://github.com/rust-lang/rust/issues/63217
-    } else if #[cfg(all(
-        target_arch = "wasm32",
-        target_os = "unknown",
-        any(feature = "wasm-bindgen", feature = "stdweb"),
-    ))] {
-        cfg_if! {
-            if #[cfg(feature = "wasm-bindgen")] {
-                #[path = "wasm32_bindgen.rs"] mod imp;
-            } else {
-                #[path = "wasm32_stdweb.rs"] mod imp;
-            }
-        }
+    // the following two branches are intended only for `wasm32-unknown-unknown`
+    // target and may not work or work inefficiently on targets which may be
+    // added in future
+    } else if #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))] {
+        #[path = "wasm32_bindgen.rs"] mod imp;
+    } else if #[cfg(all(target_arch = "wasm32", feature = "stdweb"))] {
+        #[path = "wasm32_stdweb.rs"] mod imp;
     } else if #[cfg(feature = "dummy")] {
         #[path = "dummy.rs"] mod imp;
     } else {
