@@ -46,7 +46,7 @@ matrix:
         - cargo test --examples
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --all --all-features
+        - cargo doc --no-deps --all --features=std
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
@@ -64,7 +64,7 @@ matrix:
         - cargo test --examples
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --all --all-features
+        - cargo doc --no-deps --all --features=std
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
@@ -115,25 +115,25 @@ matrix:
         - rustup component add rust-src
         - cargo install cargo-xbuild || true
       script:
-        - cargo build --target=x86_64-sun-solaris --all-features
-        - cargo build --target=x86_64-unknown-cloudabi --all-features
-        - cargo build --target=x86_64-unknown-freebsd --all-features
-        - cargo build --target=x86_64-fuchsia --all-features
-        - cargo build --target=x86_64-unknown-netbsd --all-features
-        # - cargo build --target=x86_64-unknown-redox --all-features
-        - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
+        - cargo build --target=x86_64-sun-solaris
+        - cargo build --target=x86_64-unknown-cloudabi
+        - cargo build --target=x86_64-unknown-freebsd
+        - cargo build --target=x86_64-fuchsia
+        - cargo build --target=x86_64-unknown-netbsd
+        # - cargo build --target=x86_64-unknown-redox
+        - cargo build --target=x86_64-fortanix-unknown-sgx
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
-        - cargo build --target=x86_64-sun-solaris --all-features
-        - cargo build --target=x86_64-unknown-cloudabi --all-features
-        - cargo build --target=x86_64-unknown-freebsd --all-features
-        - cargo build --target=x86_64-fuchsia --all-features
-        - cargo build --target=x86_64-unknown-netbsd --all-features
-        # - cargo build --target=x86_64-unknown-redox --all-features
-        - cargo build --target=x86_64-fortanix-unknown-sgx --all-features
+        - cargo build --target=x86_64-sun-solaris
+        - cargo build --target=x86_64-unknown-cloudabi
+        - cargo build --target=x86_64-unknown-freebsd
+        - cargo build --target=x86_64-fuchsia
+        - cargo build --target=x86_64-unknown-netbsd
+        # - cargo build --target=x86_64-unknown-redox
+        - cargo build --target=x86_64-fortanix-unknown-sgx
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
