@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2019-07-29
+### Changed
+- Explicitly specify types to arguments of 'libc::syscall'. [#74]
+
+[#74]: https://github.com/rust-random/getrandom/pull/74
+
 ## [0.1.7] - 2019-07-29
 ### Added
 - Support for hermit and l4re. [#61]
