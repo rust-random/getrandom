@@ -12,8 +12,6 @@ use crate::Error;
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &str = "rand:\0";
-#[cfg(any(target_os = "android", target_os = "linux", target_os = "netbsd"))]
-const FILE_PATH: &str = "/dev/urandom\0";
 #[cfg(any(
     target_os = "dragonfly",
     target_os = "emscripten",
@@ -40,32 +38,38 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     Ok(())
 }
 
-fn init_file() -> Option<libc::c_int> {
-    if FILE_PATH == "/dev/urandom\0" {
-        // Poll /dev/random to make sure it is ok to read from /dev/urandom.
-        let mut pfd = libc::pollfd {
-            fd: unsafe { open_readonly("/dev/random\0")? },
-            events: libc::POLLIN,
-            revents: 0,
-        };
+cfg_if! {
+    if #[cfg(any(target_os = "android", target_os = "linux", target_os = "netbsd"))] {
+        fn init_file() -> Option<libc::c_int> {
+            // Poll /dev/random to make sure it is ok to read from /dev/urandom.
+            let mut pfd = libc::pollfd {
+                fd: unsafe { open_readonly("/dev/random\0")? },
+                events: libc::POLLIN,
+                revents: 0,
+            };
 
-        let mut res = -1;
-        while res <= 0 {
-            // A negative timeout means an infinite timeout.
-            res = unsafe { libc::poll(&mut pfd, 1, -1) };
-            if res < 0 {
-                match last_os_error().raw_os_error() {
-                    Some(libc::EINTR) | Some(libc::EAGAIN) => {}
-                    _ => break,
+            let mut res = -1;
+            while res <= 0 {
+                // A negative timeout means an infinite timeout.
+                res = unsafe { libc::poll(&mut pfd, 1, -1) };
+                if res < 0 {
+                    match last_os_error().raw_os_error() {
+                        Some(libc::EINTR) | Some(libc::EAGAIN) => {}
+                        _ => break,
+                    }
                 }
             }
-        }
 
-        unsafe { libc::close(pfd.fd) };
-        if res != 1 {
-            // We either hard failed, or poll() returned the wrong pfd.
-            return None;
+            unsafe { libc::close(pfd.fd) };
+            if res != 1 {
+                // We either hard failed, or poll() returned the wrong pfd.
+                return None;
+            }
+            unsafe { open_readonly("/dev/urandom\0") }
+        }
+    } else {
+        fn init_file() -> Option<libc::c_int> {
+            unsafe { open_readonly(FILE_PATH) }
         }
     }
-    unsafe { open_readonly(FILE_PATH) }
 }
