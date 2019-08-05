@@ -39,5 +39,5 @@ install:
 build: false
 
 test_script:
-  - cargo test --features=uwp
-  - cargo test --examples --features=uwp
+  - cargo test
+  - cargo test --examples

@@ -224,7 +224,7 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
-    } else if #[cfg(all(feature = "uwp", target_vendor = "uwp"))] {
+    } else if #[cfg(all(windows, getrandom_uwp))] {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
