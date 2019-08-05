@@ -46,7 +46,7 @@ matrix:
         - cargo test --examples
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std
+        - cargo doc --no-deps --all --features=std,log
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
@@ -64,7 +64,7 @@ matrix:
         - cargo test --examples
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std
+        - cargo doc --no-deps --all --features=std,log
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
