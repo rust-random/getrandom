@@ -35,8 +35,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         };
         // NTSTATUS codes use two highest bits for severity status
         match ret >> 30 {
-            0b01 => info!("BCryptGenRandom: information code 0x{:08X}", ret),
-            0b10 => warn!("BCryptGenRandom: warning code 0x{:08X}", ret),
+            0b01 => {
+                info!("BCryptGenRandom: information code 0x{:08X}", ret);
+            }
+            0b10 => {
+                warn!("BCryptGenRandom: warning code 0x{:08X}", ret);
+            }
             0b11 => {
                 error!("BCryptGenRandom: failed with 0x{:08X}", ret);
                 // We zeroize the highest bit, so the error code will reside
