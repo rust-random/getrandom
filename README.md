@@ -34,13 +34,16 @@ Then invoke the `getrandom` function:
 fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
     let mut buf = [0u8; 32];
     getrandom::getrandom(&mut buf)?;
-    buf
+    Ok(buf)
 }
 ```
 
 ## Features
 
-This library is `no_std` compatible, but uses `std` on most platforms.
+This library is `no_std` for every supported target. However, getting randomness
+usually requires calling some external system API. This means most platforms
+will require linking against system libraries (i.e. `libc` for Unix,
+`Advapi32.dll` for Windows, Security framework on iOS, etc...).
 
 The `log` library is supported as an optional dependency. If enabled, error
 reporting will be improved on some platforms.
