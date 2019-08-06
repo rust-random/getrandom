@@ -36,6 +36,18 @@
 //! systems are using the recommended interface and respect maximum buffer
 //! sizes.
 //!
+//! ## Unsupported targets
+//! By default, compiling `getrandom` for an unsupported target will result in
+//! a compilation error. If you want to build an application which uses `getrandom`
+//! for such target, you can either:
+//! - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
+//! to switch to a custom implementation with a support of your target.
+//! - Enable the `dummy` feature to have getrandom use an implementation that always
+//! fails at run-time on unsupported targets.
+//!
+//! [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
+//! [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
+//!
 //! ## Support for WebAssembly and asm.js
 //!
 //! The three Emscripten targets `asmjs-unknown-emscripten`,
@@ -46,7 +58,7 @@
 //! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
-//! compiling `getrandom` will result in a compilation error. It can be disabled
+//! compiling `getrandom` will result in a compilation error. It can be avoided
 //! by enabling the `dummy` feature, which will make `getrandom` to use an
 //! always failing implementation.
 //!
@@ -224,10 +236,8 @@ cfg_if! {
         #[path = "dummy.rs"] mod imp;
     } else {
         compile_error!("\
-            target is not supported, you may enable dummy implementation \
-            using the `dummy` feature or overwrite `getrandom` crate with \
-            a custom one which supports your target using `[replace]` or \
-            `[patch]` section in your `Cargo.toml`\
+            target is not supported, for more information see: \
+            https://docs.rs/getrandom/#unsupported-targets\
         ");
     }
 }
