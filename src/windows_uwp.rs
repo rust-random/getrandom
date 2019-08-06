@@ -9,7 +9,7 @@
 //! Implementation for Windows UWP targets. After deprecation of Windows XP
 //! and Vista, this can superseed the `RtlGenRandom`-based implementation.
 use crate::Error;
-use core::{ffi::c_void, num::NonZeroU32, ptr, u32};
+use core::{ffi::c_void, num::NonZeroU32, ptr};
 
 const BCRYPT_USE_SYSTEM_PREFERRED_RNG: u32 = 0x00000002;
 
