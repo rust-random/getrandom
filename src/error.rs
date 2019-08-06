@@ -76,7 +76,7 @@ fn os_err_desc(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
 }
 
 impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut dbg = f.debug_struct("Error");
         if let Some(errno) = self.raw_os_error() {
             dbg.field("os_error", &errno);
@@ -95,7 +95,7 @@ impl fmt::Debug for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(errno) = self.raw_os_error() {
             let mut buf = [0u8; 128];
             match os_err_desc(errno, &mut buf) {
