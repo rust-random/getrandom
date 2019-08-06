@@ -116,3 +116,25 @@ impl LazyFd {
         }
     }
 }
+
+cfg_if! {
+    if #[cfg(any(target_os = "linux", target_os = "emscripten"))] {
+        use libc::open64 as open;
+    } else {
+        use libc::open;
+    }
+}
+
+// SAFETY: path must be null terminated, FD must be manually closed.
+pub unsafe fn open_readonly(path: &str) -> Option<libc::c_int> {
+    debug_assert!(path.as_bytes().last() == Some(&0));
+    let fd = open(path.as_ptr() as *mut _, libc::O_RDONLY | libc::O_CLOEXEC);
+    if fd < 0 {
+        return None;
+    }
+    // O_CLOEXEC works on all Unix targets except for older Linux kernels (pre
+    // 2.6.23), so we also use an ioctl to make sure FD_CLOEXEC is set.
+    #[cfg(target_os = "linux")]
+    libc::ioctl(fd, libc::FIOCLEX);
+    Some(fd)
+}
