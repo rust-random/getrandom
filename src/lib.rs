@@ -126,6 +126,14 @@ cfg_if! {
         macro_rules! error {
             ($($x:tt)*) => {};
         }
+        #[allow(unused)]
+        macro_rules! warn {
+            ($($x:tt)*) => {};
+        }
+        #[allow(unused)]
+        macro_rules! info {
+            ($($x:tt)*) => {};
+        }
     }
 }
 
@@ -202,6 +210,8 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
+    } else if #[cfg(all(windows, getrandom_uwp))] {
+        #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", any(

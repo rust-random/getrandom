@@ -21,10 +21,21 @@ environment:
 
   matrix:
   - TARGET: x86_64-pc-windows-msvc
+    CHANNEL: 1.32.0
+  - TARGET: x86_64-pc-windows-msvc
+    CHANNEL: stable
+  - TARGET: x86_64-pc-windows-msvc
+    CHANNEL: nightly
   - TARGET: i686-pc-windows-msvc
+    CHANNEL: nightly
+  - TARGET: x86_64-pc-windows-gnu
+    CHANNEL: nightly
+  - TARGET: i686-pc-windows-gnu
+    CHANNEL: nightly
+
 install:
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-  - rustup-init.exe -y --default-host %TARGET%
+  - rustup-init.exe -y --default-host %TARGET% --default-toolchain %CHANNEL%
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
   - rustc -V
   - cargo -V
