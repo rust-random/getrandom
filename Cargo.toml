@@ -28,6 +28,9 @@ core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" 
 [target.'cfg(any(unix, target_os = "redox", target_os = "wasi"))'.dependencies]
 libc = { version = "0.2.60", default-features = false }
 
+[target.'cfg(target_os = "wasi")'.dependencies]
+wasi = "0.5"
+
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { version = "0.2.29", optional = true }
 stdweb = { version = "0.4.18", optional = true }
