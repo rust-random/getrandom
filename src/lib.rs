@@ -36,7 +36,19 @@
 //! systems are using the recommended interface and respect maximum buffer
 //! sizes.
 //!
-//! ## Support for WebAssembly and ams.js
+//! ## Unsupported targets
+//! By default, compiling `getrandom` for an unsupported target will result in
+//! a compilation error. If you want to build an application which uses `getrandom`
+//! for such target, you can either:
+//! - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
+//! to switch to a custom implementation with a support of your target.
+//! - Enable the `dummy` feature to have getrandom use an implementation that always
+//! fails at run-time on unsupported targets.
+//!
+//! [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
+//! [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
+//!
+//! ## Support for WebAssembly and asm.js
 //!
 //! The three Emscripten targets `asmjs-unknown-emscripten`,
 //! `wasm32-unknown-emscripten` and `wasm32-experimental-emscripten` use
@@ -46,7 +58,9 @@
 //! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
 //! features are activated for this crate. Note that if both features are
 //! enabled `wasm-bindgen` will be used. If neither feature is enabled,
-//! `getrandom` will always fail.
+//! compiling `getrandom` will result in a compilation error. It can be avoided
+//! by enabling the `dummy` feature, which will make `getrandom` to use an
+//! always failing implementation.
 //!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
@@ -221,18 +235,20 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(target_arch = "wasm32")] {
-        cfg_if! {
-            if #[cfg(feature = "wasm-bindgen")] {
-                #[path = "wasm32_bindgen.rs"] mod imp;
-            } else if #[cfg(feature = "stdweb")] {
-                #[path = "wasm32_stdweb.rs"] mod imp;
-            } else {
-                #[path = "dummy.rs"] mod imp;
-            }
-        }
-    } else {
+    // the following two branches are intended only for `wasm32-unknown-unknown`
+    // target and may not work or work inefficiently on targets which may be
+    // added in future
+    } else if #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))] {
+        #[path = "wasm32_bindgen.rs"] mod imp;
+    } else if #[cfg(all(target_arch = "wasm32", feature = "stdweb"))] {
+        #[path = "wasm32_stdweb.rs"] mod imp;
+    } else if #[cfg(feature = "dummy")] {
         #[path = "dummy.rs"] mod imp;
+    } else {
+        compile_error!("\
+            target is not supported, for more information see: \
+            https://docs.rs/getrandom/#unsupported-targets\
+        ");
     }
 }
 
