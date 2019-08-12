@@ -163,12 +163,14 @@ matrix:
         - bash utils/ci/script.sh
 
   allow_failures:
-    # Formatting errors should appear in Travis, but not break the build.
     - env: DESCRIPTION="Rustfmt"
 
 before_install:
   - set -e
   - rustup self update
+
+before_script:
+  - export RUSTFLAGS="-D warnings"
 
 script:
   - cargo test

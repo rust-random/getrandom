@@ -43,5 +43,6 @@ install:
 build: false
 
 test_script:
+  - set RUSTFLAGS=-D warnings
   - cargo test
   - cargo test --examples
