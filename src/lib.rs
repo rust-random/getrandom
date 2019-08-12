@@ -126,6 +126,7 @@
 )]
 #![no_std]
 #![cfg_attr(feature = "stdweb", recursion_limit = "128")]
+#![warn(rust_2018_idioms, unused_lifetimes)]
 
 #[macro_use]
 extern crate cfg_if;
