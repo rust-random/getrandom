@@ -1,6 +1,6 @@
 [package]
 name = "getrandom"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2018"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
@@ -39,5 +39,5 @@ stdweb = { version = "0.4.18", optional = true }
 std = []
 # enables dummy implementation for unsupported targets
 dummy = []
-# Unstable feature to support being a libstd dependancy
+# Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
