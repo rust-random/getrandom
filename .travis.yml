@@ -7,7 +7,7 @@ matrix:
       rust: 1.32.0
       os: linux
 
-    - env: "OSX, 1.32.0"
+    - name: "OSX, 1.32.0"
       rust: 1.32.0
       os: osx
 
