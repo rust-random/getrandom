@@ -21,8 +21,10 @@ pub struct Error(NonZeroU32);
 
 impl Error {
     #[deprecated(since = "0.1.7")]
+    /// Unknown error.
     pub const UNKNOWN: Error = UNSUPPORTED;
     #[deprecated(since = "0.1.7")]
+    /// System entropy source is unavailable.
     pub const UNAVAILABLE: Error = UNSUPPORTED;
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
@@ -40,7 +42,7 @@ impl Error {
     /// that it works in `no_std` contexts. If this method returns `None`, the
     /// error value can still be formatted via the `Diplay` implementation.
     #[inline]
-    pub fn raw_os_error(&self) -> Option<i32> {
+    pub fn raw_os_error(self) -> Option<i32> {
         if self.0.get() < Self::INTERNAL_START {
             Some(self.0.get() as i32)
         } else {
@@ -53,7 +55,7 @@ impl Error {
     /// This code can either come from the underlying OS, or be a custom error.
     /// Use [`Error::raw_os_error()`] to disambiguate.
     #[inline]
-    pub fn code(&self) -> NonZeroU32 {
+    pub fn code(self) -> NonZeroU32 {
         self.0
     }
 }
@@ -66,7 +68,8 @@ fn os_err_desc(errno: i32, buf: &mut [u8]) -> Option<&str> {
     }
 
     // Take up to trailing null byte
-    let idx = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+    let n = buf.len();
+    let idx = buf.iter().position(|&b| b == 0).unwrap_or(n);
     core::str::from_utf8(&buf[..idx]).ok()
 }
 

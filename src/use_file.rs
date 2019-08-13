@@ -24,7 +24,7 @@ const FILE_PATH: &str = "/dev/random\0";
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static FD: LazyFd = LazyFd::new();
-    let fd = FD.init(init_file).ok_or(last_os_error())?;
+    let fd = FD.init(init_file).ok_or_else(last_os_error)?;
     let read = |buf: &mut [u8]| unsafe { libc::read(fd, buf.as_mut_ptr() as *mut _, buf.len()) };
 
     if cfg!(target_os = "emscripten") {

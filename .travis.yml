@@ -3,19 +3,19 @@ sudo: false
 
 matrix:
   include:
-    - rust: 1.32.0
-      env: DESCRIPTION="Linux, 1.32.0"
+    - name: "Linux, 1.32.0"
+      rust: 1.32.0
       os: linux
 
-    - rust: 1.32.0
-      env: DESCRIPTION="OSX, 1.32.0"
+    - name: "OSX, 1.32.0"
+      rust: 1.32.0
       os: osx
 
-    - rust: stable
-      env: DESCRIPTION="Linux, stable"
+    - name: "Linux, stable"
+      rust: stable
 
-    - rust: stable
-      env: DESCRIPTION="OSX+iOS, stable"
+    - name: "OSX+iOS, stable"
+      rust: stable
       os: osx
       install:
         - rustup target add aarch64-apple-ios
@@ -24,54 +24,11 @@ matrix:
         - cargo test --examples
         - cargo build --target aarch64-apple-ios
 
-    - rust: beta
-      env: DESCRIPTION="Linux, beta"
+    - name: "Linux, beta"
+      rust: beta
 
-    - rust: stable
-      env: DESCRIPTION="Rustfmt"
-      install:
-        - rustup component add rustfmt
-      script:
-        - cargo fmt --all -- */*.rs --check
-
-    - rust: nightly
-      os: linux
-      env: DESCRIPTION="Linux, nightly, docs"
-      install:
-        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
-        - cargo deadlinks -V
-      script:
-        - cargo test
-        - cargo test --benches
-        - cargo test --examples
-        # remove cached documentation, otherwise files from previous PRs can get included
-        - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std,log
-        - cargo deadlinks --dir target/doc
-        # also test minimum dependency versions are usable
-        - cargo generate-lockfile -Z minimal-versions
-        - cargo test
-
-    - rust: nightly
-      os: osx
-      env: DESCRIPTION="OSX, nightly, docs"
-      install:
-        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
-        - cargo deadlinks -V
-      script:
-        - cargo test
-        - cargo test --benches
-        - cargo test --examples
-        # remove cached documentation, otherwise files from previous PRs can get included
-        - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std,log
-        - cargo deadlinks --dir target/doc
-        # also test minimum dependency versions are usable
-        - cargo generate-lockfile -Z minimal-versions
-        - cargo test
-
-    - rust: nightly
-      env: DESCRIPTION="WASM via emscripten, stdweb, wasm-bindgen and WASI"
+    - name: "WASM via emscripten, stdweb, wasm-bindgen and WASI"
+      rust: nightly
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
@@ -100,8 +57,44 @@ matrix:
         - node tests/wasm_bindgen/js/index.js
         - wasm-pack test --node tests/wasm_bindgen
 
-    - rust: nightly
-      env: DESCRIPTION="cross-platform build only"
+    - name: "Linux, nightly, docs"
+      rust: nightly
+      os: linux
+      install:
+        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
+        - cargo deadlinks -V
+      script:
+        - cargo test
+        - cargo test --benches
+        - cargo test --examples
+        # remove cached documentation, otherwise files from previous PRs can get included
+        - rm -rf target/doc
+        - cargo doc --no-deps --all --features=std,log
+        - cargo deadlinks --dir target/doc
+        # also test minimum dependency versions are usable
+        - cargo generate-lockfile -Z minimal-versions
+        - cargo test
+
+    - name: "OSX, nightly, docs"
+      rust: nightly
+      os: osx
+      install:
+        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
+        - cargo deadlinks -V
+      script:
+        - cargo test
+        - cargo test --benches
+        - cargo test --examples
+        # remove cached documentation, otherwise files from previous PRs can get included
+        - rm -rf target/doc
+        - cargo doc --no-deps --all --features=std,log
+        - cargo deadlinks --dir target/doc
+        # also test minimum dependency versions are usable
+        - cargo generate-lockfile -Z minimal-versions
+        - cargo test
+
+    - name: "cross-platform build only"
+      rust: nightly
       # libc on Redox is broken: see https://github.com/rust-lang/libc/pull/1450
       install:
         - rustup target add x86_64-sun-solaris
@@ -140,35 +133,47 @@ matrix:
         - cargo xbuild --target=x86_64-uwp-windows-gnu
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
-    - rust: stable
+    - name: "Linux (MIPS, big-endian)"
+      env: TARGET=mips-unknown-linux-gnu
+      rust: stable
       sudo: required
       dist: trusty
       services: docker
-      env: DESCRIPTION="Linux (MIPS, big-endian)" TARGET=mips-unknown-linux-gnu
       install:
         - sh utils/ci/install.sh
         - source ~/.cargo/env || true
       script:
         - bash utils/ci/script.sh
 
-    - rust: stable
+    - name: "Android (ARMv7)"
+      env: TARGET=armv7-linux-androideabi
+      rust: stable
       sudo: required
       dist: trusty
       services: docker
-      env: DESCRIPTION="Android (ARMv7)" TARGET=armv7-linux-androideabi
       install:
         - sh utils/ci/install.sh
         - source ~/.cargo/env || true
       script:
         - bash utils/ci/script.sh
+
+    - name: "rustfmt"
+      rust: stable
+      install:
+        - rustup component add rustfmt
+      script:
+        - cargo fmt --all -- */*.rs --check
 
   allow_failures:
     # Formatting errors should appear in Travis, but not break the build.
-    - env: DESCRIPTION="Rustfmt"
+    - name: "rustfmt"
 
 before_install:
   - set -e
   - rustup self update
+
+before_script:
+  - export RUSTFLAGS="-D warnings"
 
 script:
   - cargo test
@@ -188,3 +193,7 @@ before_cache:
 notifications:
   email:
     on_success: never
+
+branches:
+  only:
+    - master
