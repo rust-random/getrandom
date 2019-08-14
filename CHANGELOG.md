@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2019-08-14
+### Changed
+- Remove `std` dependency for opening and reading files. [#58]
+- Use `wasi` isntead of `libc` on WASI target. [#64]
+- By default emit a compile-time error when built for an unsupported target.
+This behaviour can be disabled by using the `dummy` feature. [#71]
+
+### Added
+- Add support for UWP targets. [#69]
+- Add unstable `rustc-dep-of-std` feature. [#78]
+
+[#58]: https://github.com/rust-random/getrandom/pull/58
+[#64]: https://github.com/rust-random/getrandom/pull/64
+[#69]: https://github.com/rust-random/getrandom/pull/69
+[#71]: https://github.com/rust-random/getrandom/pull/71
+[#78]: https://github.com/rust-random/getrandom/pull/78
+
 ## [0.1.8] - 2019-07-29
 ### Changed
 - Explicitly specify types to arguments of 'libc::syscall'. [#74]
