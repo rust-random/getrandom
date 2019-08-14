@@ -11,7 +11,7 @@ use crate::error::{Error, ERRNO_NOT_POSITIVE};
 use core::num::NonZeroU32;
 
 extern "C" {
-    fn randBytes (buf: *mut u8, length: i32) -> i32;
+    fn randBytes(buf: *mut u8, length: i32) -> i32;
     // errnoLib.h
     fn errnoGet() -> i32;
 }
@@ -19,9 +19,9 @@ extern "C" {
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // Prevent overflow of i32
     for chunk in dest.chunks_mut(i32::max_value() as usize) {
-        let ret = randBytes(chunk.as_mut_ptr(), chunk.len() as i32);
+        let ret = unsafe { randBytes(chunk.as_mut_ptr(), chunk.len() as i32) };
         if ret == -1 {
-            let errno = errnoGet();
+            let errno = unsafe { errnoGet() };
             let err = if errno > 0 {
                 Error::from(NonZeroU32::new(errno as u32).unwrap())
             } else {
