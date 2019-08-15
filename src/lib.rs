@@ -62,6 +62,10 @@
 //! by enabling the `dummy` feature, which will make `getrandom` to use an
 //! always failing implementation.
 //!
+//! If you are seeing this compiler error even though your crate doesn't directly
+//! depend on getrandom (one of your dependencies pulls it in), you can still solve
+//! this by adding getrandom as a dependency to your `Cargo.toml` with the correct feature.
+//!
 //! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
 //! by the WASI standard.
 //!
