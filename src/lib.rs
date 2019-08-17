@@ -60,10 +60,10 @@
 //!
 //! Getrandom also supports `wasm32-unknown-unknown` by directly calling
 //! javascript methods. Rust currently has two ways to do this: [bindgen] and
-//! [stdweb]. Getrandom can using either by enabling the `wasm-bindgen` or
-//! `stdweb` crate features. Note that if both features are enabled,
-//! `wasm-bindgen` will be used. If neither feature is enabled, calls to
-//! `getrandom` will always fail at runtime.
+//! [stdweb]. Getrandom supports using either one by enabling the
+//! `wasm-bindgen` or `stdweb` crate features. Note that if both features are
+//! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls
+//! to `getrandom` will always fail at runtime.
 //!
 //! [bindgen]: https://github.com/rust-lang/rust-bindgen
 //! [stdweb]: https://github.com/koute/stdweb
