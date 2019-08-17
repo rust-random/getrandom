@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use the dummy implementation on `wasm32-unknown-unknown` even with the
 disabled `dummy` feature. [#90]
 
+### Fixed
+- Fix CSP error for `wasm-bindgen`. [#92]
+
 [#90]: https://github.com/rust-random/getrandom/pull/90
+[#92]: https://github.com/rust-random/getrandom/pull/92
 
 ## [0.1.9] - 2019-08-14
 ### Changed
