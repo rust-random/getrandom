@@ -37,6 +37,7 @@
 //! sizes.
 //!
 //! ## Unsupported targets
+//!
 //! By default, compiling `getrandom` for an unsupported target will result in
 //! a compilation error. If you want to build an application which uses `getrandom`
 //! for such target, you can either:
@@ -50,21 +51,22 @@
 //!
 //! ## Support for WebAssembly and asm.js
 //!
-//! The three Emscripten targets `asmjs-unknown-emscripten`,
-//! `wasm32-unknown-emscripten` and `wasm32-experimental-emscripten` use
-//! Emscripten's emulation of `/dev/random` on web browsers and Node.js.
+//! Getrandom supports all of Rust's current `wasm32` targets, and it works with
+//! both Node.js and web browsers. The three Emscripten targets
+//! `asmjs-unknown-emscripten`, `wasm32-unknown-emscripten`, and
+//! `wasm32-experimental-emscripten` use Emscripten's `/dev/random` emulation.
+//! The WASI target `wasm32-wasi` uses the [`__wasi_random_get`][17] function
+//! defined by the WASI standard.
 //!
-//! The bare WASM target `wasm32-unknown-unknown` tries to call the javascript
-//! methods directly, using either `stdweb` or `wasm-bindgen` depending on what
-//! features are activated for this crate. Note that if both features are
-//! enabled `wasm-bindgen` will be used. If neither feature is enabled,
-//! compiling `getrandom` will result in a compilation error. It can be avoided
-//! by enabling the `dummy` feature, which will make `getrandom` to use an
-//! always failing implementation.
+//! Getrandom also supports `wasm32-unknown-unknown` by directly calling
+//! JavaScript methods. Rust currently has two ways to do this: [bindgen] and
+//! [stdweb]. Getrandom supports using either one by enabling the
+//! `wasm-bindgen` or `stdweb` crate features. Note that if both features are
+//! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls
+//! to `getrandom` will always fail at runtime.
 //!
-//! The WASI target `wasm32-wasi` uses the `__wasi_random_get` function defined
-//! by the WASI standard.
-//!
+//! [bindgen]: https://github.com/rust-lang/rust-bindgen
+//! [stdweb]: https://github.com/koute/stdweb
 //!
 //! ## Early boot
 //!
@@ -236,13 +238,18 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
-    // the following two branches are intended only for `wasm32-unknown-unknown`
-    // target and may not work or work inefficiently on targets which may be
-    // added in future
-    } else if #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))] {
-        #[path = "wasm32_bindgen.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "wasm32", feature = "stdweb"))] {
-        #[path = "wasm32_stdweb.rs"] mod imp;
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
+        cfg_if! {
+            if #[cfg(feature = "wasm-bindgen")] {
+                #[path = "wasm32_bindgen.rs"] mod imp;
+            } else if #[cfg(feature = "stdweb")] {
+                #[path = "wasm32_stdweb.rs"] mod imp;
+            } else {
+                // Always have an implementation for wasm32-unknown-unknown.
+                // See https://github.com/rust-random/getrandom/issues/87
+                #[path = "dummy.rs"] mod imp;
+            }
+        }
     } else if #[cfg(feature = "dummy")] {
         #[path = "dummy.rs"] mod imp;
     } else {
