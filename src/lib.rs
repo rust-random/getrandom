@@ -59,7 +59,7 @@
 //! defined by the WASI standard.
 //!
 //! Getrandom also supports `wasm32-unknown-unknown` by directly calling
-//! javascript methods. Rust currently has two ways to do this: [bindgen] and
+//! JavaScript methods. Rust currently has two ways to do this: [bindgen] and
 //! [stdweb]. Getrandom supports using either one by enabling the
 //! `wasm-bindgen` or `stdweb` crate features. Note that if both features are
 //! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls
