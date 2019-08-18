@@ -27,7 +27,7 @@
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
 //! | L4RE, SGX, UEFI  | [RDRAND][18]
 //! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
-//! | VxWorks          | `randBytes`
+//! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
@@ -172,6 +172,7 @@ mod util;
     target_os = "openbsd",
     target_os = "redox",
     target_os = "solaris",
+    target_os = "vxworks",
 ))]
 #[allow(dead_code)]
 mod util_libc;

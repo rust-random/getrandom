@@ -26,7 +26,10 @@ cfg_if! {
 }
 
 pub fn last_os_error() -> Error {
+    #[cfg(not(target_os = "vxworks"))]
     let errno = unsafe { *errno_location() };
+    #[cfg(target_os = "vxworks")]
+    let errno = unsafe { libc::errnoGet() };
     if errno > 0 {
         Error::from(NonZeroU32::new(errno as u32).unwrap())
     } else {
