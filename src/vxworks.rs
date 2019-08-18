@@ -8,7 +8,8 @@
 
 //! Implementation for VxWorks
 use crate::error::Error;
-use core::sync::atomic::{AtomicUBool, Ordering::Relaxed};
+use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
+use util_libc::last_os_error;
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
