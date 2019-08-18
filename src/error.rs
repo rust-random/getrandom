@@ -138,6 +138,7 @@ pub(crate) const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
 pub(crate) const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
 pub(crate) const STDWEB_NO_RNG: Error = internal_error!(9);
 pub(crate) const STDWEB_RNG_FAILED: Error = internal_error!(10);
+pub(crate) const RAND_SECURE_FATAL: Error = internal_error!(11);
 
 fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
@@ -152,6 +153,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
         STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
         STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
+        RAND_SECURE_FATAL => Some("randSecure: fatal error"),
         _ => None,
     }
 }
