@@ -39,7 +39,15 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 
 ## Features
 
-This library is `no_std` for every supported target. However, getting randomness
+By default, the `std` feature is enabled, allowing getrandom's
+[`Error`](https://docs.rs/getrandom/0.1.10/getrandom/struct.Error.html)
+to implement traits like
+[`std::error::Error`](https://doc.rust-lang.org/std/error/trait.Error.html). To
+use getrandom in a `no_std` environment, the `std` feature must be disabled by
+setting `default-features = false` in `Cargo.toml`. Without this feature, this
+library is `no_std` for every supported target.
+
+However, getting randomness
 usually requires calling some external system API. This means most platforms
 will require linking against system libraries (i.e. `libc` for Unix,
 `Advapi32.dll` for Windows, Security framework on iOS, etc...).
