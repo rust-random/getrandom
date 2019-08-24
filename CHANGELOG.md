@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.10] - 2019-08-18
+## [0.1.11] - 2019-08-25
+### Fixed
+- Always implement `std`-dependent traits for `std` targets even with
+disabled  `std` feature. [#96]
+
+[#96]: https://github.com/rust-random/getrandom/pull/96
+
+## [0.1.10] - 2019-08-18 [YANKED]
 ### Changed
 - Use the dummy implementation on `wasm32-unknown-unknown` even with the
 disabled `dummy` feature. [#90]
@@ -15,7 +22,7 @@ disabled `dummy` feature. [#90]
 [#90]: https://github.com/rust-random/getrandom/pull/90
 [#92]: https://github.com/rust-random/getrandom/pull/92
 
-## [0.1.9] - 2019-08-14
+## [0.1.9] - 2019-08-14 [YANKED]
 ### Changed
 - Remove `std` dependency for opening and reading files. [#58]
 - Use `wasi` isntead of `libc` on WASI target. [#64]
