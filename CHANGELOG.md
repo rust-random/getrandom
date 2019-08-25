@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.11] - 2019-08-25
 ### Fixed
-- Always implement `std`-dependent traits for `std` targets even with
-disabled  `std` feature. [#96]
+- Implement `std`-dependent traits for selected targets even if `std`
+feature is disabled. (backward compatibility with v0.1.8) [#96]
 
 [#96]: https://github.com/rust-random/getrandom/pull/96
 
