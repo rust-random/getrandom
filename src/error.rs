@@ -134,10 +134,11 @@ pub(crate) const SEC_RANDOM_FAILED: Error = internal_error!(3);
 pub(crate) const RTL_GEN_RANDOM_FAILED: Error = internal_error!(4);
 pub(crate) const FAILED_RDRAND: Error = internal_error!(5);
 pub(crate) const NO_RDRAND: Error = internal_error!(6);
-pub(crate) const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
-pub(crate) const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
-pub(crate) const STDWEB_NO_RNG: Error = internal_error!(9);
-pub(crate) const STDWEB_RNG_FAILED: Error = internal_error!(10);
+pub(crate) const BINDGEN_WEB_CRYPTO: Error = internal_error!(7);
+pub(crate) const BINDGEN_WEB_FAILED: Error = internal_error!(8);
+pub(crate) const BINDGEN_NODE_FAILED: Error = internal_error!(9);
+pub(crate) const STDWEB_NO_RNG: Error = internal_error!(10);
+pub(crate) const STDWEB_RNG_FAILED: Error = internal_error!(11);
 
 fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
@@ -148,8 +149,9 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         RTL_GEN_RANDOM_FAILED => Some("RtlGenRandom: call failed"),
         FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
         NO_RDRAND => Some("RDRAND: instruction not supported"),
-        BINDGEN_CRYPTO_UNDEF => Some("wasm-bindgen: self.crypto is undefined"),
-        BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
+        BINDGEN_WEB_CRYPTO => Some("wasm-bindgen: self.crypto is unavalible"),
+        BINDGEN_WEB_FAILED => Some("wasm-bindgen: crypto.getRandomValues failed"),
+        BINDGEN_NODE_FAILED => Some("wasm-bindgen: Node.js crypto.randomFillSync failed"),
         STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
         STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
         _ => None,

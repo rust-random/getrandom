@@ -61,8 +61,8 @@
 //! Getrandom also supports `wasm32-unknown-unknown` by directly calling
 //! JavaScript methods. Rust currently has two ways to do this: [bindgen] and
 //! [stdweb]. Getrandom supports using either one by enabling the
-//! `wasm-bindgen` or `stdweb` crate features. Note that if both features are
-//! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls
+//! `bindgen` or `stdweb` crate features. Note that if both features are
+//! enabled, `bindgen` will be used. If neither feature is enabled, calls
 //! to `getrandom` will always fail at runtime.
 //!
 //! [bindgen]: https://github.com/rust-lang/rust-bindgen
@@ -234,7 +234,7 @@ cfg_if! {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
         cfg_if! {
-            if #[cfg(feature = "wasm-bindgen")] {
+            if #[cfg(feature = "bindgen")] {
                 #[path = "wasm32_bindgen.rs"] mod imp;
             } else if #[cfg(feature = "stdweb")] {
                 #[path = "wasm32_stdweb.rs"] mod imp;

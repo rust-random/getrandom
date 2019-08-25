@@ -50,7 +50,7 @@ reporting will be improved on some platforms.
 For the `wasm32-unknown-unknown` target, one of the following features should be
 enabled:
 
--   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
+-   [`bindgen`](https://crates.io/crates/wasm_bindgen)
 -   [`stdweb`](https://crates.io/crates/stdweb)
 
 By default, compiling `getrandom` for an unsupported target will result in
