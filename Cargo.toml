@@ -32,8 +32,8 @@ libc = { version = "0.2.62", default-features = false }
 wasi = "0.5"
 
 [target.wasm32-unknown-unknown.dependencies]
-wasm-bindgen = { version = "0.2.29", optional = true }
-stdweb = { version = "0.4.18", optional = true }
+wasm-bindgen = { version = "0.2.29", default-features = false, optional = true }
+stdweb = { version = "0.4.18", default-features = false, optional = true }
 
 [features]
 std = []
