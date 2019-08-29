@@ -8,13 +8,12 @@
 
 //! Implementation for WASI
 use crate::Error;
-use core::num::NonZeroU32;
+use core::num;
 use wasi::wasi_unstable::random_get;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    // wasi uses NonZeroU16 for error codes
-    // here compiler is able to eliminate `unwrap`
-    random_get(dest).map_err(|e| {
-        NonZeroU32::new(e.get() as u32).unwrap().into()
+    random_get(dest).map_err(|e: num::NonZeroU16| {
+        // convert wasi's NonZeroU16 error into getrandom's NonZeroU32 error
+        num::NonZeroU32::new(e.get() as u32).unwrap().into()
     })
 }
