@@ -15,6 +15,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // wasi uses NonZeroU16 for error codes
     // here compiler is able to eliminate `unwrap`
     random_get(dest).map_err(|e| {
-        Error(NonZeroU32::new(e.get() as u32).unwrap())
+        NonZeroU32::new(e.get() as u32).unwrap().into()
     })
 }
