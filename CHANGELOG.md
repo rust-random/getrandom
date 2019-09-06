@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update wasi dependency from v0.5 to v0.7. [#100]
 
-[#90]: https://github.com/rust-random/getrandom/pull/100
+[#100]: https://github.com/rust-random/getrandom/pull/100
 
 ## [0.1.11] - 2019-08-25
 ### Fixed
