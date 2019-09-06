@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [#90]: https://github.com/rust-random/getrandom/pull/100
 
-
 ## [0.1.11] - 2019-08-25
 ### Fixed
 - Implement `std`-dependent traits for selected targets even if `std`
