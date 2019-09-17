@@ -118,6 +118,7 @@ matrix:
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
+        - cargo xbuild --target=x86_64-wrs-vxworks
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
         - cargo build --target=x86_64-sun-solaris
