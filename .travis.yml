@@ -96,14 +96,13 @@ matrix:
 
     - name: "cross-platform build only"
       rust: nightly
-      # libc on Redox is broken: see https://github.com/rust-lang/libc/pull/1450
       install:
         - rustup target add x86_64-sun-solaris
         - rustup target add x86_64-unknown-cloudabi
         - rustup target add x86_64-unknown-freebsd
         - rustup target add x86_64-fuchsia
         - rustup target add x86_64-unknown-netbsd
-        # - rustup target add x86_64-unknown-redox
+        - rustup target add x86_64-unknown-redox
         - rustup target add x86_64-fortanix-unknown-sgx
         # For no_std targets
         - rustup component add rust-src
@@ -114,7 +113,7 @@ matrix:
         - cargo build --target=x86_64-unknown-freebsd
         - cargo build --target=x86_64-fuchsia
         - cargo build --target=x86_64-unknown-netbsd
-        # - cargo build --target=x86_64-unknown-redox
+        - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
@@ -126,7 +125,7 @@ matrix:
         - cargo build --target=x86_64-unknown-freebsd
         - cargo build --target=x86_64-fuchsia
         - cargo build --target=x86_64-unknown-netbsd
-        # - cargo build --target=x86_64-unknown-redox
+        - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit

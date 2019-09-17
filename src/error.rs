@@ -60,22 +60,29 @@ impl Error {
     }
 }
 
-#[cfg(any(unix, target_os = "redox"))]
-fn os_err_desc(errno: i32, buf: &mut [u8]) -> Option<&str> {
-    let buf_ptr = buf.as_mut_ptr() as *mut libc::c_char;
-    if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {
-        return None;
+cfg_if! {
+    if #[cfg(unix)] {
+        fn os_err_desc(errno: i32, buf: &mut [u8]) -> Option<&str> {
+            let buf_ptr = buf.as_mut_ptr() as *mut libc::c_char;
+            if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {
+                return None;
+            }
+
+            // Take up to trailing null byte
+            let n = buf.len();
+            let idx = buf.iter().position(|&b| b == 0).unwrap_or(n);
+            core::str::from_utf8(&buf[..idx]).ok()
+        }
+    } else if #[cfg(target_os = "wasi")] {
+        fn os_err_desc(errno: i32, _buf: &mut [u8]) -> Option<&str> {
+            core::num::NonZeroU16::new(errno as u16)
+                .and_then(wasi::wasi_unstable::error_str)
+        }
+    } else {
+        fn os_err_desc(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
+            None
+        }
     }
-
-    // Take up to trailing null byte
-    let n = buf.len();
-    let idx = buf.iter().position(|&b| b == 0).unwrap_or(n);
-    core::str::from_utf8(&buf[..idx]).ok()
-}
-
-#[cfg(not(any(unix, target_os = "redox")))]
-fn os_err_desc(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
-    None
 }
 
 impl fmt::Debug for Error {
