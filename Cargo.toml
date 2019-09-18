@@ -37,8 +37,6 @@ wasm-bindgen-test = "0.2"
 
 [features]
 std = []
-# Enables dummy implementation for unsupported targets
-dummy = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
 # Unstable feature for testing
