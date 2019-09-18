@@ -166,14 +166,12 @@ cfg_if! {
     if #[cfg(any(target_os = "android", target_os = "dragonfly", target_os = "emscripten",
                  target_os = "freebsd", target_os = "haiku",     target_os = "illumos",
                  target_os = "linux",   target_os = "macos",     target_os = "netbsd",
-                 target_os = "openbsd", target_os = "redox",     target_os = "solaris"))] {
+                 target_os = "openbsd", target_os = "redox",     target_os = "solaris",
+                 target_os = "vxworks"))] {
         #[allow(dead_code)]
         mod util_libc;
         // Keep std-only trait definitions for backwards compatiblity
         mod error_impls;
-    } else if #[cfg(target_os = "vxworks")] {
-        #[allow(dead_code)]
-        mod util_libc;
     } else if #[cfg(feature = "std")] {
         mod error_impls;
     }
