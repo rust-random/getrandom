@@ -258,7 +258,9 @@ cfg_if! {
 /// source.
 ///
 /// This function returns an error on any failure, including partial reads. We
-/// make no guarantees regarding the contents of `dest` on error.
+/// make no guarantees regarding the contents of `dest` on error. If `dest` is
+/// empty, `getrandom` immediately returns success, making no calls to the
+/// underlying operating system.
 ///
 /// Blocking is possible, at least during early boot; see module documentation.
 ///
@@ -266,5 +268,8 @@ cfg_if! {
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 pub fn getrandom(dest: &mut [u8]) -> Result<(), error::Error> {
+    if dest.is_empty() {
+        return Ok(())
+    }
     imp::getrandom_inner(dest)
 }
