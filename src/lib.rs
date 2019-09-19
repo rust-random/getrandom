@@ -258,7 +258,9 @@ cfg_if! {
 /// source.
 ///
 /// This function returns an error on any failure, including partial reads. We
-/// make no guarantees regarding the contents of `dest` on error.
+/// make no guarantees regarding the contents of `dest` on error. If `dest` is
+/// empty, `getrandom` immediately returns success, making no calls to the
+/// underlying operating system.
 ///
 /// Blocking is possible, at least during early boot; see module documentation.
 ///
