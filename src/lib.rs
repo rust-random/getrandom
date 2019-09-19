@@ -162,7 +162,12 @@ mod util;
 
 #[cfg(all(
     unix,
-    not(any(target_os = "ios", target_os = "fuchsia", target_os = "hermit"))
+    not(any(
+        target_os = "ios",
+        target_os = "fuchsia",
+        target_os = "hermit",
+        target_os = "l4re"
+    ))
 ))]
 #[allow(dead_code)]
 mod util_libc;
