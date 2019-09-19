@@ -32,31 +32,28 @@ matrix:
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
+        - rustup target add asmjs-unknown-emscripten
         - rustup target add wasm32-wasi
-        - nvm install 9
-        - ./utils/ci/install_cargo_web.sh
-        - cargo web prepare-emscripten
-        - cargo web -V
-        - cargo list | grep install-update || cargo install -f cargo-update
-        - cargo install-update -i cargo-update wasm-bindgen-cli wasm-pack
+        - cargo install cargo-web wasmtime
+        - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       addons:
         chrome: stable
+        firefox: latest
+      env: EMCC_CFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0"
       script:
-        # Testing wasm32-unknown-emscripten fails because of rust-lang/rust#49877
+        # Running emscripten test binaries fails (see rust-lang/rust#63649).
         # However, we can still build and link all tests to make sure that works.
         # This is actually useful as it finds stuff such as rust-random/rand#669
-        - EMCC_CFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0" cargo web test --target wasm32-unknown-emscripten --no-run
-        #- cargo web test --target wasm32-unknown-emscripten
-        #- cargo web test --nodejs --target wasm32-unknown-emscripten
-        #- cargo build --target wasm32-unknown-unknown # without any features
-        - cargo build --target wasm32-wasi
-        - cargo build --target wasm32-unknown-unknown
-        - cargo build --target wasm32-unknown-unknown --features=wasm-bindgen
-        - cargo web test --target wasm32-unknown-unknown --features=stdweb
-        - cargo build --manifest-path tests/wasm_bindgen/Cargo.toml --target wasm32-unknown-unknown
-        - wasm-bindgen --nodejs target/wasm32-unknown-unknown/debug/getrandom_wasm_bindgen_test.wasm --out-dir tests/wasm_bindgen/js
-        - node tests/wasm_bindgen/js/index.js
-        - wasm-pack test --node tests/wasm_bindgen
+        - cargo web test --target wasm32-unknown-emscripten --no-run
+        - cargo web test --target asmjs-unknown-emscripten --no-run
+        # wasi tests
+        - cargo test --target wasm32-wasi
+        # wasm-bindgen tests
+        - wasm-pack test --headless --chrome --firefox -- --features=test-in-browser
+        - wasm-pack test --node -- --features=wasm-bindgen
+        # wasm-stdweb tests
+        - cargo web test --target=wasm32-unknown-unknown --features=stdweb
+        - cargo web test --nodejs --target=wasm32-unknown-unknown --features=stdweb
 
     - name: "Linux, nightly, docs"
       rust: nightly
