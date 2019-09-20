@@ -41,5 +41,5 @@ std = []
 dummy = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
-# Usstable feature for testing
+# Unstable feature for testing
 test-in-browser = ["wasm-bindgen"]
