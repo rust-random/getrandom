@@ -30,6 +30,7 @@ matrix:
     - name: "WASM via emscripten, stdweb, wasm-bindgen and WASI"
       rust: nightly
       install:
+        - echo $PATH
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
         - rustup target add asmjs-unknown-emscripten
@@ -43,7 +44,7 @@ matrix:
         - mkdir wasm-pack wasmtime
         - tar -xzf wasm-pack.tar.gz --strip-components=1 -C wasm-pack
         - tar -xf wasmtime.tar.xz --strip-components=1 -C wasmtime
-        - mv cargo-web wasmtime/wasmtime wasm-pack/wasm-pack /bin
+        - mv cargo-web wasmtime/wasmtime wasm-pack/wasm-pack $HOME/.cargo/bin
       addons:
         firefox: latest
         chrome: stable
