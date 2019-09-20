@@ -34,11 +34,19 @@ matrix:
         - rustup target add wasm32-unknown-emscripten
         - rustup target add asmjs-unknown-emscripten
         - rustup target add wasm32-wasi
-        - cargo install cargo-web wasmtime
-        - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        # Install pre-built binaries
+        - wget https://github.com/koute/cargo-web/releases/download/0.6.26/cargo-web-x86_64-unknown-linux-gnu.gz -O cargo-web.gz
+        - wget https://github.com/CraneStation/wasmtime/releases/download/v0.3.0/wasmtime-v0.3.0-x86_64-linux.tar.xz -O wasmtime.tar.xz
+        - wget https://github.com/rustwasm/wasm-pack/releases/download/v0.8.1/wasm-pack-v0.8.1-x86_64-unknown-linux-musl.tar.gz -O wasm-pack.tar.gz
+        - gunzip cargo-web.gz
+        - chmod +x cargo-web
+        - mkdir wasm-pack wasmtime
+        - tar -xzf wasm-pack.tar.gz --strip-components=1 -C wasm-pack
+        - tar -xf wasmtime.tar.xz --strip-components=1 -C wasmtime
+        - mv cargo-web wasmtime/wasmtime wasm-pack/wasm-pack /bin
       addons:
-        chrome: stable
         firefox: latest
+        chrome: stable
       env: EMCC_CFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0"
       script:
         # Running emscripten test binaries fails (see rust-lang/rust#63649).
@@ -48,12 +56,13 @@ matrix:
         - cargo web test --target asmjs-unknown-emscripten --no-run
         # wasi tests
         - cargo test --target wasm32-wasi
-        # wasm-bindgen tests
-        - wasm-pack test --headless --chrome --firefox -- --features=test-in-browser
-        - wasm-pack test --node -- --features=wasm-bindgen
         # wasm-stdweb tests
-        - cargo web test --target=wasm32-unknown-unknown --features=stdweb
         - cargo web test --nodejs --target=wasm32-unknown-unknown --features=stdweb
+        - cargo web test --target=wasm32-unknown-unknown --features=stdweb
+        # wasm-bindgen tests
+        - wasm-pack test --node -- --features=wasm-bindgen
+        - wasm-pack test --headless --firefox -- --features=test-in-browser
+        - wasm-pack test --headless --chrome -- --features=test-in-browser
 
     - name: "Linux, nightly, docs"
       rust: nightly
