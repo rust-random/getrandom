@@ -43,8 +43,6 @@
 //! for such target, you can either:
 //! - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
 //! to switch to a custom implementation with a support of your target.
-//! - Enable the `dummy` feature to have getrandom use an implementation that always
-//! fails at run-time on unsupported targets.
 //!
 //! [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
 //! [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
@@ -239,13 +237,12 @@ cfg_if! {
             } else if #[cfg(feature = "stdweb")] {
                 #[path = "wasm32_stdweb.rs"] mod imp;
             } else {
-                // Always have an implementation for wasm32-unknown-unknown.
-                // See https://github.com/rust-random/getrandom/issues/87
-                #[path = "dummy.rs"] mod imp;
+                compile_error!("\
+                    Enable crate features to use the wasm32-unknown-unknown target, see: \
+                    https://docs.rs/getrandom/#support-for-webassembly-and-asmjs\
+                ");
             }
         }
-    } else if #[cfg(feature = "dummy")] {
-        #[path = "dummy.rs"] mod imp;
     } else {
         compile_error!("\
             target is not supported, for more information see: \

@@ -58,8 +58,6 @@ a compilation error. If you want to build an application which uses `getrandom`
 for such target, you can either:
 - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
 to switch to a custom implementation with a support of your target.
-- Enable the `dummy` feature to have getrandom use an implementation that always
-fails at run-time on unsupported targets.
 
 [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
 [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
