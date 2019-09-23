@@ -269,7 +269,7 @@ cfg_if! {
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 pub fn getrandom(dest: &mut [u8]) -> Result<(), error::Error> {
     if dest.is_empty() {
-        return Ok(())
+        return Ok(());
     }
     imp::getrandom_inner(dest)
 }
