@@ -32,9 +32,6 @@ matrix:
       addons:
         firefox: latest
         chrome: stable
-        apt:
-          packages:
-          - jq
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
