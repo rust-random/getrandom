@@ -30,29 +30,33 @@ matrix:
     - name: "WASM via emscripten, stdweb, wasm-bindgen and WASI"
       rust: nightly
       addons:
-        firefox: 69.0
+        firefox: latest
         chrome: stable
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-unknown-emscripten
         - rustup target add asmjs-unknown-emscripten
         - rustup target add wasm32-wasi
-        # Get geckodriver
-        - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.25.0/geckodriver-v0.25.0-linux64.tar.gz
+        # Get latest geckodriver
+        - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
+        - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
         - tar -xzf geckodriver.tar.gz
-        # Get chromedirver (we cannot pin chrome version, so don't pin chromedriver version)
+        # Get latest chromedirver
         - export VERSION=$(wget -q -O - https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
         - wget -O chromedriver.zip https://chromedriver.storage.googleapis.com/$VERSION/chromedriver_linux64.zip
         - unzip chromedriver.zip
         # Get cargo-web
-        - wget -O cargo-web.gz https://github.com/koute/cargo-web/releases/download/0.6.26/cargo-web-x86_64-unknown-linux-gnu.gz
+        - export VERSION=0.6.26 # Pin version for stability
+        - wget -O cargo-web.gz https://github.com/koute/cargo-web/releases/download/$VERSION/cargo-web-x86_64-unknown-linux-gnu.gz
         - gunzip cargo-web.gz
         - chmod +x cargo-web
         # Get wasmtime
-        - wget -O wasmtime.tar.xz https://github.com/CraneStation/wasmtime/releases/download/v0.3.0/wasmtime-v0.3.0-x86_64-linux.tar.xz
+        - export VERSION=v0.3.0 # Pin version for stability
+        - wget -O wasmtime.tar.xz https://github.com/CraneStation/wasmtime/releases/download/$VERSION/wasmtime-$VERSION-x86_64-linux.tar.xz
         - tar -xf wasmtime.tar.xz --strip-components=1
-        # Get wasm-bindgen-test-runner
-        - wget -O wasm-bindgen.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.50/wasm-bindgen-0.2.50-x86_64-unknown-linux-musl.tar.gz
+        # Get wasm-bindgen-test-runner which matches our wasm-bindgen version
+        - export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
+        - wget -O wasm-bindgen.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
         - tar -xzf wasm-bindgen.tar.gz --strip-components=1
         # Place the runner binaries in our PATH
         - mv cargo-web wasmtime wasm-bindgen-test-runner $HOME/.cargo/bin
