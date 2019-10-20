@@ -39,7 +39,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 cfg_if! {
-    if #[cfg(any(target_os = "android", target_os = "linux", target_os = "netbsd"))] {
+    if #[cfg(any(target_os = "android", target_os = "linux"))] {
         fn init_file() -> Option<libc::c_int> {
             // Poll /dev/random to make sure it is ok to read from /dev/urandom.
             let mut pfd = libc::pollfd {
