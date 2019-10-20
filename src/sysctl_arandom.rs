@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation for FreeBSD
+//! Implementation for FreeBSD and NetBSD
 use crate::util_libc::{sys_fill_exact, Weak};
 use crate::Error;
 use core::{mem, ptr};
@@ -27,7 +27,7 @@ fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
         )
     };
     if ret == -1 {
-        error!("freebsd: kern.arandom syscall failed");
+        error!("sysctl_arandom: kern.arandom syscall failed");
         -1
     } else {
         len as libc::ssize_t
