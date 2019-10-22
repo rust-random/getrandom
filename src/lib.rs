@@ -198,7 +198,7 @@ cfg_if! {
     } else if #[cfg(target_os = "emscripten")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "freebsd")] {
-        #[path = "sysctl_arandom.rs"] mod imp;
+        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(target_os = "haiku")] {
@@ -212,7 +212,7 @@ cfg_if! {
     } else if #[cfg(target_os = "macos")] {
         #[path = "macos.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
-        #[path = "sysctl_arandom.rs"] mod imp;
+        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
         #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(target_os = "redox")] {
