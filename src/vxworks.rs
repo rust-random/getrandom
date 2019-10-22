@@ -11,9 +11,8 @@ use crate::error::{Error, RAND_SECURE_FATAL};
 use crate::util_libc::last_os_error;
 use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 
-static RNG_INIT: AtomicBool = AtomicBool::new(false);
-
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+    static RNG_INIT: AtomicBool = AtomicBool::new(false);
     while !RNG_INIT.load(Relaxed) {
         let ret = unsafe { libc::randSecure() };
         if ret < 0 {
