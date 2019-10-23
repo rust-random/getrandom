@@ -27,6 +27,7 @@
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
 //! | L4RE, SGX, UEFI  | [RDRAND][18]
 //! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
+//! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
@@ -160,6 +161,10 @@ pub use crate::error::Error;
 #[allow(dead_code)]
 mod util;
 
+#[cfg(target_os = "vxworks")]
+#[allow(dead_code)]
+mod util_libc;
+
 cfg_if! {
     // Unlike the other Unix, Fuchsia and iOS don't use the libc to make any calls.
     if #[cfg(any(target_os = "android", target_os = "dragonfly", target_os = "emscripten",
@@ -221,6 +226,8 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
+    } else if #[cfg(target_os = "vxworks")] {
+        #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(all(windows, getrandom_uwp))] {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
