@@ -7,11 +7,9 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD and NetBSD
-use crate::util_libc::{sys_fill_exact, Weak};
+use crate::util_libc::sys_fill_exact;
 use crate::Error;
-use core::{mem, ptr};
-
-type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
+use core::ptr;
 
 fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
@@ -35,11 +33,17 @@ fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
-    if let Some(fptr) = GETRANDOM.ptr() {
-        let func: GetRandomFn = unsafe { mem::transmute(fptr) };
-        sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) })
-    } else {
-        sys_fill_exact(dest, kern_arnd)
+    #[cfg(target_os = "freebsd")]
+    {
+        use crate::util_libc::Weak;
+        static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+        type GetRandomFn =
+            unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
+
+        if let Some(fptr) = GETRANDOM.ptr() {
+            let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
+            return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
+        }
     }
+    sys_fill_exact(dest, kern_arnd)
 }
