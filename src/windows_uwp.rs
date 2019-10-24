@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for Windows UWP targets. After deprecation of Windows XP
-//! and Vista, this can superseed the `RtlGenRandom`-based implementation.
+//! and Vista, this can supersede the `RtlGenRandom`-based implementation.
 use crate::Error;
 use core::{ffi::c_void, num::NonZeroU32, ptr};
 

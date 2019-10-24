@@ -18,7 +18,7 @@
 //! | iOS              | [`SecRandomCopyBytes`][4]
 //! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
 //! | OpenBSD          | [`getentropy`][6]
-//! | NetBSD           | [`/dev/urandom`][7] after successfully polling `/dev/random`
+//! | NetBSD           | [`kern.arandom`][7]
 //! | Dragonfly BSD    | [`/dev/random`][8]
 //! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS       | [`cprng_draw`][11]
@@ -27,8 +27,9 @@
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
 //! | L4RE, SGX, UEFI  | [RDRAND][18]
 //! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
-//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
-//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
+//! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
+//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and asm.js][16])
+//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and asm.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
 //!
 //! Getrandom doesn't have a blanket implementation for all Unix-like operating
@@ -80,7 +81,7 @@
 //! A few, Linux, NetBSD and Solaris, offer a choice between blocking and
 //! getting an error; in these cases we always choose to block.
 //!
-//! On Linux (when the `genrandom` system call is not available) and on NetBSD
+//! On Linux (when the `getrandom` system call is not available) and on NetBSD
 //! reading from `/dev/urandom` never blocks, even when the OS hasn't collected
 //! enough entropy yet. To avoid returning low-entropy bytes, we first read from
 //! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
@@ -102,7 +103,7 @@
 //! [4]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
 //! [6]: https://man.openbsd.org/getentropy.2
-//! [7]: http://netbsd.gw.com/cgi-bin/man-cgi?random+4+NetBSD-current
+//! [7]: https://netbsd.gw.com/cgi-bin/man-cgi?sysctl+7+NetBSD-8.0
 //! [8]: https://leaf.dragonflybsd.org/cgi/web-man?command=random&section=4
 //! [9]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
@@ -111,7 +112,7 @@
 //! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
-//! [16]: #support-for-webassembly-and-amsjs
+//! [16]: #support-for-webassembly-and-asmjs
 //! [17]: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md#__wasi_random_get
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
@@ -196,7 +197,7 @@ cfg_if! {
     } else if #[cfg(target_os = "emscripten")] {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(target_os = "freebsd")] {
-        #[path = "freebsd.rs"] mod imp;
+        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(target_os = "haiku")] {
@@ -210,7 +211,7 @@ cfg_if! {
     } else if #[cfg(target_os = "macos")] {
         #[path = "macos.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
-        #[path = "use_file.rs"] mod imp;
+        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
         #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(target_os = "redox")] {
@@ -219,6 +220,8 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
+    } else if #[cfg(target_os = "vxworks")] {
+        #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(all(windows, getrandom_uwp))] {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {

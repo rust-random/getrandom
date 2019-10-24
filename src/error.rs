@@ -40,7 +40,7 @@ impl Error {
     ///
     /// This method is identical to `std::io::Error::raw_os_error()`, except
     /// that it works in `no_std` contexts. If this method returns `None`, the
-    /// error value can still be formatted via the `Diplay` implementation.
+    /// error value can still be formatted via the `Display` implementation.
     #[inline]
     pub fn raw_os_error(self) -> Option<i32> {
         if self.0.get() < Self::INTERNAL_START {
@@ -145,6 +145,7 @@ pub(crate) const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
 pub(crate) const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
 pub(crate) const STDWEB_NO_RNG: Error = internal_error!(9);
 pub(crate) const STDWEB_RNG_FAILED: Error = internal_error!(10);
+pub(crate) const RAND_SECURE_FATAL: Error = internal_error!(11);
 
 fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
@@ -159,6 +160,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
         STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
         STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
+        RAND_SECURE_FATAL => Some("randSecure: random number generator module is not initialized"),
         _ => None,
     }
 }
