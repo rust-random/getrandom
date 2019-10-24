@@ -12,10 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If zero-length slice is passed to the `getrandom` function, always return
 `Ok(())` immediately without doing any calls to the underlying operating
 system . [#104]
-- Bump `cfg-if` minimum version from 0.1.0 to 0.1.2. [#112]
-- Use the `arandom` sysctl on NetBSD. [#115]
+- Use the `kern.arandom` sysctl on NetBSD. [#115]
 
 ### Fixed
+- Bump `cfg-if` minimum version from 0.1.0 to 0.1.2. [#112]
 - Typos and bad doc links. [#117]
 
 [#86]: https://github.com/rust-random/getrandom/pull/86
