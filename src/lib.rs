@@ -154,73 +154,49 @@ cfg_if! {
 }
 
 mod error;
-pub use crate::error::Error;
-
-#[allow(dead_code)]
 mod util;
-
-#[cfg(all(
-    unix,
-    not(any(
-        target_os = "ios",
-        target_os = "fuchsia",
-        target_os = "hermit",
-        target_os = "l4re"
-    ))
-))]
-#[allow(dead_code)]
-mod util_libc;
 
 #[cfg(feature = "std")]
 mod error_impls;
 
-// These targets read from a file as a fallback method.
-#[cfg(any(
-    target_os = "android",
-    target_os = "linux",
-    target_os = "macos",
-    target_os = "solaris",
-    target_os = "illumos",
-))]
-mod use_file;
+pub use crate::error::Error;
 
 // System-specific implementations.
 //
 // These should all provide getrandom_inner with the same signature as getrandom.
 cfg_if! {
-    if #[cfg(target_os = "android")] {
+    if #[cfg(any(target_os = "dragonfly", target_os = "emscripten",
+                 target_os = "haiku",     target_os = "redox"))] {
+        mod util_libc;
+        #[path = "use_file.rs"] mod imp;
+    } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
+        mod util_libc;
+        mod use_file;
         #[path = "linux_android.rs"] mod imp;
+    } else if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
+        mod util_libc;
+        mod use_file;
+        #[path = "solaris_illumos.rs"] mod imp;
+    } else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
+        mod util_libc;
+        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "cloudabi")] {
         #[path = "cloudabi.rs"] mod imp;
-    } else if #[cfg(target_os = "dragonfly")] {
-        #[path = "use_file.rs"] mod imp;
-    } else if #[cfg(target_os = "emscripten")] {
-        #[path = "use_file.rs"] mod imp;
-    } else if #[cfg(target_os = "freebsd")] {
-        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
-    } else if #[cfg(target_os = "haiku")] {
-        #[path = "use_file.rs"] mod imp;
-    } else if #[cfg(target_os = "illumos")] {
-        #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "ios")] {
         #[path = "ios.rs"] mod imp;
-    } else if #[cfg(target_os = "linux")] {
-        #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(target_os = "macos")] {
+        mod util_libc;
+        mod use_file;
         #[path = "macos.rs"] mod imp;
-    } else if #[cfg(target_os = "netbsd")] {
-        #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
+        mod util_libc;
         #[path = "openbsd.rs"] mod imp;
-    } else if #[cfg(target_os = "redox")] {
-        #[path = "use_file.rs"] mod imp;
-    } else if #[cfg(target_os = "solaris")] {
-        #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(target_os = "vxworks")] {
+        mod util_libc;
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(all(windows, getrandom_uwp))] {
         #[path = "windows_uwp.rs"] mod imp;
