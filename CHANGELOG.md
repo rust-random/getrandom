@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - If zero-length slice is passed to the `getrandom` function, always return
 `Ok(())` immediately without doing any calls to the underlying operating
-system . [#104]
+system. [#104]
 - Use the `kern.arandom` sysctl on NetBSD. [#115]
 
 ### Fixed
