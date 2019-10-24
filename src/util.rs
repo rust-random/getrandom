@@ -8,8 +8,8 @@
 
 use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
-// This structure represents a laziliy initialized static usize value. Useful
-// when it is perferable to just rerun initialization instead of locking.
+// This structure represents a lazily initialized static usize value. Useful
+// when it is preferable to just rerun initialization instead of locking.
 // Both unsync_init and sync_init will invoke an init() function until it
 // succeeds, then return the cached value for future calls.
 //
@@ -25,7 +25,7 @@ use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 //          v
 //      }
 // the effects of c() or writes to shared memory will not necessarily be
-// observed and additional syncronization methods with be needed.
+// observed and additional synchronization methods with be needed.
 pub struct LazyUsize(AtomicUsize);
 
 impl LazyUsize {

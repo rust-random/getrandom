@@ -26,7 +26,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
         let mut el = mem::zeroed();
         if _rdrand64_step(&mut el) == 1 {
             // AMD CPUs from families 14h to 16h (pre Ryzen) sometimes fail to
-            // set CF on bogus random data, so we check these values explictly.
+            // set CF on bogus random data, so we check these values explicitly.
             // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
             // We perform this check regardless of target to guard against
             // any implementation that incorrectly fails to set CF.

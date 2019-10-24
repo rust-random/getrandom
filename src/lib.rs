@@ -28,8 +28,8 @@
 //! | L4RE, SGX, UEFI  | [RDRAND][18]
 //! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
 //! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and ams.js][14])
-//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and ams.js][16])
+//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and asm.js][16])
+//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and asm.js][16])
 //! | WASI             | [`__wasi_random_get`][17]
 //!
 //! Getrandom doesn't have a blanket implementation for all Unix-like operating
@@ -83,7 +83,7 @@
 //! A few, Linux, NetBSD and Solaris, offer a choice between blocking and
 //! getting an error; in these cases we always choose to block.
 //!
-//! On Linux (when the `genrandom` system call is not available) and on NetBSD
+//! On Linux (when the `getrandom` system call is not available) and on NetBSD
 //! reading from `/dev/urandom` never blocks, even when the OS hasn't collected
 //! enough entropy yet. To avoid returning low-entropy bytes, we first read from
 //! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
@@ -114,7 +114,7 @@
 //! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
-//! [16]: #support-for-webassembly-and-amsjs
+//! [16]: #support-for-webassembly-and-asmjs
 //! [17]: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md#__wasi_random_get
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
@@ -173,7 +173,7 @@ cfg_if! {
                  target_os = "openbsd", target_os = "redox",     target_os = "solaris"))] {
         #[allow(dead_code)]
         mod util_libc;
-        // Keep std-only trait definitions for backwards compatiblity
+        // Keep std-only trait definitions for backwards compatibility
         mod error_impls;
     } else if #[cfg(feature = "std")] {
         mod error_impls;

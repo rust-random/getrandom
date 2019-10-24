@@ -15,7 +15,7 @@
 //!
 //! Since Solaris 11.3 and mid-2015 illumos, the `getrandom` syscall is available.
 //! To make sure we can compile on both Solaris and its derivatives, as well as
-//! function, we check for the existance of getrandom(2) in libc by calling
+//! function, we check for the existence of getrandom(2) in libc by calling
 //! libc::dlsym.
 use crate::util_libc::{sys_fill_exact, Weak};
 use crate::{use_file, Error};
