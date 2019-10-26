@@ -38,9 +38,11 @@ impl Error {
 
     /// Extract the raw OS error code (if this error came from the OS)
     ///
-    /// This method is identical to `std::io::Error::raw_os_error()`, except
+    /// This method is identical to [`std::io::Error::raw_os_error()`][1], except
     /// that it works in `no_std` contexts. If this method returns `None`, the
     /// error value can still be formatted via the `Display` implementation.
+    ///
+    /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error
     #[inline]
     pub fn raw_os_error(self) -> Option<i32> {
         if self.0.get() < Self::INTERNAL_START {
