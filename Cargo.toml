@@ -14,6 +14,11 @@ exclude = ["utils/*", ".*", "appveyor.yml"]
 travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
+[workspace]
+members = [
+    "custom/stdweb",
+]
+
 [dependencies]
 cfg-if = "0.1.2"
 
