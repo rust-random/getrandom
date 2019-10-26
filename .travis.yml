@@ -75,7 +75,8 @@ matrix:
         - cargo web test --nodejs --target=wasm32-unknown-unknown
         - cargo web test --target=wasm32-unknown-unknown
         # wasm-bindgen tests (Node, Firefox, Chrome)
-        - cargo test --target wasm32-unknown-unknown --features=wasm-bindgen
+        - cd ../wasm-bindgen
+        - cargo test --target wasm32-unknown-unknown
         - GECKODRIVER=$HOME/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
         - CHROMEDRIVER=$HOME/chromedriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
 
@@ -84,6 +85,7 @@ matrix:
       rust: nightly
       os: linux
       install:
+        - rustup target add wasm32-unknown-unknown
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
         - cargo deadlinks -V
       script:
@@ -96,6 +98,7 @@ matrix:
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
         - cargo doc --no-deps --features=std,custom
+        - cargo doc --no-deps --manifest-path=custom/wasm-bindgen/Cargo.toml --target=wasm32-unknown-unknown
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
