@@ -1,3 +1,7 @@
+// Explicitly use the Custom RNG crates to link them in.
+#[cfg(feature = "test-stdweb")]
+use stdweb_getrandom as _;
+
 #[cfg(feature = "wasm-bindgen")]
 use wasm_bindgen_test::*;
 

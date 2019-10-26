@@ -71,8 +71,9 @@ matrix:
         # wasi tests
         - cargo test --target wasm32-wasi
         # stdweb tests (Node, Chrome)
-        - cargo web test --nodejs --target=wasm32-unknown-unknown --features=stdweb
-        - cargo web test --target=wasm32-unknown-unknown --features=stdweb
+        - cd custom/stdweb
+        - cargo web test --nodejs --target=wasm32-unknown-unknown
+        - cargo web test --target=wasm32-unknown-unknown
         # wasm-bindgen tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features=wasm-bindgen
         - GECKODRIVER=$HOME/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser

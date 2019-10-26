@@ -6,15 +6,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation for WASM via stdweb
-extern crate std;
+#![recursion_limit = "128"]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+compile_error!("This crate is only for the `wasm32-unknown-unknown` target");
 
 use core::mem;
 use std::sync::Once;
 
 use stdweb::js;
 
-use crate::Error;
+use getrandom::{register_custom_getrandom, Error};
 
 #[derive(Clone, Copy, Debug)]
 enum RngSource {
@@ -22,7 +23,9 @@ enum RngSource {
     Node,
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+register_custom_getrandom!(getrandom_inner);
+
+fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
     static ONCE: Once = Once::new();
     static mut RNG_SOURCE: Result<RngSource, Error> = Ok(RngSource::Node);
