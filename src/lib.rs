@@ -243,7 +243,7 @@ cfg_if! {
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
-pub fn getrandom(dest: &mut [u8]) -> Result<(), error::Error> {
+pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     if dest.is_empty() {
         return Ok(());
     }

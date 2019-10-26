@@ -10,13 +10,13 @@
 extern crate std;
 
 use core::mem;
+use std::sync::Once;
 
 use stdweb::js;
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
 use crate::Error;
-use std::sync::Once;
 
 #[derive(Clone, Copy, Debug)]
 enum RngSource {
