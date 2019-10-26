@@ -156,7 +156,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
         STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
         STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
-        RAND_SECURE_FATAL => Some("randSecure: random number generator module is not initialized"),
+        RAND_SECURE_FATAL => Some("randSecure: VxWorks RNG module is not initialized"),
         _ => None,
     }
 }
