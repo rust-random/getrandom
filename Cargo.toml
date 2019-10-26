@@ -36,10 +36,12 @@ wasm-bindgen-test = "0.2"
 
 [features]
 std = []
+# Feature to enable custom RNG implementations
+custom = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
 # Unstable feature for testing
 test-in-browser = ["wasm-bindgen"]
 
 [package.metadata.docs.rs]
-features = ["std"]
+features = ["std", "custom"]

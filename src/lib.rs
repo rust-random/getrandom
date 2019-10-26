@@ -134,7 +134,10 @@ extern crate cfg_if;
 
 mod error;
 mod util;
-
+// To prevent a breaking change when targets are added, we always export the
+// register_custom_getrandom macro, so old Custom RNG crates continue to build.
+#[cfg(feature = "custom")]
+mod custom;
 #[cfg(feature = "std")]
 mod error_impls;
 
@@ -201,6 +204,8 @@ cfg_if! {
                 ");
             }
         }
+    } else if #[cfg(feature = "custom")] {
+        use custom as imp;
     } else {
         compile_error!("\
             target is not supported, for more information see: \
