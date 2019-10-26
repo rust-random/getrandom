@@ -7,7 +7,7 @@
 // except according to those terms.
 extern crate std;
 
-use crate::{error::UNKNOWN_IO_ERROR, Error};
+use crate::Error;
 use core::convert::From;
 use core::num::NonZeroU32;
 use std::io;
@@ -19,7 +19,7 @@ impl From<io::Error> for Error {
                 return Error::from(code);
             }
         }
-        UNKNOWN_IO_ERROR
+        Error::UNKNOWN_IO_ERROR
     }
 }
 

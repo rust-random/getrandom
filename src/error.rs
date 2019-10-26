@@ -19,7 +19,38 @@ use core::num::NonZeroU32;
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
+// TODO: Convert to a function when min_version >= 1.33
+macro_rules! internal_error {
+    ($n:expr) => {
+        Error(unsafe { NonZeroU32::new_unchecked(Error::INTERNAL_START + $n as u16 as u32) })
+    };
+}
+
 impl Error {
+    /// This target/platform is not supported by `getrandom`.
+    pub const UNSUPPORTED: Error = internal_error!(0);
+    /// The platform-specific `errno` returned a non-positive value.
+    pub const ERRNO_NOT_POSITIVE: Error = internal_error!(1);
+    /// Invalid conversion from a non-standard [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html)
+    pub const UNKNOWN_IO_ERROR: Error = internal_error!(2);
+    /// Call to [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
+    pub const SEC_RANDOM_FAILED: Error = internal_error!(3);
+    /// Call to [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
+    pub const RTL_GEN_RANDOM_FAILED: Error = internal_error!(4);
+    /// RDRAND instruction failed due to a hardware issue.
+    pub const FAILED_RDRAND: Error = internal_error!(5);
+    /// RDRAND instruction unsupported on this target.
+    pub const NO_RDRAND: Error = internal_error!(6);
+    /// Using `wasm-bindgen`, browser does not support `self.crypto`.
+    pub const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
+    /// Using `wasm-bindgen`, browser does not support `crypto.getRandomValues`.
+    pub const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
+    /// Using `stdweb`, no cryptographic RNG is available.
+    pub const STDWEB_NO_RNG: Error = internal_error!(9);
+    /// Using `stdweb`, invoking a cryptographic RNG failed.
+    pub const STDWEB_RNG_FAILED: Error = internal_error!(10);
+    /// On VxWorks, random number generator is not yet initialized.
+    pub const RAND_SECURE_FATAL: Error = internal_error!(11);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -122,41 +153,20 @@ impl From<NonZeroU32> for Error {
     }
 }
 
-// TODO: Convert to a function when min_version >= 1.33
-macro_rules! internal_error {
-    ($n:expr) => {
-        Error(unsafe { NonZeroU32::new_unchecked(Error::INTERNAL_START + $n as u16 as u32) })
-    };
-}
-
-/// Internal Error constants
-pub(crate) const UNSUPPORTED: Error = internal_error!(0);
-pub(crate) const ERRNO_NOT_POSITIVE: Error = internal_error!(1);
-pub(crate) const UNKNOWN_IO_ERROR: Error = internal_error!(2);
-pub(crate) const SEC_RANDOM_FAILED: Error = internal_error!(3);
-pub(crate) const RTL_GEN_RANDOM_FAILED: Error = internal_error!(4);
-pub(crate) const FAILED_RDRAND: Error = internal_error!(5);
-pub(crate) const NO_RDRAND: Error = internal_error!(6);
-pub(crate) const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
-pub(crate) const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
-pub(crate) const STDWEB_NO_RNG: Error = internal_error!(9);
-pub(crate) const STDWEB_RNG_FAILED: Error = internal_error!(10);
-pub(crate) const RAND_SECURE_FATAL: Error = internal_error!(11);
-
 fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
-        UNSUPPORTED => Some("getrandom: this target is not supported"),
-        ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
-        UNKNOWN_IO_ERROR => Some("Unknown std::io::Error"),
-        SEC_RANDOM_FAILED => Some("SecRandomCopyBytes: call failed"),
-        RTL_GEN_RANDOM_FAILED => Some("RtlGenRandom: call failed"),
-        FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
-        NO_RDRAND => Some("RDRAND: instruction not supported"),
-        BINDGEN_CRYPTO_UNDEF => Some("wasm-bindgen: self.crypto is undefined"),
-        BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
-        STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
-        STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
-        RAND_SECURE_FATAL => Some("randSecure: VxWorks RNG module is not initialized"),
+        Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
+        Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
+        Error::UNKNOWN_IO_ERROR => Some("Unknown std::io::Error"),
+        Error::SEC_RANDOM_FAILED => Some("SecRandomCopyBytes: call failed"),
+        Error::RTL_GEN_RANDOM_FAILED => Some("RtlGenRandom: call failed"),
+        Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
+        Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
+        Error::BINDGEN_CRYPTO_UNDEF => Some("wasm-bindgen: self.crypto is undefined"),
+        Error::BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
+        Error::STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
+        Error::STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
+        Error::RAND_SECURE_FATAL => Some("randSecure: VxWorks RNG module is not initialized"),
         _ => None,
     }
 }

@@ -15,7 +15,6 @@ use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use crate::error::{BINDGEN_CRYPTO_UNDEF, BINDGEN_GRV_UNDEF};
 use crate::Error;
 
 #[derive(Clone, Debug)]
@@ -66,13 +65,13 @@ fn getrandom_init() -> Result<RngSource, Error> {
 
         let crypto = self_.crypto();
         if crypto.is_undefined() {
-            return Err(BINDGEN_CRYPTO_UNDEF);
+            return Err(Error::BINDGEN_CRYPTO_UNDEF);
         }
 
         // Test if `crypto.getRandomValues` is undefined as well
         let crypto: BrowserCrypto = crypto.into();
         if crypto.get_random_values_fn().is_undefined() {
-            return Err(BINDGEN_GRV_UNDEF);
+            return Err(Error::BINDGEN_GRV_UNDEF);
         }
 
         return Ok(RngSource::Browser(crypto));
