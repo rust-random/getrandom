@@ -27,21 +27,12 @@ libc = { version = "0.2.64", default-features = false }
 [target.'cfg(target_os = "wasi")'.dependencies]
 wasi = "0.9"
 
-[target.wasm32-unknown-unknown.dependencies]
-wasm-bindgen = { version = "0.2.29", optional = true }
-stdweb = { version = "0.4.18", optional = true }
-
-[target.wasm32-unknown-unknown.dev-dependencies]
-wasm-bindgen-test = "0.2"
-
 [features]
 std = []
 # Feature to enable custom RNG implementations
 custom = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
-# Unstable feature for testing
-test-in-browser = ["wasm-bindgen"]
 
 [package.metadata.docs.rs]
 features = ["std", "custom"]

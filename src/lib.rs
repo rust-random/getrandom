@@ -126,7 +126,6 @@
     html_root_url = "https://rust-random.github.io/rand/"
 )]
 #![no_std]
-#![cfg_attr(feature = "stdweb", recursion_limit = "128")]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 
 #[macro_use]
@@ -191,19 +190,6 @@ cfg_if! {
                   target_env = "sgx",
               )))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
-        cfg_if! {
-            if #[cfg(feature = "wasm-bindgen")] {
-                #[path = "wasm32_bindgen.rs"] mod imp;
-            } else if #[cfg(feature = "stdweb")] {
-                #[path = "wasm32_stdweb.rs"] mod imp;
-            } else {
-                compile_error!("\
-                    Enable crate features to use the wasm32-unknown-unknown target, see: \
-                    https://docs.rs/getrandom/#support-for-webassembly-and-asmjs\
-                ");
-            }
-        }
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else {
