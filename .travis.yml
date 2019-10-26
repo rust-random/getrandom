@@ -91,13 +91,14 @@ matrix:
         - cargo test --benches
         # Check that setting various features does not break the build
         - cargo build --features=std
+        - cargo build --features=custom
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --features=std
+        - cargo doc --no-deps --features=std,custom
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
-        - cargo test --features=std
+        - cargo test --features=std,custom
 
     - <<: *nightly_and_docs
       name: "OSX, nightly, docs"
