@@ -21,7 +21,6 @@ matrix:
         - rustup target add aarch64-apple-ios
       script:
         - cargo test
-        - cargo test --examples
         - cargo build --target aarch64-apple-ios
 
     - name: "Linux, beta"
@@ -40,11 +39,11 @@ matrix:
         # Get latest geckodriver
         - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
         - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
-        - tar -xzf geckodriver.tar.gz
+        - tar -xzf geckodriver.tar.gz -C $HOME
         # Get latest chromedirver
         - export VERSION=$(wget -q -O - https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
         - wget -O chromedriver.zip https://chromedriver.storage.googleapis.com/$VERSION/chromedriver_linux64.zip
-        - unzip chromedriver.zip
+        - unzip chromedriver.zip -d $HOME
         # Get cargo-web
         - export VERSION=0.6.26 # Pin version for stability
         - wget -O cargo-web.gz https://github.com/koute/cargo-web/releases/download/$VERSION/cargo-web-x86_64-unknown-linux-gnu.gz
@@ -76,44 +75,34 @@ matrix:
         - cargo web test --target=wasm32-unknown-unknown --features=stdweb
         # wasm-bindgen tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features=wasm-bindgen
-        - GECKODRIVER=$PWD/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
-        - CHROMEDRIVER=$PWD/chromedriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
+        - GECKODRIVER=$HOME/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
+        - CHROMEDRIVER=$HOME/chromedriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
 
-    - name: "Linux, nightly, docs"
+    - &nightly_and_docs
+      name: "Linux, nightly, docs"
       rust: nightly
       os: linux
       install:
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
         - cargo deadlinks -V
       script:
+        # Check that our tests pass in the default configuration
         - cargo test
         - cargo test --benches
-        - cargo test --examples
+        # Check that setting various features does not break the build
+        - cargo build --features=std
+        - cargo build --features=log
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std,log
+        - cargo doc --no-deps --features=std
         - cargo deadlinks --dir target/doc
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
-        - cargo test
+        - cargo test --features=std,log
 
-    - name: "OSX, nightly, docs"
-      rust: nightly
+    - <<: *nightly_and_docs
+      name: "OSX, nightly, docs"
       os: osx
-      install:
-        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
-        - cargo deadlinks -V
-      script:
-        - cargo test
-        - cargo test --benches
-        - cargo test --examples
-        # remove cached documentation, otherwise files from previous PRs can get included
-        - rm -rf target/doc
-        - cargo doc --no-deps --all --features=std,log
-        - cargo deadlinks --dir target/doc
-        # also test minimum dependency versions are usable
-        - cargo generate-lockfile -Z minimal-versions
-        - cargo test
 
     - name: "cross-platform build only"
       rust: nightly
@@ -139,6 +128,7 @@ matrix:
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
+        - cargo xbuild --target=x86_64-uwp-windows-gnu
         - cargo xbuild --target=x86_64-wrs-vxworks
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
@@ -153,6 +143,7 @@ matrix:
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
         - cargo xbuild --target=x86_64-uwp-windows-gnu
+        - cargo xbuild --target=x86_64-wrs-vxworks
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
     - name: "Linux (MIPS, big-endian)"
@@ -199,7 +190,6 @@ before_script:
 
 script:
   - cargo test
-  - cargo test --examples
 
 after_script: set +e
 
