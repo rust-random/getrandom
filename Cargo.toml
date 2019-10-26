@@ -17,6 +17,7 @@ appveyor = { repository = "rust-random/getrandom" }
 [workspace]
 members = [
     "custom/stdweb",
+    "custom/wasm-bindgen",
 ]
 
 [dependencies]

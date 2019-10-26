@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation for WASM via wasm-bindgen
-extern crate std;
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+compile_error!("This crate is only for the `wasm32-unknown-unknown` target");
 
 use core::cell::RefCell;
 use core::mem;
@@ -15,7 +15,7 @@ use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use crate::Error;
+use getrandom::{register_custom_getrandom, Error};
 
 #[derive(Clone, Debug)]
 enum RngSource {
@@ -29,7 +29,9 @@ thread_local!(
     static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 );
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+register_custom_getrandom!(getrandom_inner);
+
+fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     assert_eq!(mem::size_of::<usize>(), 4);
 
     RNG_SOURCE.with(|f| {

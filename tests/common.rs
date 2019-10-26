@@ -1,8 +1,10 @@
 // Explicitly use the Custom RNG crates to link them in.
 #[cfg(feature = "test-stdweb")]
 use stdweb_getrandom as _;
+#[cfg(feature = "test-bindgen")]
+use wasm_bindgen_getrandom as _;
 
-#[cfg(feature = "wasm-bindgen")]
+#[cfg(feature = "test-bindgen")]
 use wasm_bindgen_test::*;
 
 use getrandom::getrandom;
@@ -10,14 +12,14 @@ use getrandom::getrandom;
 #[cfg(feature = "test-in-browser")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[cfg_attr(feature = "wasm-bindgen", wasm_bindgen_test)]
+#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
     getrandom(&mut [0u8; 0]).unwrap();
 }
 
-#[cfg_attr(feature = "wasm-bindgen", wasm_bindgen_test)]
+#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
@@ -35,7 +37,7 @@ fn test_diff() {
     assert!(n_diff_bits >= v1.len() as u32);
 }
 
-#[cfg_attr(feature = "wasm-bindgen", wasm_bindgen_test)]
+#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
