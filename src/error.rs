@@ -20,12 +20,6 @@ use core::num::NonZeroU32;
 pub struct Error(NonZeroU32);
 
 impl Error {
-    #[deprecated(since = "0.1.7")]
-    /// Unknown error.
-    pub const UNKNOWN: Error = UNSUPPORTED;
-    #[deprecated(since = "0.1.7")]
-    /// System entropy source is unavailable.
-    pub const UNAVAILABLE: Error = UNSUPPORTED;
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
