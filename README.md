@@ -6,7 +6,6 @@
 [![Documentation](https://docs.rs/getrandom/badge.svg)](https://docs.rs/getrandom)
 [![Dependency status](https://deps.rs/repo/github/rust-random/getrandom/status.svg)](https://deps.rs/repo/github/rust-random/getrandom)
 
-
 A Rust library for retrieving random data from (operating) system source. It is
 assumed that system always provides high-quality cryptographically secure random
 data, ideally backed by hardware entropy sources. This crate derives its name
@@ -29,11 +28,36 @@ getrandom = "0.1"
 
 Then invoke the `getrandom` function:
 
+### With Fixed-Sized Arrays
+
 ```rust
 fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
     let mut buf = [0u8; 32];
     getrandom::getrandom(&mut buf)?;
     Ok(buf)
+}
+```
+
+### With Vectors
+
+**Note:** Vectors are not `no_std` supported.
+
+Using a vector, you can implement a function that takes a parameter of how many bytes you would like in return and also implement traits that fixed-sized arrays over a length of 32 elements do not implement (such as Debug).
+
+```rust
+use getrandom;
+
+// Function that takes parameter n as the number of bytes requested and returns as a byte-vector
+fn os_rand(n: usize) -> Result<Vec<u8>, getrandom:Error> {
+  	let mut buf: Vec<u8> = vec![0u8; n];
+    getrandom::getrandom(&mut buf)?;
+    Ok(buf)
+}
+
+// How To Use The Function And Return The Vector
+fn main(){
+		let random_48: Vec<u8> = os_rand(48).unwrap(); // 48 bytes
+  	let random_24: Vec<u8> = os_rand(24).unwrap(); // 24 bytes
 }
 ```
 
