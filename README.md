@@ -32,9 +32,9 @@ Then invoke the `getrandom` function:
 
 ```rust
 fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
-	let mut buf = [0u8; 32];
-	getrandom::getrandom(&mut buf)?;
-	Ok(buf)
+    let mut buf = [0u8; 32];
+    getrandom::getrandom(&mut buf)?;
+    Ok(buf)
 }
 ```
 
@@ -56,8 +56,8 @@ fn os_rand(n: usize) -> Result<Vec<u8>, getrandom:Error> {
 
 // How To Use The Function And Return The Vector
 fn main(){
-	let random_48: Vec<u8> = os_rand(48).unwrap(); // 48 bytes
-	let random_24: Vec<u8> = os_rand(24).unwrap(); // 24 bytes
+  let random_48: Vec<u8> = os_rand(48).unwrap(); // 48 bytes
+  let random_24: Vec<u8> = os_rand(24).unwrap(); // 24 bytes
 }
 ```
 
