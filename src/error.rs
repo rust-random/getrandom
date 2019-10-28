@@ -31,8 +31,6 @@ impl Error {
     pub const UNSUPPORTED: Error = internal_error!(0);
     /// The platform-specific `errno` returned a non-positive value.
     pub const ERRNO_NOT_POSITIVE: Error = internal_error!(1);
-    /// Invalid conversion from a non-standard [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html)
-    pub const UNKNOWN_IO_ERROR: Error = internal_error!(2);
     /// Call to [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
     pub const SEC_RANDOM_FAILED: Error = internal_error!(3);
     /// Call to [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
@@ -157,7 +155,6 @@ fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
         Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
         Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
-        Error::UNKNOWN_IO_ERROR => Some("Unknown std::io::Error"),
         Error::SEC_RANDOM_FAILED => Some("SecRandomCopyBytes: call failed"),
         Error::RTL_GEN_RANDOM_FAILED => Some("RtlGenRandom: call failed"),
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),

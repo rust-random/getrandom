@@ -9,19 +9,7 @@ extern crate std;
 
 use crate::Error;
 use core::convert::From;
-use core::num::NonZeroU32;
 use std::io;
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        if let Some(errno) = err.raw_os_error() {
-            if let Some(code) = NonZeroU32::new(errno as u32) {
-                return Error::from(code);
-            }
-        }
-        Error::UNKNOWN_IO_ERROR
-    }
-}
 
 impl From<Error> for io::Error {
     fn from(err: Error) -> Self {
