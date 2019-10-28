@@ -16,7 +16,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     while !RNG_INIT.load(Relaxed) {
         let ret = unsafe { libc::randSecure() };
         if ret < 0 {
-            return Err(Error::RAND_SECURE_FATAL);
+            return Err(Error::VXWORKS_RAND_SECURE);
         } else if ret > 0 {
             RNG_INIT.store(true, Relaxed);
             break;

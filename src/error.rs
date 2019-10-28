@@ -31,10 +31,10 @@ impl Error {
     pub const UNSUPPORTED: Error = internal_error!(0);
     /// The platform-specific `errno` returned a non-positive value.
     pub const ERRNO_NOT_POSITIVE: Error = internal_error!(1);
-    /// Call to [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
-    pub const SEC_RANDOM_FAILED: Error = internal_error!(3);
-    /// Call to [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
-    pub const RTL_GEN_RANDOM_FAILED: Error = internal_error!(4);
+    /// Call to iOS [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
+    pub const IOS_SEC_RANDOM: Error = internal_error!(3);
+    /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
+    pub const WINDOWS_RTL_GEN_RANDOM: Error = internal_error!(4);
     /// RDRAND instruction failed due to a hardware issue.
     pub const FAILED_RDRAND: Error = internal_error!(5);
     /// RDRAND instruction unsupported on this target.
@@ -47,8 +47,8 @@ impl Error {
     pub const STDWEB_NO_RNG: Error = internal_error!(9);
     /// Using `stdweb`, invoking a cryptographic RNG failed.
     pub const STDWEB_RNG_FAILED: Error = internal_error!(10);
-    /// On VxWorks, random number generator is not yet initialized.
-    pub const RAND_SECURE_FATAL: Error = internal_error!(11);
+    /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
+    pub const VXWORKS_RAND_SECURE: Error = internal_error!(11);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -155,15 +155,15 @@ fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
         Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
         Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
-        Error::SEC_RANDOM_FAILED => Some("SecRandomCopyBytes: call failed"),
-        Error::RTL_GEN_RANDOM_FAILED => Some("RtlGenRandom: call failed"),
+        Error::IOS_SEC_RANDOM => Some("SecRandomCopyBytes: iOS Secuirty framework failure"),
+        Error::WINDOWS_RTL_GEN_RANDOM => Some("RtlGenRandom: Windows system function failure"),
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
         Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
         Error::BINDGEN_CRYPTO_UNDEF => Some("wasm-bindgen: self.crypto is undefined"),
         Error::BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
         Error::STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
         Error::STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
-        Error::RAND_SECURE_FATAL => Some("randSecure: VxWorks RNG module is not initialized"),
+        Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
         _ => None,
     }
 }

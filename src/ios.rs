@@ -24,7 +24,7 @@ extern "C" {
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe { SecRandomCopyBytes(kSecRandomDefault, dest.len(), dest.as_mut_ptr()) };
     if ret == -1 {
-        Err(Error::SEC_RANDOM_FAILED)
+        Err(Error::IOS_SEC_RANDOM)
     } else {
         Ok(())
     }

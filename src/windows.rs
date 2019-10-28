@@ -19,7 +19,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(u32::max_value() as usize) {
         let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr(), chunk.len() as u32) };
         if ret == 0 {
-            return Err(Error::RTL_GEN_RANDOM_FAILED);
+            return Err(Error::WINDOWS_RTL_GEN_RANDOM);
         }
     }
     Ok(())
