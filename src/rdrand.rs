@@ -7,7 +7,6 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use crate::error::{FAILED_RDRAND, NO_RDRAND};
 #[cfg(not(target_feature = "rdrand"))]
 use crate::util::LazyBool;
 use crate::Error;
@@ -37,7 +36,7 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             // Keep looping in case this was a false positive.
         }
     }
-    Err(FAILED_RDRAND)
+    Err(Error::FAILED_RDRAND)
 }
 
 // "rdrand" target feature requires "+rdrnd" flag, see https://github.com/rust-lang/rust/issues/49653.
@@ -64,7 +63,7 @@ fn is_rdrand_supported() -> bool {
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     if !is_rdrand_supported() {
-        return Err(NO_RDRAND);
+        return Err(Error::NO_RDRAND);
     }
 
     // SAFETY: After this point, rdrand is supported, so calling the rdrand

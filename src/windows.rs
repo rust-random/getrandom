@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for Windows
-use crate::{error::RTL_GEN_RANDOM_FAILED, Error};
+use crate::Error;
 
 extern "system" {
     #[link_name = "SystemFunction036"]
@@ -19,7 +19,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(u32::max_value() as usize) {
         let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr(), chunk.len() as u32) };
         if ret == 0 {
-            return Err(RTL_GEN_RANDOM_FAILED);
+            return Err(Error::WINDOWS_RTL_GEN_RANDOM);
         }
     }
     Ok(())

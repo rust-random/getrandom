@@ -7,7 +7,7 @@
 // except according to those terms.
 
 //! Implementation for iOS
-use crate::{error::SEC_RANDOM_FAILED, Error};
+use crate::Error;
 
 // TODO: Make extern once extern_types feature is stabilized. See:
 //   https://github.com/rust-lang/rust/issues/43467
@@ -24,7 +24,7 @@ extern "C" {
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe { SecRandomCopyBytes(kSecRandomDefault, dest.len(), dest.as_mut_ptr()) };
     if ret == -1 {
-        Err(SEC_RANDOM_FAILED)
+        Err(Error::IOS_SEC_RANDOM)
     } else {
         Ok(())
     }

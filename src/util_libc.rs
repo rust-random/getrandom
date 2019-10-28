@@ -6,7 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #![allow(dead_code)]
-use crate::error::ERRNO_NOT_POSITIVE;
 use crate::util::LazyUsize;
 use crate::Error;
 use core::num::NonZeroU32;
@@ -34,7 +33,7 @@ pub fn last_os_error() -> Error {
     if errno > 0 {
         Error::from(NonZeroU32::new(errno as u32).unwrap())
     } else {
-        ERRNO_NOT_POSITIVE
+        Error::ERRNO_NOT_POSITIVE
     }
 }
 

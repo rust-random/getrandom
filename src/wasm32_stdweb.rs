@@ -10,14 +10,13 @@
 extern crate std;
 
 use core::mem;
+use std::sync::Once;
 
 use stdweb::js;
 use stdweb::unstable::TryInto;
 use stdweb::web::error::Error as WebError;
 
-use crate::error::{STDWEB_NO_RNG, STDWEB_RNG_FAILED};
 use crate::Error;
-use std::sync::Once;
 
 #[derive(Clone, Copy, Debug)]
 enum RngSource {
@@ -71,7 +70,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
     } else {
         let _err: WebError = js! { return @{ result }.error }.try_into().unwrap();
         error!("getrandom unavailable: {}", _err);
-        Err(STDWEB_NO_RNG)
+        Err(Error::STDWEB_NO_RNG)
     }
 }
 
@@ -107,7 +106,7 @@ fn getrandom_fill(source: RngSource, dest: &mut [u8]) -> Result<(), Error> {
         if js! { return @{ result.as_ref() }.success } != true {
             let _err: WebError = js! { return @{ result }.error }.try_into().unwrap();
             error!("getrandom failed: {}", _err);
-            return Err(STDWEB_RNG_FAILED);
+            return Err(Error::STDWEB_RNG_FAILED);
         }
     }
     Ok(())
