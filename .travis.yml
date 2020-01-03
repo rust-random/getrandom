@@ -51,7 +51,7 @@ matrix:
         - gunzip cargo-web.gz
         - chmod +x cargo-web
         # Get wasmtime
-        - export VERSION=v0.3.0 # Pin version for stability
+        - export VERSION=v0.8.0 # Pin version for stability
         - wget -O wasmtime.tar.xz https://github.com/CraneStation/wasmtime/releases/download/$VERSION/wasmtime-$VERSION-x86_64-linux.tar.xz
         - tar -xf wasmtime.tar.xz --strip-components=1
         # Get wasm-bindgen-test-runner which matches our wasm-bindgen version
