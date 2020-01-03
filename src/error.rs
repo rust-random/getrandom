@@ -62,7 +62,7 @@ impl Error {
 
 cfg_if! {
     if #[cfg(unix)] {
-        fn os_err_desc(errno: i32, buf: &mut [u8]) -> Option<&str> {
+        fn os_err(errno: i32, buf: &mut [u8]) -> Option<&str> {
             let buf_ptr = buf.as_mut_ptr() as *mut libc::c_char;
             if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {
                 return None;
@@ -74,12 +74,11 @@ cfg_if! {
             core::str::from_utf8(&buf[..idx]).ok()
         }
     } else if #[cfg(target_os = "wasi")] {
-        fn os_err_desc(errno: i32, _buf: &mut [u8]) -> Option<&str> {
-            core::num::NonZeroU16::new(errno as u16)
-                .and_then(wasi::wasi_unstable::error_str)
+        fn os_err(errno: i32, _buf: &mut [u8]) -> Option<wasi::Error> {
+            wasi::Error::from_raw_error(errno as _)
         }
     } else {
-        fn os_err_desc(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
+        fn os_err(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
             None
         }
     }
@@ -91,8 +90,8 @@ impl fmt::Debug for Error {
         if let Some(errno) = self.raw_os_error() {
             dbg.field("os_error", &errno);
             let mut buf = [0u8; 128];
-            if let Some(desc) = os_err_desc(errno, &mut buf) {
-                dbg.field("description", &desc);
+            if let Some(err) = os_err(errno, &mut buf) {
+                dbg.field("description", &err);
             }
         } else if let Some(desc) = internal_desc(*self) {
             dbg.field("internal_code", &self.0.get());
@@ -108,8 +107,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(errno) = self.raw_os_error() {
             let mut buf = [0u8; 128];
-            match os_err_desc(errno, &mut buf) {
-                Some(desc) => f.write_str(desc),
+            match os_err(errno, &mut buf) {
+                Some(err) => err.fmt(f),
                 None => write!(f, "OS Error: {}", errno),
             }
         } else if let Some(desc) = internal_desc(*self) {
