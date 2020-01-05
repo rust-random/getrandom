@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.13] - 2019-08-25
+### Changed
+- Update `wasi` to v0.9. [#126]
+
+[#126]: https://github.com/rust-random/getrandom/pull/126
+
+## [0.1.13] - 2019-08-25
 ### Added
 - VxWorks targets support. [#86]
 
