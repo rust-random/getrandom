@@ -7,11 +7,13 @@
 // except according to those terms.
 
 //! Implementation for Linux / Android
+#[cfg(not(feature = "file-fallback"))]
+use crate::error;
 #[cfg(feature = "file-fallback")]
 use crate::use_file;
 use crate::util::LazyBool;
 use crate::util_libc::{last_os_error, sys_fill_exact};
-use crate::{error, Error};
+use crate::Error;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     static HAS_GETRANDOM: LazyBool = LazyBool::new();

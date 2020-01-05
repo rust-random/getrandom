@@ -17,8 +17,12 @@
 //! To make sure we can compile on both Solaris and its derivatives, as well as
 //! function, we check for the existence of getrandom(2) in libc by calling
 //! libc::dlsym.
+#[cfg(not(feature = "file-fallback"))]
+use crate::error;
+#[cfg(feature = "file-fallback")]
+use crate::use_file;
 use crate::util_libc::{sys_fill_exact, Weak};
-use crate::{use_file, Error};
+use crate::Error;
 use core::mem;
 
 #[cfg(target_os = "illumos")]

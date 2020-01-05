@@ -7,8 +7,12 @@
 // except according to those terms.
 
 //! Implementation for macOS
+#[cfg(not(feature = "file-fallback"))]
+use crate::error;
+#[cfg(feature = "file-fallback")]
+use crate::use_file;
 use crate::util_libc::{last_os_error, Weak};
-use crate::{use_file, Error};
+use crate::Error;
 use core::mem;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
