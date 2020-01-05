@@ -45,6 +45,7 @@ build: false
 test_script:
   - set RUSTFLAGS=-D warnings
   - cargo test
+  - cargo test --no-default-features
   - cargo test --examples
 
 branches:
