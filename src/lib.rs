@@ -181,12 +181,15 @@ cfg_if! {
 }
 
 // These targets read from a file as a fallback method.
-#[cfg(any(
-    target_os = "android",
-    target_os = "linux",
-    target_os = "macos",
-    target_os = "solaris",
-    target_os = "illumos",
+#[cfg(all(
+    feature = "file-fallback",
+    any(
+        target_os = "android",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "solaris",
+        target_os = "illumos",
+    )
 ))]
 mod use_file;
 

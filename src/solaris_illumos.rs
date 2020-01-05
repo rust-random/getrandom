@@ -39,6 +39,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         }
         Ok(())
     } else {
-        use_file::getrandom_inner(dest)
+        cfg_if! {
+            if #[cfg(feature = "file-fallback")] {
+                use_file::getrandom_inner(dest)
+            } else {
+                Err(error::UNSUPPORTED)
+            }
+        }
     }
 }

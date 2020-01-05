@@ -27,8 +27,12 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         }
         Ok(())
     } else {
-        // We fallback to reading from /dev/random instead of SecRandomCopyBytes
-        // to avoid high startup costs and linking the Security framework.
-        use_file::getrandom_inner(dest)
+        cfg_if! {
+            if #[cfg(feature = "file-fallback")] {
+                use_file::getrandom_inner(dest)
+            } else {
+                Err(error::UNSUPPORTED)
+            }
+        }
     }
 }
