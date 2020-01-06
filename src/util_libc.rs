@@ -98,37 +98,6 @@ impl Weak {
     }
 }
 
-pub struct LazyFd(LazyUsize);
-
-impl LazyFd {
-    pub const fn new() -> Self {
-        Self(LazyUsize::new())
-    }
-
-    // If init() returns Some(x), x should be nonnegative.
-    pub fn init(&self, init: impl FnOnce() -> Option<libc::c_int>) -> Option<libc::c_int> {
-        let fd = self.0.sync_init(
-            || match init() {
-                // OK as val >= 0 and val <= c_int::MAX < usize::MAX
-                Some(val) => val as usize,
-                None => LazyUsize::UNINIT,
-            },
-            || unsafe {
-                // We are usually waiting on an open(2) syscall to complete,
-                // which typically takes < 10us if the file is a device.
-                // However, we might end up waiting much longer if the entropy
-                // pool isn't initialized, but even in that case, this loop will
-                // consume a negligible amount of CPU on most platforms.
-                libc::usleep(10);
-            },
-        );
-        match fd {
-            LazyUsize::UNINIT => None,
-            val => Some(val as libc::c_int),
-        }
-    }
-}
-
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "emscripten"))] {
         use libc::open64 as open;
