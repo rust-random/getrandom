@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.13] - 2019-08-25
 ### Changed
 - Update `wasi` to v0.9. [#126]
+- Do not read errno value on DragonFlyBSD to fix compilation failure. [#129]
 
 [#126]: https://github.com/rust-random/getrandom/pull/126
+[#129]: https://github.com/rust-random/getrandom/pull/129
 
 ## [0.1.13] - 2019-08-25
 ### Added
