@@ -18,18 +18,27 @@ cfg_if! {
         use libc::__errno_location as errno_location;
     } else if #[cfg(any(target_os = "solaris", target_os = "illumos"))] {
         use libc::___errno as errno_location;
-    } else if #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly"))] {
+    } else if #[cfg(any(target_os = "macos", target_os = "freebsd"))] {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;
     }
 }
 
+cfg_if! {
+    if #[cfg(target_os = "vxworks")] {
+        use libc::errnoGet as get_errno;
+    } else if #[cfg(target_os = "dragonfly")] {
+        // Until rust-lang/rust#29594 is stable, we cannot get the errno value
+        // on DragonFlyBSD. So we just return an out-of-range errno.
+        unsafe fn get_errno() -> libc::c_int { -1 }
+    } else {
+        unsafe fn get_errno() -> libc::c_int { *errno_location() }
+    }
+}
+
 pub fn last_os_error() -> Error {
-    #[cfg(not(target_os = "vxworks"))]
-    let errno = unsafe { *errno_location() };
-    #[cfg(target_os = "vxworks")]
-    let errno = unsafe { libc::errnoGet() };
+    let errno = unsafe { get_errno() };
     if errno > 0 {
         Error::from(NonZeroU32::new(errno as u32).unwrap())
     } else {
