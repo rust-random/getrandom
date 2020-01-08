@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.14] - 2020-01-07
+### Changed
+- Remove use of spin-locks in the `use_file` module. [#125]
+- Update `wasi` to v0.9. [#126]
+- Do not read errno value on DragonFlyBSD to fix compilation failure. [#129]
+
+[#125]: https://github.com/rust-random/getrandom/pull/125
+[#126]: https://github.com/rust-random/getrandom/pull/126
+[#129]: https://github.com/rust-random/getrandom/pull/129
+
+## [0.1.13] - 2019-08-25
+### Added
+- VxWorks targets support. [#86]
+
+### Changed
+- If zero-length slice is passed to the `getrandom` function, always return
+`Ok(())` immediately without doing any calls to the underlying operating
+system. [#104]
+- Use the `kern.arandom` sysctl on NetBSD. [#115]
+
+### Fixed
+- Bump `cfg-if` minimum version from 0.1.0 to 0.1.2. [#112]
+- Typos and bad doc links. [#117]
+
+[#86]: https://github.com/rust-random/getrandom/pull/86
+[#104]: https://github.com/rust-random/getrandom/pull/104
+[#112]: https://github.com/rust-random/getrandom/pull/112
+[#115]: https://github.com/rust-random/getrandom/pull/115
+[#117]: https://github.com/rust-random/getrandom/pull/117
+
 ## [0.1.12] - 2019-08-18
 ### Changed
 - Update wasi dependency from v0.5 to v0.7. [#100]

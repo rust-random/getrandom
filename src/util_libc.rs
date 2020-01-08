@@ -18,18 +18,27 @@ cfg_if! {
         use libc::__errno_location as errno_location;
     } else if #[cfg(any(target_os = "solaris", target_os = "illumos"))] {
         use libc::___errno as errno_location;
-    } else if #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly"))] {
+    } else if #[cfg(any(target_os = "macos", target_os = "freebsd"))] {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;
     }
 }
 
+cfg_if! {
+    if #[cfg(target_os = "vxworks")] {
+        use libc::errnoGet as get_errno;
+    } else if #[cfg(target_os = "dragonfly")] {
+        // Until rust-lang/rust#29594 is stable, we cannot get the errno value
+        // on DragonFlyBSD. So we just return an out-of-range errno.
+        unsafe fn get_errno() -> libc::c_int { -1 }
+    } else {
+        unsafe fn get_errno() -> libc::c_int { *errno_location() }
+    }
+}
+
 pub fn last_os_error() -> Error {
-    #[cfg(not(target_os = "vxworks"))]
-    let errno = unsafe { *errno_location() };
-    #[cfg(target_os = "vxworks")]
-    let errno = unsafe { libc::errnoGet() };
+    let errno = unsafe { get_errno() };
     if errno > 0 {
         Error::from(NonZeroU32::new(errno as u32).unwrap())
     } else {
@@ -89,37 +98,6 @@ impl Weak {
     }
 }
 
-pub struct LazyFd(LazyUsize);
-
-impl LazyFd {
-    pub const fn new() -> Self {
-        Self(LazyUsize::new())
-    }
-
-    // If init() returns Some(x), x should be nonnegative.
-    pub fn init(&self, init: impl FnOnce() -> Option<libc::c_int>) -> Option<libc::c_int> {
-        let fd = self.0.sync_init(
-            || match init() {
-                // OK as val >= 0 and val <= c_int::MAX < usize::MAX
-                Some(val) => val as usize,
-                None => LazyUsize::UNINIT,
-            },
-            || unsafe {
-                // We are usually waiting on an open(2) syscall to complete,
-                // which typically takes < 10us if the file is a device.
-                // However, we might end up waiting much longer if the entropy
-                // pool isn't initialized, but even in that case, this loop will
-                // consume a negligible amount of CPU on most platforms.
-                libc::usleep(10);
-            },
-        );
-        match fd {
-            LazyUsize::UNINIT => None,
-            val => Some(val as libc::c_int),
-        }
-    }
-}
-
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "emscripten"))] {
         use libc::open64 as open;
@@ -129,15 +107,15 @@ cfg_if! {
 }
 
 // SAFETY: path must be null terminated, FD must be manually closed.
-pub unsafe fn open_readonly(path: &str) -> Option<libc::c_int> {
+pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
     debug_assert!(path.as_bytes().last() == Some(&0));
-    let fd = open(path.as_ptr() as *mut _, libc::O_RDONLY | libc::O_CLOEXEC);
+    let fd = open(path.as_ptr() as *const _, libc::O_RDONLY | libc::O_CLOEXEC);
     if fd < 0 {
-        return None;
+        return Err(last_os_error());
     }
     // O_CLOEXEC works on all Unix targets except for older Linux kernels (pre
     // 2.6.23), so we also use an ioctl to make sure FD_CLOEXEC is set.
     #[cfg(target_os = "linux")]
     libc::ioctl(fd, libc::FIOCLEX);
-    Some(fd)
+    Ok(fd)
 }
