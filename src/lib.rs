@@ -132,27 +132,6 @@
 #[macro_use]
 extern crate cfg_if;
 
-cfg_if! {
-    if #[cfg(feature = "log")] {
-        #[allow(unused)]
-        #[macro_use]
-        extern crate log;
-    } else {
-        #[allow(unused)]
-        macro_rules! error {
-            ($($x:tt)*) => {};
-        }
-        #[allow(unused)]
-        macro_rules! warn {
-            ($($x:tt)*) => {};
-        }
-        #[allow(unused)]
-        macro_rules! info {
-            ($($x:tt)*) => {};
-        }
-    }
-}
-
 mod error;
 mod util;
 

@@ -24,7 +24,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-getrandom = "0.1"
+getrandom = "0.2"
 ```
 
 Then invoke the `getrandom` function:
@@ -43,9 +43,6 @@ This library is `no_std` for every supported target. However, getting randomness
 usually requires calling some external system API. This means most platforms
 will require linking against system libraries (i.e. `libc` for Unix,
 `Advapi32.dll` for Windows, Security framework on iOS, etc...).
-
-The `log` library is supported as an optional dependency. If enabled, error
-reporting will be improved on some platforms.
 
 For the `wasm32-unknown-unknown` target, one of the following features should be
 enabled:

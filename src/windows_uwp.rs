@@ -33,26 +33,16 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                 BCRYPT_USE_SYSTEM_PREFERRED_RNG,
             )
         };
-        // NTSTATUS codes use two highest bits for severity status
-        match ret >> 30 {
-            0b01 => {
-                info!("BCryptGenRandom: information code 0x{:08X}", ret);
-            }
-            0b10 => {
-                warn!("BCryptGenRandom: warning code 0x{:08X}", ret);
-            }
-            0b11 => {
-                error!("BCryptGenRandom: failed with 0x{:08X}", ret);
-                // We zeroize the highest bit, so the error code will reside
-                // inside the range of designated for OS codes.
-                let code = ret ^ (1 << 31);
-                // SAFETY: the second highest bit is always equal to one,
-                // so it's impossible to get zero. Unfortunately compiler
-                // is not smart enough to figure out it yet.
-                let code = unsafe { NonZeroU32::new_unchecked(code) };
-                return Err(Error::from(code));
-            }
-            _ => (),
+        // NTSTATUS codes use the two highest bits for severity status.
+        if ret >> 30 == 0b11 {
+            // We zeroize the highest bit, so the error code will reside
+            // inside the range designated for OS codes.
+            let code = ret ^ (1 << 31);
+            // SAFETY: the second highest bit is always equal to one,
+            // so it's impossible to get zero. Unfortunately the type
+            // system does not have a way to express this yet.
+            let code = unsafe { NonZeroU32::new_unchecked(code) };
+            return Err(Error::from(code));
         }
     }
     Ok(())

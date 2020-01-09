@@ -25,7 +25,6 @@ fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
         )
     };
     if ret == -1 {
-        error!("sysctl kern.arandom: syscall failed");
         -1
     } else {
         len as libc::ssize_t

@@ -14,9 +14,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe { libc::getentropy(chunk.as_mut_ptr() as *mut libc::c_void, chunk.len()) };
         if ret == -1 {
-            let err = last_os_error();
-            error!("libc::getentropy call failed");
-            return Err(err);
+            return Err(last_os_error());
         }
     }
     Ok(())
