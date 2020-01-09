@@ -15,7 +15,6 @@ travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
 [dependencies]
-log = { version = "0.4", optional = true }
 cfg-if = "0.1.2"
 
 # When built as part of libstd

@@ -32,7 +32,6 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
             if el != 0 && el != !0 {
                 return Ok(el.to_ne_bytes());
             }
-            error!("RDRAND returned {:X}, CPU RNG may be broken", el);
             // Keep looping in case this was a false positive.
         }
     }
