@@ -1,5 +1,5 @@
 // We only test the CPU-based RNG source on supported architectures.
-#![cfg(target_arch = "x86_64")]
+#![cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 
 #[path = "rdrand.rs"]
 mod rdrand;

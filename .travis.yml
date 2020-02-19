@@ -1,9 +1,11 @@
 language: rust
 os: linux
 
-# Targets that we just build (rather than run and test)
 env:
   global:
+    # All of the supported x86 Linux targets
+    - LINUX_TARGETS="x86_64-unknown-linux-gnu x86_64-unknown-linux-musl i686-unknown-linux-gnu i686-unknown-linux-musl"
+    # Targets that we just build (rather than run and test)
     - STD_TARGETS="x86_64-sun-solaris x86_64-unknown-cloudabi x86_64-unknown-freebsd x86_64-fuchsia x86_64-unknown-netbsd x86_64-unknown-redox x86_64-fortanix-unknown-sgx"
     - NO_STD_TARGETS="x86_64-unknown-uefi x86_64-unknown-hermit x86_64-unknown-l4re-uclibc x86_64-uwp-windows-gnu x86_64-wrs-vxworks"
 
@@ -111,6 +113,18 @@ jobs:
     - <<: *nightly_and_docs
       name: "OSX, nightly, docs"
       os: osx
+
+    - name: "cross-platform tests"
+      rust: nightly
+      addons:
+        apt:
+          packages:
+          - gcc-multilib
+      install:
+        - echo $LINUX_TARGETS | xargs -n1 rustup target add
+      script:
+        # We run tests for all supported x86 Linux targets
+        - echo $LINUX_TARGETS | xargs -t -n1 cargo test --target
 
     - name: "cross-platform build only"
       rust: nightly
