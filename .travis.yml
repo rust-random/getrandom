@@ -1,11 +1,16 @@
 language: rust
-sudo: false
+os: linux
 
-matrix:
+# Targets that we just build (rather than run and test)
+env:
+  global:
+    - STD_TARGETS="x86_64-sun-solaris x86_64-unknown-cloudabi x86_64-unknown-freebsd x86_64-fuchsia x86_64-unknown-netbsd x86_64-unknown-redox x86_64-fortanix-unknown-sgx"
+    - NO_STD_TARGETS="x86_64-unknown-uefi x86_64-unknown-hermit x86_64-unknown-l4re-uclibc x86_64-uwp-windows-gnu x86_64-wrs-vxworks"
+
+jobs:
   include:
     - name: "Linux, 1.32.0"
       rust: 1.32.0
-      os: linux
 
     - name: "OSX, 1.32.0"
       rust: 1.32.0
@@ -68,41 +73,40 @@ matrix:
         # This is actually useful as it finds stuff such as rust-random/rand#669
         - cargo web test --target wasm32-unknown-emscripten --no-run
         - cargo web test --target asmjs-unknown-emscripten --no-run
-        # wasi tests
         - cargo test --target wasm32-wasi
-        # stdweb tests (Node, Chrome)
-        - cd custom/stdweb
-        - cargo web test --nodejs --target=wasm32-unknown-unknown
-        - cargo web test --target=wasm32-unknown-unknown
-        # wasm-bindgen tests (Node, Firefox, Chrome)
-        - cd ../wasm-bindgen
-        - cargo test --target wasm32-unknown-unknown
-        - GECKODRIVER=$HOME/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
-        - CHROMEDRIVER=$HOME/chromedriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
+        # stdweb (wasm32-unknown-unknown) tests (Node, Chrome)
+        - cargo web test --package stdweb-getrandom
+        - cargo web test --package stdweb-getrandom --nodejs
+        # wasm-bindgen (wasm32-unknown-unknown) tests (Node, Firefox, Chrome)
+        - cargo test --package wasm-bindgen-getrandom
+          --target wasm32-unknown-unknown --test node
+        - GECKODRIVER=$HOME/geckodriver
+          cargo test --package wasm-bindgen-getrandom
+          --target wasm32-unknown-unknown --test web
+        - CHROMEDRIVER=$HOME/chromedriver
+          cargo test --package wasm-bindgen-getrandom
+          --target wasm32-unknown-unknown --test web
 
     - &nightly_and_docs
       name: "Linux, nightly, docs"
       rust: nightly
-      os: linux
       install:
         - rustup target add wasm32-unknown-unknown
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
         - cargo deadlinks -V
       script:
-        # Check that our tests pass in the default configuration
-        - cargo test
-        - cargo test --benches
         # Check that setting various features does not break the build
         - cargo build --features=std
         - cargo build --features=custom
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
         - cargo doc --no-deps --features=std,custom
-        - cargo doc --no-deps --manifest-path=custom/wasm-bindgen/Cargo.toml --target=wasm32-unknown-unknown
+        - cargo doc --no-deps --package wasm-bindgen-getrandom --target=wasm32-unknown-unknown
         - cargo deadlinks --dir target/doc
-        # also test minimum dependency versions are usable
+        # Check that our tests pass in the default/minimal configuration
+        - cargo test --tests --benches
         - cargo generate-lockfile -Z minimal-versions
-        - cargo test --features=std,custom
+        - cargo test --tests --benches
 
     - <<: *nightly_and_docs
       name: "OSX, nightly, docs"
@@ -111,49 +115,23 @@ matrix:
     - name: "cross-platform build only"
       rust: nightly
       install:
-        - rustup target add x86_64-sun-solaris
-        - rustup target add x86_64-unknown-cloudabi
-        - rustup target add x86_64-unknown-freebsd
-        - rustup target add x86_64-fuchsia
-        - rustup target add x86_64-unknown-netbsd
-        - rustup target add x86_64-unknown-redox
-        - rustup target add x86_64-fortanix-unknown-sgx
+        - echo $STD_TARGETS | xargs -n1 rustup target add
         # For no_std targets
         - rustup component add rust-src
-        - cargo install cargo-xbuild || true
+        - cargo --list | egrep "^\s*xbuild$" -q || cargo install cargo-xbuild
       script:
-        - cargo build --target=x86_64-sun-solaris
-        - cargo build --target=x86_64-unknown-cloudabi
-        - cargo build --target=x86_64-unknown-freebsd
-        - cargo build --target=x86_64-fuchsia
-        - cargo build --target=x86_64-unknown-netbsd
-        - cargo build --target=x86_64-unknown-redox
-        - cargo build --target=x86_64-fortanix-unknown-sgx
-        - cargo xbuild --target=x86_64-unknown-uefi
-        - cargo xbuild --target=x86_64-unknown-hermit
-        - cargo xbuild --target=x86_64-unknown-l4re-uclibc
-        - cargo xbuild --target=x86_64-uwp-windows-gnu
-        - cargo xbuild --target=x86_64-wrs-vxworks
+        # We test that getrandom builds for all targets
+        - echo $STD_TARGETS | xargs -t -n1 cargo build --target
+        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --target
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
-        - cargo build --target=x86_64-sun-solaris
-        - cargo build --target=x86_64-unknown-cloudabi
-        - cargo build --target=x86_64-unknown-freebsd
-        - cargo build --target=x86_64-fuchsia
-        - cargo build --target=x86_64-unknown-netbsd
-        - cargo build --target=x86_64-unknown-redox
-        - cargo build --target=x86_64-fortanix-unknown-sgx
-        - cargo xbuild --target=x86_64-unknown-uefi
-        - cargo xbuild --target=x86_64-unknown-hermit
-        - cargo xbuild --target=x86_64-unknown-l4re-uclibc
-        - cargo xbuild --target=x86_64-uwp-windows-gnu
-        - cargo xbuild --target=x86_64-wrs-vxworks
+        - echo $STD_TARGETS | xargs -t -n1 cargo build --target
+        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --target
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
     - name: "Linux (MIPS, big-endian)"
       env: TARGET=mips-unknown-linux-gnu
       rust: stable
-      sudo: required
       dist: trusty
       services: docker
       install:
@@ -165,7 +143,6 @@ matrix:
     - name: "Android (ARMv7)"
       env: TARGET=armv7-linux-androideabi
       rust: stable
-      sudo: required
       dist: trusty
       services: docker
       install:

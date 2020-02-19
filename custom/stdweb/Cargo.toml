@@ -13,14 +13,5 @@ categories = ["wasm"]
 getrandom = { path = "../..", version = "0.2", features = ["custom"] }
 stdweb = "0.4.18"
 
-# Test-only features allowing us to reuse most of the code in common.rs
-[features]
-default = ["test-stdweb"]
-test-stdweb = []
-
-[[test]]
-name = "common"
-path = "../../tests/common.rs"
-
 [package.metadata.docs.rs]
 default-target = "wasm32-unknown-unknown"
