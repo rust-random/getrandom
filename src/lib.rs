@@ -185,6 +185,8 @@ cfg_if! {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
+    } else if #[cfg(all(feature = "cpu", target_arch = "x86_64"))] {
+        #[path = "rdrand.rs"] mod imp;
     } else {
         compile_error!("\
             target is not supported, for more information see: \
