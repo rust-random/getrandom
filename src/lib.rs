@@ -217,3 +217,5 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
 
 #[cfg(test)]
 mod test_common;
+#[cfg(test)]
+mod test_cpu;
