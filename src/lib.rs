@@ -25,8 +25,7 @@
 //! | Redox            | [`rand:`][12]
 //! | CloudABI         | [`cloudabi_sys_random_get`][13]
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
-//! | L4RE, SGX, UEFI  | [RDRAND][18]
-//! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.
+//! | SGX              | [RDRAND][18]
 //! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and asm.js][16])
 //! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and asm.js][16])
@@ -118,7 +117,6 @@
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
-//! [22]: https://github.com/hermitcore/libhermit-rs/blob/09c38b0371cee6f56a541400ba453e319e43db53/src/syscalls/random.rs#L21
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -183,12 +181,7 @@ cfg_if! {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "x86_64", any(
-                  target_os = "hermit",
-                  target_os = "l4re",
-                  target_os = "uefi",
-                  target_env = "sgx",
-              )))] {
+    } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
