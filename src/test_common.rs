@@ -1,25 +1,14 @@
-// Explicitly use the Custom RNG crates to link them in.
-#[cfg(feature = "test-stdweb")]
-use stdweb_getrandom as _;
-#[cfg(feature = "test-bindgen")]
-use wasm_bindgen_getrandom as _;
+// Both getrandom and test can be renamed by the parent module.
+use super::getrandom;
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+use super::test;
 
-#[cfg(feature = "test-bindgen")]
-use wasm_bindgen_test::*;
-
-use getrandom::getrandom;
-
-#[cfg(feature = "test-in-browser")]
-wasm_bindgen_test_configure!(run_in_browser);
-
-#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
     getrandom(&mut [0u8; 0]).unwrap();
 }
 
-#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
@@ -37,18 +26,18 @@ fn test_diff() {
     assert!(n_diff_bits >= v1.len() as u32);
 }
 
-#[cfg_attr(feature = "test-bindgen", wasm_bindgen_test)]
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
     getrandom(&mut huge).unwrap();
 }
 
-#[cfg(any(unix, windows, target_os = "redox", target_os = "fuchsia"))]
+// On WASM, the thread API always fails/panics
+#[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn test_multithreading() {
-    use std::sync::mpsc::channel;
-    use std::thread;
+    extern crate std;
+    use std::{sync::mpsc::channel, thread, vec};
 
     let mut txs = vec![];
     for _ in 0..20 {
