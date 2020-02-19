@@ -185,7 +185,8 @@ cfg_if! {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
-    } else if #[cfg(all(feature = "cpu", target_arch = "x86_64"))] {
+    } else if #[cfg(all(feature = "cpu",
+                        any(target_arch = "x86_64", target_arch = "x86")))] {
         #[path = "rdrand.rs"] mod imp;
     } else {
         compile_error!("\
