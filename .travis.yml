@@ -11,11 +11,11 @@ env:
 
 jobs:
   include:
-    - name: "Linux, 1.32.0"
-      rust: 1.32.0
+    - name: "Linux, 1.33.0"
+      rust: 1.33.0
 
-    - name: "OSX, 1.32.0"
-      rust: 1.32.0
+    - name: "OSX, 1.33.0"
+      rust: 1.33.0
       os: osx
 
     - name: "Linux, stable"
