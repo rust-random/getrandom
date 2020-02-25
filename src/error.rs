@@ -19,36 +19,35 @@ use core::num::NonZeroU32;
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
-// TODO: Convert to a function when min_version >= 1.33
-macro_rules! internal_error {
-    ($n:expr) => {
-        Error(unsafe { NonZeroU32::new_unchecked(Error::INTERNAL_START + $n as u16 as u32) })
-    };
+const fn internal_error(n: u16) -> Error {
+    // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
+    let code = Error::INTERNAL_START + (n as u32);
+    Error(unsafe { NonZeroU32::new_unchecked(code) })
 }
 
 impl Error {
     /// This target/platform is not supported by `getrandom`.
-    pub const UNSUPPORTED: Error = internal_error!(0);
+    pub const UNSUPPORTED: Error = internal_error(0);
     /// The platform-specific `errno` returned a non-positive value.
-    pub const ERRNO_NOT_POSITIVE: Error = internal_error!(1);
+    pub const ERRNO_NOT_POSITIVE: Error = internal_error(1);
     /// Call to iOS [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
-    pub const IOS_SEC_RANDOM: Error = internal_error!(3);
+    pub const IOS_SEC_RANDOM: Error = internal_error(3);
     /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
-    pub const WINDOWS_RTL_GEN_RANDOM: Error = internal_error!(4);
+    pub const WINDOWS_RTL_GEN_RANDOM: Error = internal_error(4);
     /// RDRAND instruction failed due to a hardware issue.
-    pub const FAILED_RDRAND: Error = internal_error!(5);
+    pub const FAILED_RDRAND: Error = internal_error(5);
     /// RDRAND instruction unsupported on this target.
-    pub const NO_RDRAND: Error = internal_error!(6);
+    pub const NO_RDRAND: Error = internal_error(6);
     /// Using `wasm-bindgen`, browser does not support `self.crypto`.
-    pub const BINDGEN_CRYPTO_UNDEF: Error = internal_error!(7);
+    pub const BINDGEN_CRYPTO_UNDEF: Error = internal_error(7);
     /// Using `wasm-bindgen`, browser does not support `crypto.getRandomValues`.
-    pub const BINDGEN_GRV_UNDEF: Error = internal_error!(8);
+    pub const BINDGEN_GRV_UNDEF: Error = internal_error(8);
     /// Using `stdweb`, no cryptographic RNG is available.
-    pub const STDWEB_NO_RNG: Error = internal_error!(9);
+    pub const STDWEB_NO_RNG: Error = internal_error(9);
     /// Using `stdweb`, invoking a cryptographic RNG failed.
-    pub const STDWEB_RNG_FAILED: Error = internal_error!(10);
+    pub const STDWEB_RNG_FAILED: Error = internal_error(10);
     /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
-    pub const VXWORKS_RAND_SECURE: Error = internal_error!(11);
+    pub const VXWORKS_RAND_SECURE: Error = internal_error(11);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -80,7 +79,7 @@ impl Error {
     /// This code can either come from the underlying OS, or be a custom error.
     /// Use [`Error::raw_os_error()`] to disambiguate.
     #[inline]
-    pub fn code(self) -> NonZeroU32 {
+    pub const fn code(self) -> NonZeroU32 {
         self.0
     }
 }

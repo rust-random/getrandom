@@ -61,7 +61,7 @@ to switch to a custom implementation with a support of your target.
 
 ## Minimum Supported Rust Version
 
-This crate requires Rust 1.32.0 or later.
+This crate requires Rust 1.33.0 or later.
 
 # License
 
