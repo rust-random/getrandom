@@ -8,21 +8,16 @@
 
 //! Implementation for iOS
 use crate::Error;
-
-// TODO: Make extern once extern_types feature is stabilized. See:
-//   https://github.com/rust-lang/rust/issues/43467
-#[repr(C)]
-struct SecRandom([u8; 0]);
+use core::{ffi::c_void, ptr::null};
 
 #[link(name = "Security", kind = "framework")]
 extern "C" {
-    static kSecRandomDefault: *const SecRandom;
-
-    fn SecRandomCopyBytes(rnd: *const SecRandom, count: usize, bytes: *mut u8) -> i32;
+    fn SecRandomCopyBytes(rnd: *const c_void, count: usize, bytes: *mut u8) -> i32;
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let ret = unsafe { SecRandomCopyBytes(kSecRandomDefault, dest.len(), dest.as_mut_ptr()) };
+    // Apple's documentation guarantees kSecRandomDefault is a synonym for NULL.
+    let ret = unsafe { SecRandomCopyBytes(null(), dest.len(), dest.as_mut_ptr()) };
     if ret == -1 {
         Err(Error::IOS_SEC_RANDOM)
     } else {
