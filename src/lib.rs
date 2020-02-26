@@ -177,7 +177,7 @@ cfg_if! {
     } else if #[cfg(target_os = "vxworks")] {
         mod util_libc;
         #[path = "vxworks.rs"] mod imp;
-    } else if #[cfg(all(windows, getrandom_uwp))] {
+    } else if #[cfg(all(windows, target_vendor = "uwp"))] {
         #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;

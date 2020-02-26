@@ -7,8 +7,6 @@ fn main() {
     if target.contains("-uwp-windows-") {
         // for BCryptGenRandom
         println!("cargo:rustc-link-lib=bcrypt");
-        // to work around unavailability of `target_vendor` on Rust 1.33
-        println!("cargo:rustc-cfg=getrandom_uwp");
     } else if target.contains("windows") {
         // for RtlGenRandom (aka SystemFunction036)
         println!("cargo:rustc-link-lib=advapi32");
