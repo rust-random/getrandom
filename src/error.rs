@@ -5,8 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use core::fmt;
-use core::num::NonZeroU32;
+use core::{fmt, num::NonZeroU32};
 
 /// A small and `no_std` compatible error type.
 ///

@@ -7,8 +7,7 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD and NetBSD
-use crate::util_libc::sys_fill_exact;
-use crate::Error;
+use crate::{util_libc::sys_fill_exact, Error};
 use core::ptr;
 
 fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {

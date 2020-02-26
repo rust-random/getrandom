@@ -7,11 +7,15 @@
 // except according to those terms.
 
 //! Implementations that just need to read from a file
-use crate::util::LazyUsize;
-use crate::util_libc::{open_readonly, sys_fill_exact};
-use crate::Error;
-use core::cell::UnsafeCell;
-use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+use crate::{
+    util::LazyUsize,
+    util_libc::{open_readonly, sys_fill_exact},
+    Error,
+};
+use core::{
+    cell::UnsafeCell,
+    sync::atomic::{AtomicUsize, Ordering::Relaxed},
+};
 
 #[cfg(target_os = "redox")]
 const FILE_PATH: &str = "rand:\0";

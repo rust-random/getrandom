@@ -7,8 +7,11 @@
 // except according to those terms.
 
 //! Implementation for macOS
-use crate::util_libc::{last_os_error, Weak};
-use crate::{use_file, Error};
+use crate::{
+    use_file,
+    util_libc::{last_os_error, Weak},
+    Error,
+};
 use core::mem;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
