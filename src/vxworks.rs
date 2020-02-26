@@ -7,8 +7,7 @@
 // except according to those terms.
 
 //! Implementation for VxWorks
-use crate::util_libc::last_os_error;
-use crate::Error;
+use crate::{util_libc::last_os_error, Error};
 use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {

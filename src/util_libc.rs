@@ -6,10 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #![allow(dead_code)]
-use crate::util::LazyUsize;
-use crate::Error;
-use core::num::NonZeroU32;
-use core::ptr::NonNull;
+use crate::{util::LazyUsize, Error};
+use core::{num::NonZeroU32, ptr::NonNull};
 
 cfg_if! {
     if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
