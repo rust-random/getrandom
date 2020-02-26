@@ -10,7 +10,6 @@
 compile_error!("This crate is only for the `wasm32-unknown-unknown` target");
 
 use core::cell::RefCell;
-use core::mem;
 use std::thread_local;
 
 use wasm_bindgen::prelude::*;
@@ -32,8 +31,6 @@ thread_local!(
 register_custom_getrandom!(getrandom_inner);
 
 fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    assert_eq!(mem::size_of::<usize>(), 4);
-
     RNG_SOURCE.with(|f| {
         let mut source = f.borrow_mut();
         if source.is_none() {
