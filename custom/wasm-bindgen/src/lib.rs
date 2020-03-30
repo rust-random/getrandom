@@ -76,7 +76,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
         return Ok(RngSource::Browser(crypto));
     }
 
-    return Ok(RngSource::Node(node_require("crypto")));
+    return Ok(RngSource::Node(MODULE.require("crypto")));
 }
 
 #[wasm_bindgen]
@@ -102,12 +102,17 @@ extern "C" {
     #[wasm_bindgen(method, js_name = getRandomValues, structural)]
     fn get_random_values(me: &BrowserCrypto, buf: &mut [u8]);
 
-    #[wasm_bindgen(js_name = require)]
-    fn node_require(s: &str) -> NodeCrypto;
-
     #[derive(Clone, Debug)]
     type NodeCrypto;
 
     #[wasm_bindgen(method, js_name = randomFillSync, structural)]
     fn random_fill_sync(me: &NodeCrypto, buf: &mut [u8]);
+
+    type NodeModule;
+
+    #[wasm_bindgen(js_name = module)]
+    static MODULE: NodeModule;
+
+    #[wasm_bindgen(method)]
+    fn require(this: &NodeModule, s: &str) -> NodeCrypto;
 }
