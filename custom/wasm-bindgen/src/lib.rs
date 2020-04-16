@@ -19,7 +19,7 @@ use getrandom::{register_custom_getrandom, Error};
 
 #[derive(Clone, Debug)]
 enum RngSource {
-    Node(NodeCrypto),
+    Node(),
     Browser(BrowserCrypto),
 }
 
@@ -41,7 +41,7 @@ fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
         }
 
         match source.as_ref().unwrap() {
-            RngSource::Node(n) => n.random_fill_sync(dest),
+            RngSource::Node() => random_fill_sync(dest),
             RngSource::Browser(n) => {
                 // see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
                 //
@@ -79,7 +79,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
         return Ok(RngSource::Browser(crypto));
     }
 
-    return Ok(RngSource::Node(node_require("crypto")));
+    return Ok(RngSource::Node());
 }
 
 #[wasm_bindgen]
@@ -102,13 +102,10 @@ extern "C" {
     fn get_random_values_fn(me: &BrowserCrypto) -> JsValue;
     #[wasm_bindgen(method, js_name = getRandomValues, structural)]
     fn get_random_values(me: &BrowserCrypto, buf: &mut [u8]);
+}
 
-    #[wasm_bindgen(js_name = require)]
-    fn node_require(s: &str) -> NodeCrypto;
-
-    #[derive(Clone, Debug)]
-    type NodeCrypto;
-
-    #[wasm_bindgen(method, js_name = randomFillSync, structural)]
-    fn random_fill_sync(me: &NodeCrypto, buf: &mut [u8]);
+#[wasm_bindgen(module = "crypto")]
+extern "C" {
+    #[wasm_bindgen(js_name = randomFillSync)]
+    fn random_fill_sync(buf: &mut [u8]);
 }
