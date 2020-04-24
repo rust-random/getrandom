@@ -60,17 +60,17 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 fn getrandom_init() -> Result<RngSource, Error> {
     if let Ok(self_) = Global::get_self() {
         // If `self` is defined then we're in a browser somehow (main window
-        // or web worker). Here we want to try to use
-        // `crypto.getRandomValues`, but if `crypto` isn't defined we assume
-        // we're in an older web browser and the OS RNG isn't available.
+        // or web worker). We get `self.crypto` (called `msCrypto` on IE), so we
+        // can call `crypto.getRandomValues`. If `crypto` isn't defined, we
+        // assume we're in an older web browser and the OS RNG isn't available.
 
-        let crypto = self_.crypto();
-        if crypto.is_undefined() {
-            return Err(BINDGEN_CRYPTO_UNDEF);
-        }
+        let crypto: BrowserCrypto = match (self_.crypto(), self_.ms_crypto()) {
+            (crypto, _) if !crypto.is_undefined() => crypto.into(),
+            (_, crypto) if !crypto.is_undefined() => crypto.into(),
+            _ => return Err(BINDGEN_CRYPTO_UNDEF),
+        };
 
         // Test if `crypto.getRandomValues` is undefined as well
-        let crypto: BrowserCrypto = crypto.into();
         if crypto.get_random_values_fn().is_undefined() {
             return Err(BINDGEN_GRV_UNDEF);
         }
@@ -88,6 +88,8 @@ extern "C" {
     fn get_self() -> Result<Self_, JsValue>;
 
     type Self_;
+    #[wasm_bindgen(method, getter, js_name = "msCrypto", structural)]
+    fn ms_crypto(me: &Self_) -> JsValue;
     #[wasm_bindgen(method, getter, structural)]
     fn crypto(me: &Self_) -> JsValue;
 
