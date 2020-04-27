@@ -184,6 +184,9 @@ jobs:
   allow_failures:
     # Formatting errors should appear in Travis, but not break the build.
     - name: "rustfmt"
+    # The nightly toolchain is unstable, don't let it break our build
+    - name: "Linux, nightly, docs"
+    - name: "OSX, nightly, docs"
 
 before_install:
   - set -e
