@@ -37,16 +37,16 @@ impl Error {
     pub const FAILED_RDRAND: Error = internal_error(5);
     /// RDRAND instruction unsupported on this target.
     pub const NO_RDRAND: Error = internal_error(6);
-    /// Using `wasm-bindgen`, browser does not support `self.crypto`.
-    pub const BINDGEN_CRYPTO_UNDEF: Error = internal_error(7);
-    /// Using `wasm-bindgen`, browser does not support `crypto.getRandomValues`.
-    pub const BINDGEN_GRV_UNDEF: Error = internal_error(8);
-    /// Using `stdweb`, no cryptographic RNG is available.
-    pub const STDWEB_NO_RNG: Error = internal_error(9);
-    /// Using `stdweb`, invoking a cryptographic RNG failed.
-    pub const STDWEB_RNG_FAILED: Error = internal_error(10);
+    /// The browser does not have support for `self.crypto`.
+    pub const WEB_CRYPTO: Error = internal_error(7);
+    /// The browser does not have support for `crypto.getRandomValues`.
+    pub const WEB_GET_RANDOM_VALUES: Error = internal_error(8);
     /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
     pub const VXWORKS_RAND_SECURE: Error = internal_error(11);
+    /// NodeJS does not have support for the `crypto` module.
+    pub const NODE_CRYPTO: Error = internal_error(12);
+    /// NodeJS does not have support for `crypto.randomFillSync`.
+    pub const NODE_RANDOM_FILL_SYNC: Error = internal_error(13);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -152,15 +152,15 @@ fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
         Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
         Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
-        Error::IOS_SEC_RANDOM => Some("SecRandomCopyBytes: iOS Secuirty framework failure"),
+        Error::IOS_SEC_RANDOM => Some("SecRandomCopyBytes: iOS Security framework failure"),
         Error::WINDOWS_RTL_GEN_RANDOM => Some("RtlGenRandom: Windows system function failure"),
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
         Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
-        Error::BINDGEN_CRYPTO_UNDEF => Some("wasm-bindgen: self.crypto is undefined"),
-        Error::BINDGEN_GRV_UNDEF => Some("wasm-bindgen: crypto.getRandomValues is undefined"),
-        Error::STDWEB_NO_RNG => Some("stdweb: no randomness source available"),
-        Error::STDWEB_RNG_FAILED => Some("stdweb: failed to get randomness"),
+        Error::WEB_CRYPTO => Some("Web API self.crypto is unavailable"),
+        Error::WEB_GET_RANDOM_VALUES => Some("Web API crypto.getRandomValues is unavailable"),
         Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
+        Error::NODE_CRYPTO => Some("Node.js crypto module is unavailable"),
+        Error::NODE_RANDOM_FILL_SYNC => Some("Node.js API crypto.randomFillSync is unavailable"),
         _ => None,
     }
 }

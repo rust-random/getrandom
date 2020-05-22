@@ -10,64 +10,52 @@
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 compile_error!("This crate is only for the `wasm32-unknown-unknown` target");
 
-use std::sync::Once;
+use std::thread_local;
 
 use stdweb::js;
 
 use getrandom::{register_custom_getrandom, Error};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq)]
 enum RngSource {
     Browser,
     Node,
 }
 
+thread_local!(
+    static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
+);
+
 register_custom_getrandom!(getrandom_inner);
 
 fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    static ONCE: Once = Once::new();
-    static mut RNG_SOURCE: Result<RngSource, Error> = Ok(RngSource::Node);
-
-    // SAFETY: RNG_SOURCE is only written once, before being read.
-    ONCE.call_once(|| unsafe {
-        RNG_SOURCE = getrandom_init();
-    });
-    getrandom_fill(unsafe { RNG_SOURCE }?, dest)
+    RNG_SOURCE.with(|&source| getrandom_fill(source?, dest))
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {
-    let result = js! {
-        try {
-            if (
-                typeof self === "object" &&
-                typeof self.crypto === "object" &&
-                typeof self.crypto.getRandomValues === "function"
-            ) {
-                return { success: true, ty: 1 };
-            }
-
-            if (typeof require("crypto").randomBytes === "function") {
-                return { success: true, ty: 2 };
-            }
-
-            return { success: false, error: new Error("not supported") };
-        } catch(err) {
-            return { success: false, error: err };
-        }
-    };
-
-    if js! { return @{ result.as_ref() }.success } == true {
-        let ty = js! { return @{ result }.ty };
-
-        if ty == 1 {
+    if js! { return typeof self === "object"; } == true {
+        // We are in a Browser or WebWorker
+        let supported = js! { return typeof self.crypto === "object"; };
+        if supported == true {
             Ok(RngSource::Browser)
-        } else if ty == 2 {
-            Ok(RngSource::Node)
         } else {
-            unreachable!()
+            Err(Error::WEB_CRYPTO)
         }
     } else {
-        Err(Error::STDWEB_NO_RNG)
+        // We are in Node.js
+        let supported = js! {
+            try {
+                require("crypto");
+                return true;
+            } catch(err) {
+                return false;
+            }
+        };
+        if supported == true {
+            Ok(RngSource::Node)
+        } else {
+            Err(Error::NODE_CRYPTO)
+        }
     }
 }
 
@@ -76,32 +64,28 @@ fn getrandom_fill(source: RngSource, dest: &mut [u8]) -> Result<(), Error> {
         let len = chunk.len() as u32;
         let ptr = chunk.as_mut_ptr() as i32;
 
-        let result = match source {
-            RngSource::Browser => js! {
-                try {
-                    let array = new Uint8Array(@{ len });
+        let success = js! {
+            try {
+                let array = new Uint8Array(@{ len });
+
+                if @{ source == RngSource::Browser } {
                     self.crypto.getRandomValues(array);
-                    HEAPU8.set(array, @{ ptr });
-
-                    return { success: true };
-                } catch(err) {
-                    return { success: false, error: err };
+                } else {
+                    require("crypto").randomFillSync(array);
                 }
-            },
-            RngSource::Node => js! {
-                try {
-                    let bytes = require("crypto").randomBytes(@{ len });
-                    HEAPU8.set(new Uint8Array(bytes), @{ ptr });
 
-                    return { success: true };
-                } catch(err) {
-                    return { success: false, error: err };
-                }
-            },
+                HEAPU8.set(array, @{ ptr });
+                return true;
+            } catch(err) {
+                return false;
+            }
         };
 
-        if js! { return @{ result.as_ref() }.success } != true {
-            return Err(Error::STDWEB_RNG_FAILED);
+        if success != true {
+            return match source {
+                RngSource::Browser => Err(Error::WEB_GET_RANDOM_VALUES),
+                RngSource::Node => Err(Error::NODE_RANDOM_FILL_SYNC),
+            };
         }
     }
     Ok(())
