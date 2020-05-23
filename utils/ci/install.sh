@@ -3,13 +3,11 @@
 set -ex
 
 main() {
-    local target=
+    local host=
     if [ $TRAVIS_OS_NAME = linux ]; then
-        target=x86_64-unknown-linux-musl
-        sort=sort
+        host=x86_64-unknown-linux-musl
     else
-        target=x86_64-apple-darwin
-        sort=gsort  # for `sort --sort-version`, from brew's coreutils.
+        host=x86_64-apple-darwin
     fi
 
     # Builds for iOS are done on OSX, but require the specific target to be
@@ -32,18 +30,12 @@ main() {
             ;;
     esac
 
-    # This fetches latest stable release
-    local tag=$(git ls-remote --tags --refs --exit-code https://github.com/japaric/cross \
-                       | cut -d/ -f3 \
-                       | grep -E '^v[0.1.0-9.]+$' \
-                       | $sort --version-sort \
-                       | tail -n1)
-    curl -LSfs https://japaric.github.io/trust/install.sh | \
-        sh -s -- \
-           --force \
-           --git japaric/cross \
-           --tag $tag \
-           --target $target
+    # Pin the Cross version to avoid breaking the CI
+    local cross_version="v0.2.0"
+    wget -O cross.tar.gz https://github.com/rust-embedded/cross/releases/download/${cross_version}/cross-${cross_version}-${host}.tar.gz
+    tar -xzf cross.tar.gz
+    rm -f cross.tar.gz
+    mv ./cross $HOME/.cargo/bin
 }
 
 main
