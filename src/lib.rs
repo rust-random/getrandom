@@ -6,14 +6,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Interface to the random number generator of the operating system.
+//! Interface to the operating system's random number generator.
 //!
-//! # Platform sources
+//! # Supported targets
 //!
-//! | OS               | interface
+//! | Target           | Implementation
 //! |------------------|---------------------------------------------------------
 //! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 //! | Windows          | [`RtlGenRandom`][3]
+//! | [Windows UWP][22]| [`BCryptGenRandom`][23]
 //! | macOS            | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS              | [`SecRandomCopyBytes`][4]
 //! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
@@ -27,74 +28,92 @@
 //! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
 //! | SGX              | [RDRAND][18]
 //! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and asm.js][16])
-//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and asm.js][16])
+//! | Emscripten       | `/dev/random` (identical to `/dev/urandom`)
 //! | WASI             | [`__wasi_random_get`][17]
+//! | Web Browser      | [`Crypto.getRandomValues()`][14], see [support for WebAssembly][16]
+//! | Node.js          | [`crypto.randomBytes`][15], see [support for WebAssembly][16]
 //!
-//! Getrandom doesn't have a blanket implementation for all Unix-like operating
-//! systems that reads from `/dev/urandom`. This ensures all supported operating
-//! systems are using the recommended interface and respect maximum buffer
-//! sizes.
+//! There is no blanket implementation on `unix` targets that reads from
+//! `/dev/urandom`. This ensures all supported targets are using the recommended
+//! interface and respect maximum buffer sizes.
+//!
+//! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
 //! ## Unsupported targets
 //!
-//! By default, compiling `getrandom` for an unsupported target will result in
-//! a compilation error. If you want to build an application which uses `getrandom`
-//! for such target, you can either:
-//! - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
-//! to switch to a custom implementation with a support of your target.
+//! By default, `getrandom` will not compile on unsupported targets, but certain
+//! features allow a user to select a "fallback" implementation if no supported
+//! implementation exists.
 //!
-//! [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
-//! [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
+//! All of the below mechanisms only affect unsupported
+//! targets. Supported targets will _always_ use their supported implementations.
+//! This prevents a crate from overriding a secure source of randomness
+//! (either accidentally or intentionally).
 //!
-//! ## Support for WebAssembly and asm.js
+//! ### RDRAND on x86
 //!
-//! Getrandom supports all of Rust's current `wasm32` targets, and it works with
-//! both Node.js and web browsers. The three Emscripten targets
-//! `asmjs-unknown-emscripten`, `wasm32-unknown-emscripten`, and
-//! `wasm32-experimental-emscripten` use Emscripten's `/dev/random` emulation.
-//! The WASI target `wasm32-wasi` uses the [`__wasi_random_get`][17] function
-//! defined by the WASI standard.
+//! *If the `"rdrand"` Cargo feature is enabled*, `getrandom` will fallback to using
+//! the [`RDRAND`][18] instruction to get randomness on `no_std` `x86`/`x86_64`
+//! targets. This feature has no effect on other CPU architectures.
 //!
-//! Getrandom also supports `wasm32-unknown-unknown` by directly calling
-//! JavaScript methods. Rust currently has two ways to do this: [bindgen] and
-//! [stdweb]. Getrandom supports using either one by enabling the
-//! `wasm-bindgen` or `stdweb` crate features. Note that if both features are
-//! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls
-//! to `getrandom` will always fail at runtime.
+//! ### Support for WebAssembly
 //!
-//! [bindgen]: https://github.com/rust-lang/rust-bindgen
+//! This crate fully supports the `wasm32-wasi` and `wasm32-unknown-emscripten`
+//! targets. However, the `wasm32-unknown-unknown` target is not supported since,
+//! from the target name alone, we cannot deduce which JavaScript interface is
+//! in use (or if JavaScript is available at all).
+//!
+//! Instead, *if the `"js"` Cargo feature is enabled*, this crate will assume
+//! that you are building for an environment containing JavaScript, and will
+//! call the appropriate methods. Both Browser and Node.js environments are
+//! supported (see above), and both [wasm-bindgen] and [stdweb] toolchains are
+//! supported.
+//!
+//! [wasm-bindgen]: https://github.com/rust-lang/rust-bindgen
 //! [stdweb]: https://github.com/koute/stdweb
+//!
+//! ### Use a custom implementation
+//!
+//! Some external crates define `getrandom` implementations for specific
+//! unsupported targets. If you depend on one of these external crates and you
+//! are building for an unsupported target, `getrandom` will use this external
+//! implementation instead of failing to compile.
+//!
+//! See [`register_custom_getrandom!`] for information about writing your own
+//! custom `getrandom` implementation for an unsupported target.
+//!
+//! ### Indirect Dependencies
+//!
+//! If `getrandom` is not a direct dependency of your crate, you can still
+//! enable any of above fallback behaviors by simply enabling the relevant
+//! feature in your root crate's `[dependencies]` section:
+//! ```toml
+//! getrandom = { version = "0.2", features = ["rdrand"] }
+//! ```
 //!
 //! ## Early boot
 //!
-//! It is possible that early in the boot process the OS hasn't had enough time
-//! yet to collect entropy to securely seed its RNG, especially on virtual
-//! machines.
+//! Sometimes, early in the boot process, the OS has not collected enough
+//! entropy to securely seed its RNG. This is especially common on virtual
+//! machines, where standard "random" events are hard to come by.
 //!
-//! Some operating systems always block the thread until the RNG is securely
+//! Some operating system interfaces always block until the RNG is securely
 //! seeded. This can take anywhere from a few seconds to more than a minute.
-//! Others make a best effort to use a seed from before the shutdown and don't
-//! document much.
+//! A few (Linux, NetBSD and Solaris) offer a choice between blocking and
+//! getting an error; in these cases, we always choose to block.
 //!
-//! A few, Linux, NetBSD and Solaris, offer a choice between blocking and
-//! getting an error; in these cases we always choose to block.
-//!
-//! On Linux (when the `getrandom` system call is not available) and on NetBSD
-//! reading from `/dev/urandom` never blocks, even when the OS hasn't collected
-//! enough entropy yet. To avoid returning low-entropy bytes, we first read from
+//! On Linux (when the `getrandom` system call is not available), reading from
+//! `/dev/urandom` never blocks, even when the OS hasn't collected enough
+//! entropy yet. To avoid returning low-entropy bytes, we first poll
 //! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
 //!
-//! # Error handling
+//! ## Error handling
 //!
 //! We always choose failure over returning insecure "random" bytes. In general,
 //! on supported platforms, failure is highly unlikely, though not impossible.
 //! If an error does occur, then it is likely that it will occur on every call to
 //! `getrandom`, hence after the first successful call one can be reasonably
 //! confident that no errors will occur.
-//!
-//! On unsupported platforms, `getrandom` always fails. See the [`Error`] type
-//! for more information on what data is returned on failure.
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
@@ -111,12 +130,14 @@
 //! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
-//! [16]: #support-for-webassembly-and-asmjs
+//! [16]: #support-for-webassembly
 //! [17]: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md#__wasi_random_get
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
+//! [22]: https://docs.microsoft.com/en-us/windows/uwp/
+//! [23]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",

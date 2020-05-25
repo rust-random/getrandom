@@ -7,7 +7,7 @@
 // except according to those terms.
 use core::{fmt, num::NonZeroU32};
 
-/// A small and `no_std` compatible error type.
+/// A small and `no_std` compatible error type
 ///
 /// The [`Error::raw_os_error()`] will indicate if the error is from the OS, and
 /// if so, which error code the OS gave the application. If such an error is
@@ -15,6 +15,12 @@ use core::{fmt, num::NonZeroU32};
 ///
 /// Internally this type is a NonZeroU32, with certain values reserved for
 /// certain purposes, see [`Error::INTERNAL_START`] and [`Error::CUSTOM_START`].
+///
+/// *If this crate's `"std"` Cargo feature is enabled*, then:
+/// - [`getrandom::Error`][Error] implements
+///   [`std::error::Error`](https://doc.rust-lang.org/std/error/trait.Error.html)
+/// - [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html) implements
+///   [`From<getrandom::Error>`](https://doc.rust-lang.org/std/convert/trait.From.html).
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
