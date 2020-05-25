@@ -37,27 +37,10 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 }
 ```
 
-## Features
-
-This library is `no_std` for every supported target. However, getting randomness
-usually requires calling some external system API. This means most platforms
-will require linking against system libraries (i.e. `libc` for Unix,
-`Advapi32.dll` for Windows, Security framework on iOS, etc...).
-
-For the `wasm32-unknown-unknown` target, one of the following features should be
-enabled:
-
--   [`wasm-bindgen`](https://crates.io/crates/wasm_bindgen)
--   [`stdweb`](https://crates.io/crates/stdweb)
-
-By default, compiling `getrandom` for an unsupported target will result in
-a compilation error. If you want to build an application which uses `getrandom`
-for such target, you can either:
-- Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`
-to switch to a custom implementation with a support of your target.
-
-[replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section
-[patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section
+For more information about supported targets, entropy sources, `no_std` targets,
+crate features, WASM support and Custom RNGs see the
+[`getrandom` documentation](https://docs.rs/getrandom/latest) and
+[`getrandom::Error` documentation](https://docs.rs/getrandom/latest/getrandom/struct.Error.html).
 
 ## Minimum Supported Rust Version
 

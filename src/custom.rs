@@ -10,13 +10,43 @@
 use crate::Error;
 use core::num::NonZeroU32;
 
-/// Register a function to be invoked by `getrandom` on custom targets.
+/// Register a function to be invoked by `getrandom` on unsupported targets.
 ///
-/// This function will only be invoked on targets not supported by `getrandom`.
-/// This prevents crate dependencies from either inadvertently or maliciously
-/// overriding the secure RNG implementations in `getrandom`.
+/// *This API requires the following Cargo features to be activated: `"custom"`*
 ///
-/// *This API requires the following crate features to be activated: `custom`*
+/// ## Writing your own custom `getrandom` implementation
+///
+/// Users can define custom implementations either in their root crate or in a
+/// target specific helper-crate. We will use the helper-crate approach in this
+/// example, defining `dummy-getrandom`, an implementation that always fails.
+///
+/// First, in `dummy-getrandom/Cargo.toml` we depend on `getrandom`:
+/// ```toml
+/// [dependencies]
+/// getrandom = { version = "0.2", features = ["custom"] }
+/// ```
+/// 
+/// Next, in `dummy-getrandom/src/lib.rs`, we define our custom implementation and register it:
+/// ```rust
+/// use core::num::NonZeroU32;
+/// use getrandom::{Error, register_custom_getrandom};
+/// 
+/// const MY_CUSTOM_ERROR_CODE: u32 = Error::CUSTOM_START + 42;
+/// fn always_fail(buf: &mut [u8]) -> Result<(), Error> {
+///     let code = NonZeroU32::new(MY_CUSTOM_ERROR_CODE).unwrap();
+///     Err(Error::from(code))
+/// }
+///
+/// register_custom_getrandom!(always_fail);
+/// ```
+/// the registered function must have the same type signature as
+/// [`getrandom::getrandom`](crate::getrandom).
+///
+/// Now any user of `getrandom` (direct or indirect) on this target will use the
+/// above custom implementation. Note that if you are using a helper-crate, some
+/// crate in the build needs to depend on `dummy-getrandom` via a
+/// `use dummy_getrandom;` statement. Failure to do this will result
+/// in linker errors.
 #[macro_export]
 macro_rules! register_custom_getrandom {
     ($path:path) => {
