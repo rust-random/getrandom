@@ -14,12 +14,6 @@ exclude = ["utils/*", ".*", "appveyor.yml"]
 travis-ci = { repository = "rust-random/getrandom" }
 appveyor = { repository = "rust-random/getrandom" }
 
-[workspace]
-members = [
-    "custom/stdweb",
-    "custom/wasm-bindgen",
-]
-
 [dependencies]
 cfg-if = "0.1.2"
 
@@ -33,10 +27,19 @@ libc = { version = "0.2.64", default-features = false }
 [target.'cfg(target_os = "wasi")'.dependencies]
 wasi = "0.9"
 
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown", cargo_web))'.dependencies]
+stdweb = { version = "0.4.18", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dependencies]
+wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dev-dependencies]
+wasm-bindgen-test = "0.3.12"
+
 [features]
 std = []
 # Feature to enable fallback RDRAND-based implementation
 rdrand = []
+# Feature to enable JavaScript bindings on wasm32-unknown-unknown
+js = ["stdweb", "wasm-bindgen"]
 # Feature to enable custom RNG implementations
 custom = []
 # Unstable feature to support being a libstd dependency
