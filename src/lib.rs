@@ -183,11 +183,11 @@ cfg_if! {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(feature = "custom")] {
-        use custom as imp;
     } else if #[cfg(all(feature = "cpu",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
         #[path = "rdrand.rs"] mod imp;
+    } else if #[cfg(feature = "custom")] {
+        use custom as imp;
     } else {
         compile_error!("\
             target is not supported, for more information see: \
