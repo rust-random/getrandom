@@ -186,6 +186,11 @@ cfg_if! {
     } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
         #[path = "rdrand.rs"] mod imp;
+    } else if #[cfg(all(feature = "js",
+                        target_arch = "wasm32", target_os = "unknown"))] {
+        #[cfg_attr(cargo_web, path = "stdweb.rs")]
+        #[cfg_attr(not(cargo_web), path = "wasm-bindgen.rs")]
+        mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else {

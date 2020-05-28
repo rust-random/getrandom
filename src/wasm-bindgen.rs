@@ -5,15 +5,13 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+use crate::Error;
 
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
-compile_error!("This crate is only for the `wasm32-unknown-unknown` target");
-
+extern crate std;
 use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-use getrandom::{register_custom_getrandom, Error};
 
 enum RngSource {
     Node(NodeCrypto),
@@ -26,9 +24,7 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-register_custom_getrandom!(getrandom_inner);
-
-fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
