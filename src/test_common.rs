@@ -1,7 +1,11 @@
-// Both getrandom and test can be renamed by the parent module.
+// Allow getrandom to be renamed by the parent module.
 use super::getrandom;
-#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-use super::test;
+
+#[cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))]
+use wasm_bindgen_test::wasm_bindgen_test as test;
+
+#[cfg(feature = "test-in-browser")]
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[test]
 fn test_zero() {

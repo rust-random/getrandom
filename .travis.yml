@@ -67,17 +67,14 @@ jobs:
       script:
         - cargo test --target wasm32-wasi
         # stdweb (wasm32-unknown-unknown) tests (Node, Chrome)
-        - cargo web test --package stdweb-getrandom
-        - cargo web test --package stdweb-getrandom --nodejs
+        - cargo web test --features js --nodejs
+        - cargo web test --features js
         # wasm-bindgen (wasm32-unknown-unknown) tests (Node, Firefox, Chrome)
-        - cargo test --package wasm-bindgen-getrandom
-          --target wasm32-unknown-unknown --test node
+        - cargo test --target wasm32-unknown-unknown --features js
         - GECKODRIVER=$HOME/geckodriver
-          cargo test --package wasm-bindgen-getrandom
-          --target wasm32-unknown-unknown --test web
+          cargo test --target wasm32-unknown-unknown --features js,test-in-browser
         - CHROMEDRIVER=$HOME/chromedriver
-          cargo test --package wasm-bindgen-getrandom
-          --target wasm32-unknown-unknown --test web
+          cargo test --target wasm32-unknown-unknown --features js,test-in-browser
 
     - name: "WASM via Emscripten"
       rust: stable

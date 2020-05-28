@@ -45,5 +45,8 @@ custom = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
 
+# Test/wasm-bindgen only feature to run tests in a browser
+test-in-browser = []
+
 [package.metadata.docs.rs]
 features = ["std", "custom"]
