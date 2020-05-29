@@ -145,11 +145,11 @@ jobs:
       script:
         # We test that getrandom builds for all targets
         - echo $STD_TARGETS | xargs -t -n1 cargo build --target
-        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --features=cpu --target
+        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --features=rdrand --target
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
         - echo $STD_TARGETS | xargs -t -n1 cargo build --target
-        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --features=cpu --target
+        - echo $NO_STD_TARGETS | xargs -t -n1 cargo xbuild --features=rdrand --target
 
     # Trust cross-built/emulated targets. We must repeat all non-default values.
     - name: "Linux (MIPS, big-endian)"

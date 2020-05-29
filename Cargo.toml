@@ -35,8 +35,8 @@ wasi = "0.9"
 
 [features]
 std = []
-# Feature to enable fallback CPU-based implementation
-cpu = []
+# Feature to enable fallback RDRAND-based implementation
+rdrand = []
 # Feature to enable custom RNG implementations
 custom = []
 # Unstable feature to support being a libstd dependency

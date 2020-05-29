@@ -183,7 +183,7 @@ cfg_if! {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "cpu",
+    } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
@@ -219,4 +219,4 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
 #[cfg(test)]
 mod test_common;
 #[cfg(test)]
-mod test_cpu;
+mod test_rdrand;
