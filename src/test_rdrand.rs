@@ -1,4 +1,4 @@
-// We only test the CPU-based RNG source on supported architectures.
+// We only test the RDRAND-based RNG source on supported architectures.
 #![cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 
 #[path = "rdrand.rs"]
