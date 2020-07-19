@@ -111,9 +111,5 @@ pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
     if fd < 0 {
         return Err(last_os_error());
     }
-    // O_CLOEXEC works on all Unix targets except for older Linux kernels (pre
-    // 2.6.23), so we also use an ioctl to make sure FD_CLOEXEC is set.
-    #[cfg(target_os = "linux")]
-    libc::ioctl(fd, libc::FIOCLEX);
     Ok(fd)
 }
