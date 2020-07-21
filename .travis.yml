@@ -66,9 +66,10 @@ jobs:
         - mv cargo-web wasmtime wasm-bindgen-test-runner $HOME/.cargo/bin
       script:
         - cargo test --target wasm32-wasi
-        # stdweb (wasm32-unknown-unknown) tests (Node, Chrome)
-        - cargo web test --features js --nodejs
-        - cargo web test --features js
+        # stdweb (wasm32-unknown-unknown) tests are currently broken (see https://github.com/koute/cargo-web/issues/243)
+        # - cargo web test --features js --nodejs
+        # - cargo web test --features js
+        - cargo build --features js
         # wasm-bindgen (wasm32-unknown-unknown) tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features js
         - GECKODRIVER=$HOME/geckodriver
