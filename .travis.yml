@@ -110,7 +110,6 @@ jobs:
         # remove cached documentation, otherwise files from previous PRs can get included
         - rm -rf target/doc
         - cargo doc --no-deps --features=std,custom
-        - cargo doc --no-deps --package wasm-bindgen-getrandom --target=wasm32-unknown-unknown
         - cargo deadlinks --dir target/doc
         # Check that our tests pass in the default/minimal configuration
         - cargo test --tests --benches
