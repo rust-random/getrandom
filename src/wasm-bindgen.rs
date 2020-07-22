@@ -12,7 +12,6 @@ use std::thread_local;
 
 use wasm_bindgen::prelude::*;
 
-
 enum RngSource {
     Node(NodeCrypto),
     Browser(BrowserCrypto),
