@@ -43,5 +43,10 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
         }
     }
-    sys_fill_exact(dest, kern_arnd)
+    // Both FreeBSD and NetBSD will only return up to 256 bytes at a time, and
+    // older NetBSD kernels will fail on longer buffers.
+    for chunk in dest.chunks_mut(256) {
+        sys_fill_exact(chunk, kern_arnd)?
+    }
+    Ok(())
 }
