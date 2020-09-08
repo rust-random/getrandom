@@ -1,5 +1,6 @@
 language: rust
 sudo: false
+dist: focal
 
 matrix:
   include:
@@ -44,12 +45,12 @@ matrix:
         - wget -O chromedriver.zip https://chromedriver.storage.googleapis.com/$VERSION/chromedriver_linux64.zip
         - unzip chromedriver.zip
         # Get cargo-web
-        - export VERSION=0.6.26 # Pin version for stability
-        - wget -O cargo-web.gz https://github.com/koute/cargo-web/releases/download/$VERSION/cargo-web-x86_64-unknown-linux-gnu.gz
-        - gunzip cargo-web.gz
-        - chmod +x cargo-web
+        # - export VERSION=0.6.26 # Pin version for stability
+        # - wget -O cargo-web.gz https://github.com/koute/cargo-web/releases/download/$VERSION/cargo-web-x86_64-unknown-linux-gnu.gz
+        # - gunzip cargo-web.gz
+        # - chmod +x cargo-web
         # Get wasmtime
-        - export VERSION=v0.8.0 # Pin version for stability
+        - export VERSION=v0.19.0 # Pin version for stability
         - wget -O wasmtime.tar.xz https://github.com/CraneStation/wasmtime/releases/download/$VERSION/wasmtime-$VERSION-x86_64-linux.tar.xz
         - tar -xf wasmtime.tar.xz --strip-components=1
         # Get wasm-bindgen-test-runner which matches our wasm-bindgen version
@@ -57,13 +58,14 @@ matrix:
         - wget -O wasm-bindgen.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
         - tar -xzf wasm-bindgen.tar.gz --strip-components=1
         # Place the runner binaries in our PATH
-        - mv cargo-web wasmtime wasm-bindgen-test-runner $HOME/.cargo/bin
+        - mv wasmtime wasm-bindgen-test-runner $HOME/.cargo/bin
       script:
         # wasi tests
         - cargo test --target wasm32-wasi
         # stdweb tests (Node, Chrome)
-        - cargo web test --nodejs --target=wasm32-unknown-unknown --features=stdweb
-        - cargo web test --target=wasm32-unknown-unknown --features=stdweb
+        # stdweb (wasm32-unknown-unknown) tests are currently broken (see https://github.com/koute/cargo-web/issues/243)
+        # - cargo web test --nodejs --target=wasm32-unknown-unknown --features=stdweb
+        # - cargo web test --target=wasm32-unknown-unknown --features=stdweb
         # wasm-bindgen tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features=wasm-bindgen
         - GECKODRIVER=$PWD/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
@@ -77,7 +79,7 @@ matrix:
       install:
         - rustup target add wasm32-unknown-emscripten
         - rustup target add asmjs-unknown-emscripten
-        - export VERSION=1.39.13 # Pin version for stability
+        - export VERSION=2.0.2 # Pin version for stability
         - git clone https://github.com/emscripten-core/emsdk.git
         - ./emsdk/emsdk install $VERSION
         - ./emsdk/emsdk activate $VERSION
@@ -88,7 +90,7 @@ matrix:
         - RUSTFLAGS='-C debuginfo=0' cargo test --target asmjs-unknown-emscripten
 
     - name: "Linux, nightly, docs"
-      rust: nightly
+      rust: nightly-2020-09-08
       os: linux
       install:
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
@@ -106,7 +108,7 @@ matrix:
         - cargo test
 
     - name: "OSX, nightly, docs"
-      rust: nightly
+      rust: nightly-2020-09-08
       os: osx
       install:
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
@@ -124,7 +126,7 @@ matrix:
         - cargo test
 
     - name: "cross-platform build only"
-      rust: nightly
+      rust: nightly-2020-09-08
       install:
         - rustup target add x86_64-sun-solaris
         - rustup target add x86_64-unknown-cloudabi
@@ -197,9 +199,6 @@ matrix:
   allow_failures:
     # Formatting errors should appear in Travis, but not break the build.
     - name: "rustfmt"
-    # The nightly toolchain is unstable, don't let it break our build
-    - name: "Linux, nightly, docs"
-    - name: "OSX, nightly, docs"
 
 before_install:
   - set -e
