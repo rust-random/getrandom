@@ -58,19 +58,22 @@
 //!
 //! ### Support for WebAssembly
 //!
-//! This crate fully supports the `wasm32-wasi` and `wasm32-unknown-emscripten`
-//! targets. However, the `wasm32-unknown-unknown` target is not supported since,
-//! from the target name alone, we cannot deduce which JavaScript interface is
-//! in use (or if JavaScript is available at all).
+//! This crate fully supports the
+//! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and
+//! [`wasm32-unknown-emscripten`](https://www.hellorust.com/setup/emscripten/)
+//! targets. However, the `wasm32-unknown-unknown` target is not automatically
+//! supported since, from the target name alone, we cannot deduce which
+//! JavaScript interface is in use (or if JavaScript is available at all).
 //!
 //! Instead, *if the `"js"` Cargo feature is enabled*, this crate will assume
 //! that you are building for an environment containing JavaScript, and will
-//! call the appropriate methods. Both Browser and Node.js environments are
-//! supported (see above), and both [wasm-bindgen] and [stdweb] toolchains are
-//! supported.
+//! call the appropriate methods. Both web browser (main window and Web Workers)
+//! and Node.js environments are supported, invoking the methods
+//! [described above](#supported-targets). This crate can be built with either
+//! the [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) or
+//! [cargo-web](https://github.com/koute/cargo-web) toolchains.
 //!
-//! [wasm-bindgen]: https://github.com/rust-lang/rust-bindgen
-//! [stdweb]: https://github.com/koute/stdweb
+//! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
 //! ### Use a custom implementation
 //!
@@ -85,10 +88,11 @@
 //! ### Indirect Dependencies
 //!
 //! If `getrandom` is not a direct dependency of your crate, you can still
-//! enable any of above fallback behaviors by simply enabling the relevant
-//! feature in your root crate's `[dependencies]` section:
+//! enable any of the above fallback behaviors by enabling the relevant
+//! feature in your root crate's `Cargo.toml`:
 //! ```toml
-//! getrandom = { version = "0.2", features = ["rdrand"] }
+//! [dependencies]
+//! getrandom = { version = "0.2", features = ["js"] }
 //! ```
 //!
 //! ## Early boot
