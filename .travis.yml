@@ -31,15 +31,15 @@ matrix:
     - name: "WASM via stdweb, wasm-bindgen and WASI"
       rust: stable
       addons:
-        firefox: latest
+        # firefox: latest
         chrome: stable
       install:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-wasi
         # Get latest geckodriver
-        - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
-        - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
-        - tar -xzf geckodriver.tar.gz
+        # - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
+        # - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
+        # - tar -xzf geckodriver.tar.gz
         # Get latest chromedirver
         - export VERSION=$(wget -q -O - https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
         - wget -O chromedriver.zip https://chromedriver.storage.googleapis.com/$VERSION/chromedriver_linux64.zip
@@ -68,7 +68,8 @@ matrix:
         # - cargo web test --target=wasm32-unknown-unknown --features=stdweb
         # wasm-bindgen tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features=wasm-bindgen
-        - GECKODRIVER=$PWD/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
+        # Firefox is broken, see https://github.com/rustwasm/wasm-bindgen/issues/2261
+        # - GECKODRIVER=$PWD/geckodriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
         - CHROMEDRIVER=$PWD/chromedriver cargo test --target wasm32-unknown-unknown --features=test-in-browser
 
     - name: "WASM via Emscripten"
@@ -129,7 +130,6 @@ matrix:
       rust: nightly-2020-09-08
       install:
         - rustup target add x86_64-sun-solaris
-        - rustup target add x86_64-unknown-cloudabi
         - rustup target add x86_64-unknown-freebsd
         - rustup target add x86_64-fuchsia
         - rustup target add x86_64-unknown-netbsd
@@ -140,12 +140,12 @@ matrix:
         - cargo install cargo-xbuild || true
       script:
         - cargo build --target=x86_64-sun-solaris
-        - cargo build --target=x86_64-unknown-cloudabi
         - cargo build --target=x86_64-unknown-freebsd
         - cargo build --target=x86_64-fuchsia
         - cargo build --target=x86_64-unknown-netbsd
         - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
+        - cargo xbuild --target=x86_64-unknown-cloudabi
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
@@ -153,12 +153,12 @@ matrix:
         # also test minimum dependency versions are usable
         - cargo generate-lockfile -Z minimal-versions
         - cargo build --target=x86_64-sun-solaris
-        - cargo build --target=x86_64-unknown-cloudabi
         - cargo build --target=x86_64-unknown-freebsd
         - cargo build --target=x86_64-fuchsia
         - cargo build --target=x86_64-unknown-netbsd
         - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
+        - cargo xbuild --target=x86_64-unknown-cloudabi
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
