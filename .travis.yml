@@ -100,7 +100,7 @@ jobs:
 
     - &nightly_and_docs
       name: "Linux, nightly, docs"
-      rust: nightly-2020-09-08
+      rust: nightly
       install:
         - rustup target add wasm32-unknown-unknown
         - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
@@ -123,7 +123,7 @@ jobs:
       os: osx
 
     - name: "cross-platform tests"
-      rust: nightly-2020-09-08
+      rust: nightly
       addons:
         apt:
           packages:
@@ -135,7 +135,7 @@ jobs:
         - echo $LINUX_TARGETS | xargs -t -n1 cargo test --target
 
     - name: "cross-platform build only"
-      rust: nightly-2020-09-08
+      rust: nightly
       install:
         - echo $STD_TARGETS | xargs -n1 rustup target add
         # For no_std targets
