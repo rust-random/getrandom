@@ -82,6 +82,21 @@
 //! are building for an unsupported target, `getrandom` will use this external
 //! implementation instead of failing to compile.
 //!
+//! Using such an external implementation requires depending on it in your
+//! `Cargo.toml` _and_ using it in your binary crate with:
+//! ```ignore
+//! use some_custom_getrandom_crate;
+//! ```
+//! (failure to do this will cause linker errors).
+//!
+//! Other than [dev-dependencies](https://doc.rust-lang.org/stable/rust-by-example/testing/dev_dependencies.html),
+//! library crates should **not** depend on external implementation crates.
+//! Only binary crates should depend/use such crates. This is similar to
+//! [`#[panic_handler]`](https://doc.rust-lang.org/nomicon/panic-handler.html) or
+//! [`#[global_allocator]`](https://doc.rust-lang.org/edition-guide/rust-2018/platform-and-target-support/global-allocators.html),
+//! where helper crates define handlers/allocators but only the binary crate
+//! actually _uses_ the functionality.
+//!
 //! See [`register_custom_getrandom!`] for information about writing your own
 //! custom `getrandom` implementation for an unsupported target.
 //!
