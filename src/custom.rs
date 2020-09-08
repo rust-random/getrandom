@@ -25,12 +25,12 @@ use core::num::NonZeroU32;
 /// [dependencies]
 /// getrandom = { version = "0.2", features = ["custom"] }
 /// ```
-/// 
+///
 /// Next, in `dummy-getrandom/src/lib.rs`, we define our custom implementation and register it:
 /// ```rust
 /// use core::num::NonZeroU32;
 /// use getrandom::{Error, register_custom_getrandom};
-/// 
+///
 /// const MY_CUSTOM_ERROR_CODE: u32 = Error::CUSTOM_START + 42;
 /// fn always_fail(buf: &mut [u8]) -> Result<(), Error> {
 ///     let code = NonZeroU32::new(MY_CUSTOM_ERROR_CODE).unwrap();
@@ -43,10 +43,9 @@ use core::num::NonZeroU32;
 /// [`getrandom::getrandom`](crate::getrandom).
 ///
 /// Now any user of `getrandom` (direct or indirect) on this target will use the
-/// above custom implementation. Note that if you are using a helper-crate, some
-/// crate in the build needs to depend on `dummy-getrandom` via a
-/// `use dummy_getrandom;` statement. Failure to do this will result
-/// in linker errors.
+/// above custom implementation. See the
+/// [usage documentation](index.html#use-a-custom-implementation) for information about
+/// _using_ such a custom implementation.
 #[macro_export]
 macro_rules! register_custom_getrandom {
     ($path:path) => {
