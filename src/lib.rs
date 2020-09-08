@@ -215,10 +215,8 @@ cfg_if! {
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else {
-        compile_error!("\
-            target is not supported, for more information see: \
-            https://docs.rs/getrandom/#unsupported-targets\
-        ");
+        compile_error!("target is not supported, for more information see: \
+                        https://docs.rs/getrandom/#unsupported-targets");
     }
 }
 
