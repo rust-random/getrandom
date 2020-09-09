@@ -53,9 +53,11 @@ use core::num::NonZeroU32;
 /// where helper crates define handlers/allocators but only the binary crate
 /// actually _uses_ the functionality.
 ///
-/// To register the function, we first depend on `getrandom` in `Cargo.toml`:
+/// To register the function, we first depend on `failure-getrandom` _and_
+/// `getrandom` in `Cargo.toml`:
 /// ```toml
 /// [dependencies]
+/// failure-getrandom = "0.1"
 /// getrandom = { version = "0.2", features = ["custom"] }
 /// ```
 ///
