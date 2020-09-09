@@ -32,7 +32,7 @@ stdweb = { version = "0.4.18", default-features = false, optional = true }
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dev-dependencies]
-wasm-bindgen-test = "0.3.12"
+wasm-bindgen-test = "0.3.18"
 
 [features]
 std = []
