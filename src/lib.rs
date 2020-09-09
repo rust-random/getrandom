@@ -75,30 +75,17 @@
 //!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
-//! ### Use a custom implementation
+//! ### Custom implementations
 //!
-//! Some external crates define `getrandom` implementations for specific
-//! unsupported targets. If you depend on one of these external crates and you
-//! are building for an unsupported target, `getrandom` will use this external
-//! implementation instead of failing to compile.
+//! The [`register_custom_getrandom!`] macro allows a user to mark their own
+//! function as the backing implementation for [`getrandom`]. See the macro's
+//! documentation for more information about writing and registering your own
+//! custom implementations.
 //!
-//! Using such an external implementation requires depending on it in your
-//! `Cargo.toml` _and_ using it in your binary crate with:
-//! ```ignore
-//! use some_custom_getrandom_crate;
-//! ```
-//! (failure to do this will cause linker errors).
-//!
-//! Other than [dev-dependencies](https://doc.rust-lang.org/stable/rust-by-example/testing/dev_dependencies.html),
-//! library crates should **not** depend on external implementation crates.
-//! Only binary crates should depend/use such crates. This is similar to
-//! [`#[panic_handler]`](https://doc.rust-lang.org/nomicon/panic-handler.html) or
-//! [`#[global_allocator]`](https://doc.rust-lang.org/edition-guide/rust-2018/platform-and-target-support/global-allocators.html),
-//! where helper crates define handlers/allocators but only the binary crate
-//! actually _uses_ the functionality.
-//!
-//! See [`register_custom_getrandom!`] for information about writing your own
-//! custom `getrandom` implementation for an unsupported target.
+//! Note that registering a custom implementation only has an effect on targets
+//! that would otherwise not compile. Any supported targets (including those
+//! using `"rdrand"` and `"js"` Cargo features) continue using their normal
+//! implementations even if a function is registered.
 //!
 //! ### Indirect Dependencies
 //!
