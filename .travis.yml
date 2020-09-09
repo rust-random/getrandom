@@ -114,7 +114,7 @@ jobs:
         - cargo doc --no-deps --features=std,custom
         - cargo deadlinks --dir target/doc
         # Check that our tests pass in the default/minimal configuration
-        - cargo test --tests --benches
+        - cargo test --tests --benches --features=std,custom
         - cargo generate-lockfile -Z minimal-versions
         - cargo test --tests --benches
 
