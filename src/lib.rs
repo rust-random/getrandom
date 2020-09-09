@@ -30,8 +30,8 @@
 //! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Emscripten       | `/dev/random` (identical to `/dev/urandom`)
 //! | WASI             | [`__wasi_random_get`][17]
-//! | Web Browser      | [`Crypto.getRandomValues()`][14], see [support for WebAssembly][16]
-//! | Node.js          | [`crypto.randomBytes`][15], see [support for WebAssembly][16]
+//! | Web Browser      | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
+//! | Node.js          | [`crypto.randomBytes`][15], see [WebAssembly support][16]
 //!
 //! There is no blanket implementation on `unix` targets that reads from
 //! `/dev/urandom`. This ensures all supported targets are using the recommended
@@ -56,7 +56,7 @@
 //! the [`RDRAND`][18] instruction to get randomness on `no_std` `x86`/`x86_64`
 //! targets. This feature has no effect on other CPU architectures.
 //!
-//! ### Support for WebAssembly
+//! ### WebAssembly support
 //!
 //! This crate fully supports the
 //! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and
@@ -149,7 +149,7 @@
 //! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
-//! [16]: #support-for-webassembly
+//! [16]: #webassembly-support
 //! [17]: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md#__wasi_random_get
 //! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
