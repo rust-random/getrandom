@@ -43,9 +43,9 @@ jobs:
         - rustup target add wasm32-unknown-unknown
         - rustup target add wasm32-wasi
         # Get latest geckodriver
-        # - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
-        # - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
-        # - tar -xzf geckodriver.tar.gz -C $HOME
+        - export VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r ".tag_name")
+        - wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/$VERSION/geckodriver-$VERSION-linux64.tar.gz
+        - tar -xzf geckodriver.tar.gz -C $HOME
         # Get latest chromedirver
         - export VERSION=$(wget -q -O - https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
         - wget -O chromedriver.zip https://chromedriver.storage.googleapis.com/$VERSION/chromedriver_linux64.zip
@@ -73,9 +73,8 @@ jobs:
         - cargo build --features js
         # wasm-bindgen (wasm32-unknown-unknown) tests (Node, Firefox, Chrome)
         - cargo test --target wasm32-unknown-unknown --features js
-        # Firefox's geckodriver is currently broken in travis
-        # - GECKODRIVER=$HOME/geckodriver
-        #   cargo test --target wasm32-unknown-unknown --features js,test-in-browser
+        - GECKODRIVER=$HOME/geckodriver
+          cargo test --target wasm32-unknown-unknown --features js,test-in-browser
         - CHROMEDRIVER=$HOME/chromedriver
           cargo test --target wasm32-unknown-unknown --features js,test-in-browser
 
