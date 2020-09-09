@@ -78,8 +78,9 @@ macro_rules! register_custom_getrandom {
         // We use an extern "C" function to get the guarantees of a stable ABI.
         #[no_mangle]
         extern "C" fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+            let f: fn(&mut [u8]) -> Result<(), ::getrandom::Error> = $path;
             let slice = unsafe { ::core::slice::from_raw_parts_mut(dest, len) };
-            match $path(slice) {
+            match f(slice) {
                 Ok(()) => 0,
                 Err(e) => e.code().get(),
             }
