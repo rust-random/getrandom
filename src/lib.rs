@@ -10,28 +10,28 @@
 //!
 //! # Supported targets
 //!
-//! | Target           | Implementation
-//! |------------------|---------------------------------------------------------
-//! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-//! | Windows          | [`RtlGenRandom`][3]
-//! | [Windows UWP][22]| [`BCryptGenRandom`][23]
-//! | macOS            | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
-//! | iOS              | [`SecRandomCopyBytes`][4]
-//! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
-//! | OpenBSD          | [`getentropy`][6]
-//! | NetBSD           | [`kern.arandom`][7]
-//! | Dragonfly BSD    | [`/dev/random`][8]
-//! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]
-//! | Fuchsia OS       | [`cprng_draw`][11]
-//! | Redox            | [`rand:`][12]
-//! | CloudABI         | [`cloudabi_sys_random_get`][13]
-//! | Haiku            | `/dev/random` (identical to `/dev/urandom`)
-//! | SGX              | [RDRAND][18]
-//! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | Emscripten       | `/dev/random` (identical to `/dev/urandom`)
-//! | WASI             | [`__wasi_random_get`][17]
-//! | Web Browser      | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
-//! | Node.js          | [`crypto.randomBytes`][15], see [WebAssembly support][16]
+//! | Target            | Target Triple      | Implementation
+//! | ----------------- | ------------------ | --------------
+//! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random` |
+//! | Windows           | `*‑pc‑windows‑*`   | [`RtlGenRandom`][3] |
+//! | [Windows UWP][22] | `*‑uwp‑windows‑*`  | [`BCryptGenRandom`][23] |
+//! | macOS             | `*‑apple‑darwin`   | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
+//! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`][4]
+//! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
+//! | OpenBSD           | `*‑openbsd`        | [`getentropy`][6]
+//! | NetBSD            | `*‑netbsd`         | [`kern.arandom`][7]
+//! | Dragonfly BSD     | `*‑dragonfly`      | [`/dev/random`][8]
+//! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]
+//! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
+//! | Redox             | `*‑cloudabi`       | [`rand:`][12]
+//! | CloudABI          | `*‑redox`          | [`cloudabi_sys_random_get`][13]
+//! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
+//! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
+//! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
+//! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
+//! | WASI              | `wasm32‑wasi`      | [`__wasi_random_get`][17]
+//! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
+//! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomBytes`][15], see [WebAssembly support][16]
 //!
 //! There is no blanket implementation on `unix` targets that reads from
 //! `/dev/urandom`. This ensures all supported targets are using the recommended
