@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2020-09-10
+### Features for using getrandom on unsupported targets
+
+The following (off by default) Cargo features have been added:
+- `"rdrand"` - use the RDRAND instruction on `no_std` `x86`/`x86_64` targets [#133]
+- `"js"` - use JavaScript calls on `wasm32-unknown-unknown` [#149]
+  - Replaces the `stdweb` and `wasm-bindgen` features (which are removed)
+- `"custom"` - allows a user to specify a custom implementation [#109]
+
+### Breaking Changes
+- Unsupported targets no longer compile [#107]
+- Change/Add `Error` constants [#120]
+- Only impl `std` traits when the `"std"` Cargo feature is specified [#106]
+- Remove offical support for Hermit, L4Re, and UEFI [#133]
+- Remove optional `"log"` dependancy [#131]
+- Update minimum supported Linux kernel to 2.6.32 [#153]
+- Update MSRV to 1.34 [#159]
+
+[#106]: https://github.com/rust-random/getrandom/pull/106
+[#107]: https://github.com/rust-random/getrandom/pull/107
+[#109]: https://github.com/rust-random/getrandom/pull/109
+[#120]: https://github.com/rust-random/getrandom/pull/120
+[#131]: https://github.com/rust-random/getrandom/pull/131
+[#133]: https://github.com/rust-random/getrandom/pull/133
+[#149]: https://github.com/rust-random/getrandom/pull/149
+[#153]: https://github.com/rust-random/getrandom/pull/153
+[#159]: https://github.com/rust-random/getrandom/pull/159
+
+## [0.1.15] - 2020-09-10
+### Changed
+- Added support for Internet Explorer 11 [#139]
+- Fix Webpack require warning with `wasm-bindgen` [#137]
+
+[#137]: https://github.com/rust-random/getrandom/pull/137
+[#139]: https://github.com/rust-random/getrandom/pull/139
+
 ## [0.1.14] - 2020-01-07
 ### Changed
 - Remove use of spin-locks in the `use_file` module. [#125]
