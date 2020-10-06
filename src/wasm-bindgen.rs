@@ -10,8 +10,8 @@ use crate::Error;
 extern crate std;
 use std::thread_local;
 
-use wasm_bindgen::prelude::*;
 use js_sys::Uint8Array;
+use wasm_bindgen::prelude::*;
 
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
@@ -45,10 +45,14 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             }
             RngSource::Browser(ctx) => {
                 for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
-                    if ctx.crypto.get_random_values(&ctx.buf).is_err() {
+                    // chunk can be smaller than buf length
+                    // this creates a smaller view to the buf memory without allocation
+                    let sub_buf = ctx.buf.subarray(0, chunk.len() as u32);
+
+                    if ctx.crypto.get_random_values(&sub_buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
-                    ctx.buf.copy_to(chunk);
+                    sub_buf.copy_to(chunk);
                 }
             }
         };
@@ -71,10 +75,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
 
         let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
 
-        let ctx = BrowserCryptoContext {
-            crypto,
-            buf,
-        };
+        let ctx = BrowserCryptoContext { crypto, buf };
 
         return Ok(RngSource::Browser(ctx));
     }
