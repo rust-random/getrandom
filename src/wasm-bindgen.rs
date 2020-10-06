@@ -11,10 +11,20 @@ extern crate std;
 use std::thread_local;
 
 use wasm_bindgen::prelude::*;
+use js_sys::Uint8Array;
+
+// Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
+const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
+
+struct BrowserCryptoContext {
+    crypto: BrowserCrypto,
+    // A temporary buffer backed by browser memory to avoid multithreaded wasm exception. See issue #164
+    buf: Uint8Array,
+}
 
 enum RngSource {
     Node(NodeCrypto),
-    Browser(BrowserCrypto),
+    Browser(BrowserCryptoContext),
 }
 
 // JsValues are always per-thread, so we initialize RngSource for each thread.
@@ -33,17 +43,12 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     return Err(Error::NODE_RANDOM_FILL_SYNC);
                 }
             }
-            RngSource::Browser(n) => {
-                // see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
-                //
-                // where it says:
-                //
-                // > A QuotaExceededError DOMException is thrown if the
-                // > requested length is greater than 65536 bytes.
-                for chunk in dest.chunks_mut(65536) {
-                    if n.get_random_values(chunk).is_err() {
+            RngSource::Browser(ctx) => {
+                for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
+                    if ctx.crypto.get_random_values(&ctx.buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
+                    ctx.buf.copy_to(chunk);
                 }
             }
         };
@@ -63,7 +68,15 @@ fn getrandom_init() -> Result<RngSource, Error> {
             (_, crypto) if !crypto.is_undefined() => crypto,
             _ => return Err(Error::WEB_CRYPTO),
         };
-        return Ok(RngSource::Browser(crypto));
+
+        let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
+
+        let ctx = BrowserCryptoContext {
+            crypto,
+            buf,
+        };
+
+        return Ok(RngSource::Browser(ctx));
     }
 
     let crypto = MODULE.require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
@@ -84,7 +97,7 @@ extern "C" {
 
     type BrowserCrypto;
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
-    fn get_random_values(me: &BrowserCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+    fn get_random_values(me: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = module)]
     static MODULE: NodeModule;
