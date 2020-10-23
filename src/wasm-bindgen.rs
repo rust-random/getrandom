@@ -16,15 +16,9 @@ use wasm_bindgen::prelude::*;
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
 
-struct BrowserCryptoContext {
-    crypto: BrowserCrypto,
-    // A temporary buffer backed by browser memory to avoid multithreaded wasm exception. See issue #164
-    buf: Uint8Array,
-}
-
 enum RngSource {
     Node(NodeCrypto),
-    Browser(BrowserCryptoContext),
+    Browser(BrowserCrypto, Uint8Array),
 }
 
 // JsValues are always per-thread, so we initialize RngSource for each thread.
@@ -43,15 +37,18 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     return Err(Error::NODE_RANDOM_FILL_SYNC);
                 }
             }
-            RngSource::Browser(ctx) => {
+            RngSource::Browser(crypto, buf) => {
+                // getRandomValues does not work with all types of WASM memory, so
+                // we initially write to browser memory (buf) to avoid an exception.
                 for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
                     // chunk can be smaller than buf length
                     // this creates a smaller view to the buf memory without allocation
-                    let sub_buf = ctx.buf.subarray(0, chunk.len() as u32);
+                    let sub_buf = buf.subarray(0, chunk.len() as u32);
 
-                    if ctx.crypto.get_random_values(&sub_buf).is_err() {
+                    if crypto.get_random_values(&sub_buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
+
                     sub_buf.copy_to(chunk);
                 }
             }
@@ -75,9 +72,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
 
         let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
 
-        let ctx = BrowserCryptoContext { crypto, buf };
-
-        return Ok(RngSource::Browser(ctx));
+        return Ok(RngSource::Browser(crypto, buf));
     }
 
     let crypto = MODULE.require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
