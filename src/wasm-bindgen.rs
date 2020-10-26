@@ -38,17 +38,16 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                 }
             }
             RngSource::Browser(crypto, buf) => {
-                // getRandomValues does not work with all types of WASM memory, so
-                // we initially write to browser memory (buf) to avoid an exception.
+                // getRandomValues does not work with all types of WASM memory,
+                // so we initially write to browser memory to avoid exceptions.
                 for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
-                    // chunk can be smaller than buf length
-                    // this creates a smaller view to the buf memory without allocation
+                    // The chunk can be smaller than buf's length, so we call to
+                    // JS to create a smaller view of buf without allocation.
                     let sub_buf = buf.subarray(0, chunk.len() as u32);
 
                     if crypto.get_random_values(&sub_buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
-
                     sub_buf.copy_to(chunk);
                 }
             }
@@ -71,7 +70,6 @@ fn getrandom_init() -> Result<RngSource, Error> {
         };
 
         let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
-
         return Ok(RngSource::Browser(crypto, buf));
     }
 
