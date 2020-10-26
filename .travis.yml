@@ -102,7 +102,7 @@ jobs:
       rust: nightly
       install:
         - rustup target add wasm32-unknown-unknown
-        - cargo --list | egrep "^\s*deadlinks$" -q || cargo install cargo-deadlinks
+        - cargo install cargo-deadlinks
         - cargo deadlinks -V
       script:
         # Check that setting various features does not break the build

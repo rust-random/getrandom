@@ -31,6 +31,7 @@ wasi = "0.10"
 stdweb = { version = "0.4.18", default-features = false, optional = true }
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
+js-sys = { version = "0.3", optional = true }
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown", not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.18"
 
@@ -40,7 +41,7 @@ std = []
 # Feature to enable fallback RDRAND-based implementation on x86/x86_64
 rdrand = []
 # Feature to enable JavaScript bindings on wasm32-unknown-unknown
-js = ["stdweb", "wasm-bindgen"]
+js = ["stdweb", "wasm-bindgen", "js-sys"]
 # Feature to enable custom RNG implementations
 custom = []
 # Unstable feature to support being a libstd dependency
