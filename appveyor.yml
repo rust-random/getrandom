@@ -50,3 +50,4 @@ test_script:
 branches:
   only:
     - master
+    - 0.1
