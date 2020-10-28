@@ -29,7 +29,8 @@ libc = { version = "0.2.64", default-features = false }
 wasi = "0.9"
 
 [target.wasm32-unknown-unknown.dependencies]
-wasm-bindgen = { version = "0.2.29", optional = true }
+bindgen = { package = "wasm-bindgen", version = "0.2.29", optional = true }
+js-sys = { version = "0.3", optional = true }
 stdweb = { version = "0.4.18", optional = true }
 
 [target.wasm32-unknown-unknown.dev-dependencies]
@@ -37,6 +38,8 @@ wasm-bindgen-test = "0.2"
 
 [features]
 std = []
+# Enables wasm-bindgen implementation
+wasm-bindgen = ["bindgen", "js-sys"]
 # Enables dummy implementation for unsupported targets
 dummy = []
 # Unstable feature to support being a libstd dependency
