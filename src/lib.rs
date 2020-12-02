@@ -164,7 +164,7 @@ mod util;
 // for some platforms, even if they don't enable the "std" feature.
 #[cfg(any(
     feature = "std",
-    windows,
+    all(windows, not(getrandom_uwp)),
     target_os = "android",
     target_os = "dragonfly",
     target_os = "emscripten",
