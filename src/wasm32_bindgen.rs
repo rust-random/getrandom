@@ -22,8 +22,7 @@ use wasm_bindgen::prelude::*;
 use crate::error::{BINDGEN_CRYPTO_UNDEF, BINDGEN_GRV_UNDEF};
 use crate::Error;
 
-// Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
-const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
+const CHUNK_SIZE: usize = 256;
 
 #[derive(Clone, Debug)]
 enum RngSource {
@@ -51,7 +50,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             RngSource::Browser(crypto, buf) => {
                 // getRandomValues does not work with all types of WASM memory,
                 // so we initially write to browser memory to avoid exceptions.
-                for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
+                for chunk in dest.chunks_mut(CHUNK_SIZE) {
                     // The chunk can be smaller than buf's length, so we call to
                     // JS to create a smaller view of buf without allocation.
                     let sub_buf = buf.subarray(0, chunk.len() as u32);
