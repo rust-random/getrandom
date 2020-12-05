@@ -82,7 +82,7 @@ fn getrandom_init() -> Result<RngSource, Error> {
             return Err(BINDGEN_GRV_UNDEF);
         }
 
-        let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
+        let buf = Uint8Array::new_with_length(CHUNK_SIZE as u32);
         return Ok(RngSource::Browser(crypto, buf));
     }
 
