@@ -145,7 +145,9 @@ matrix:
         - cargo build --target=x86_64-unknown-netbsd
         - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
-        - cargo xbuild --target=x86_64-unknown-cloudabi
+        # This builds currently fails with:
+        # Could not find specification for target "x86_64-unknown-cloudabi"
+        #- cargo xbuild --target=x86_64-unknown-cloudabi
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
@@ -158,7 +160,7 @@ matrix:
         - cargo build --target=x86_64-unknown-netbsd
         - cargo build --target=x86_64-unknown-redox
         - cargo build --target=x86_64-fortanix-unknown-sgx
-        - cargo xbuild --target=x86_64-unknown-cloudabi
+        #- cargo xbuild --target=x86_64-unknown-cloudabi
         - cargo xbuild --target=x86_64-unknown-uefi
         - cargo xbuild --target=x86_64-unknown-hermit
         - cargo xbuild --target=x86_64-unknown-l4re-uclibc
@@ -229,3 +231,4 @@ notifications:
 branches:
   only:
     - master
+    - 0.1
