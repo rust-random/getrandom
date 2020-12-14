@@ -1,0 +1,186 @@
+name: Tests
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  schedule:
+    - cron: "0 12 * * 1"
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  check-doc:
+    name: Doc deadlinks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - run: cargo install cargo-deadlinks
+      - run: cargo deadlinks -- --features custom
+
+  main-tests:
+    name: Main tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        toolchain: [nightly, beta, stable, 1.34]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+      - run: cargo test
+      - run: cargo test --features std
+      - if: ${{ matrix.toolchain == 'nightly' }}
+        run: cargo build --benches
+
+  linux-tests:
+    name: Additional Linux targets
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [
+          x86_64-unknown-linux-musl,
+          i686-unknown-linux-gnu,
+          i686-unknown-linux-musl,
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: stable
+          override: true
+      - run: sudo apt install gcc-multilib
+      - run: cargo test --target ${{ matrix.target }}
+
+  windows-tests:
+    name: Additional Windows targets
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        toolchain: [
+          stable-x86_64-gnu,
+          stable-i686-gnu,
+          stable-i686-msvc,
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+      - run: cargo test
+
+  cross-tests:
+    name: Cross tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: mips-unknown-linux-gnu
+            toolchain: stable
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+      - name: Cache cargo plugins
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-plugins
+      - name: Install cross
+        run: cargo install cross || true
+      - name: Test
+        run: cross test --no-fail-fast --target ${{ matrix.target }}
+
+  build:
+    name: Build-only
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [
+          x86_64-sun-solaris,
+          x86_64-unknown-freebsd,
+          x86_64-fuchsia,
+          x86_64-unknown-netbsd,
+          x86_64-unknown-redox,
+          x86_64-fortanix-unknown-sgx,
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: nightly
+          override: true
+      - name: Build
+        run: cargo build --target ${{ matrix.target }}
+
+  build-rdrand:
+    name: Build-only RDRAND
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rust-src
+          override: true
+      - name: Cache cargo plugins
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-plugins
+      - name: Install xbuild
+        run: cargo install cargo-xbuild || true
+      - name: UEFI
+        run: cargo xbuild --features=rdrand --target x86_64-unknown-uefi
+      - name: Hermit
+        run: cargo xbuild --features=rdrand --target x86_64-unknown-hermit
+      - name: L4Re
+        run: cargo xbuild --features=rdrand --target x86_64-unknown-l4re-uclibc
+      - name: VxWorks
+        run: cargo xbuild --features=rdrand --target x86_64-wrs-vxworks
+
+  clippy-fmt:
+    name: Clippy + rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: clippy
+        run: cargo clippy --all
+      - name: fmt
+        run: cargo fmt --all -- --check
