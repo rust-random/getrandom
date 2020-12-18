@@ -66,7 +66,10 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: stable
           override: true
-      - run: sudo apt install gcc-multilib
+      # update is needed to fix the 404 error on istall, see:
+      # https://github.com/actions/virtual-environments/issues/675
+      - run: sudo apt-get update
+      - run: sudo apt-get install gcc-multilib
       - run: cargo test --target ${{ matrix.target }}
 
   windows-tests:
