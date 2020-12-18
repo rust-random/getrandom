@@ -23,8 +23,8 @@
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`/dev/random`][8]
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
-//! | Redox             | `*‑cloudabi`       | [`rand:`][12]
-//! | CloudABI          | `*‑redox`          | [`cloudabi_sys_random_get`][13]
+//! | Redox             | `*‑redox`          | [`rand:`][12]
+//! | CloudABI          | `*‑cloudabi`       | [`cloudabi_sys_random_get`][13]
 //! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
