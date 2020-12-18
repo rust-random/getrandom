@@ -24,7 +24,6 @@
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
 //! | Redox             | `*‑redox`          | [`rand:`][12]
-//! | CloudABI          | `*‑cloudabi`       | [`cloudabi_sys_random_get`][13]
 //! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
@@ -133,7 +132,6 @@
 //! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
 //! [11]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
 //! [12]: https://github.com/redox-os/randd/blob/master/src/main.rs
-//! [13]: https://github.com/nuxinl/cloudabi#random_get
 //! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
 //! [16]: #webassembly-support
@@ -186,8 +184,6 @@ cfg_if! {
     } else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
         mod util_libc;
         #[path = "bsd_arandom.rs"] mod imp;
-    } else if #[cfg(target_os = "cloudabi")] {
-        #[path = "cloudabi.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(target_os = "ios")] {
