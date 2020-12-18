@@ -26,6 +26,7 @@
 //! | Redox             | `*‑redox`          | [`rand:`][12]
 //! | CloudABI          | `*‑cloudabi`       | [`cloudabi_sys_random_get`][13]
 //! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
+//! | Hermit            | `*-hermit`         | [`secure_rand64`][24]
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
@@ -144,6 +145,7 @@
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 //! [22]: https://docs.microsoft.com/en-us/windows/uwp/
 //! [23]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+//! [24]: https://hermitcore.github.io/rusty-hermit/hermit_abi/fn.secure_rand64.html
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -190,6 +192,8 @@ cfg_if! {
         #[path = "cloudabi.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
+    } else if #[cfg(target_os = "hermit")] {
+        #[path = "hermit.rs"] mod imp;
     } else if #[cfg(target_os = "ios")] {
         #[path = "ios.rs"] mod imp;
     } else if #[cfg(target_os = "macos")] {

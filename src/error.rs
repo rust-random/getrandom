@@ -53,6 +53,8 @@ impl Error {
     pub const NODE_CRYPTO: Error = internal_error(12);
     /// NodeJS does not have support for `crypto.randomFillSync`.
     pub const NODE_RANDOM_FILL_SYNC: Error = internal_error(13);
+    /// RNG hardware is not available for Hermit.
+    pub const HERMIT_NO_HARDWARE: Error = internal_error(14);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
