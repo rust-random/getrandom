@@ -16,7 +16,7 @@ appveyor = { repository = "rust-random/getrandom" }
 
 [dependencies]
 log = { version = "0.4", optional = true }
-cfg-if = "0.1.2"
+cfg-if = "1"
 
 # When built as part of libstd
 compiler_builtins = { version = "0.1", optional = true }
