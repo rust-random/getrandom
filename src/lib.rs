@@ -199,7 +199,7 @@ cfg_if! {
         mod util_libc;
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(windows)] {
-        #[path = "windows_uwp.rs"] mod imp;
+        #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
