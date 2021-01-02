@@ -13,8 +13,7 @@
 //! | Target            | Target Triple      | Implementation
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random` |
-//! | Windows           | `*‑pc‑windows‑*`   | [`RtlGenRandom`][3] |
-//! | [Windows UWP][22] | `*‑uwp‑windows‑*`  | [`BCryptGenRandom`][23] |
+//! | Windows           | `*‑pc‑windows‑*`   | [`BCryptGenRandom`][3] |
 //! | macOS             | `*‑apple‑darwin`   | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`][4]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
@@ -121,7 +120,7 @@
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
-//! [3]: https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/nf-ntsecapi-rtlgenrandom
+//! [3]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [4]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
 //! [6]: https://man.openbsd.org/getentropy.2
@@ -139,8 +138,6 @@
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
-//! [22]: https://docs.microsoft.com/en-us/windows/uwp/
-//! [23]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -201,10 +198,8 @@ cfg_if! {
     } else if #[cfg(target_os = "vxworks")] {
         mod util_libc;
         #[path = "vxworks.rs"] mod imp;
-    } else if #[cfg(all(windows, target_vendor = "uwp"))] {
-        #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(windows)] {
-        #[path = "windows.rs"] mod imp;
+        #[path = "windows_uwp.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
