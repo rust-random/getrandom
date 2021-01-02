@@ -68,9 +68,8 @@
 //! that you are building for an environment containing JavaScript, and will
 //! call the appropriate methods. Both web browser (main window and Web Workers)
 //! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets). This crate can be built with either
-//! the [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) or
-//! [cargo-web](https://github.com/koute/cargo-web) toolchains.
+//! [described above](#supported-targets) using the
+//! [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) toolchain.
 //!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
@@ -211,9 +210,7 @@ cfg_if! {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
                         target_arch = "wasm32", target_os = "unknown"))] {
-        #[cfg_attr(cargo_web, path = "stdweb.rs")]
-        #[cfg_attr(not(cargo_web), path = "wasm-bindgen.rs")]
-        mod imp;
+        #[path = "js.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else {
