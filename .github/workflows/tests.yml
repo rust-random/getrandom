@@ -157,21 +157,14 @@ jobs:
           toolchain: nightly
           components: rust-src
           override: true
-      - name: Cache cargo plugins
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-plugins
-      - name: Install xbuild
-        run: cargo install cargo-xbuild || true
       - name: UEFI
-        run: cargo xbuild --features=rdrand --target x86_64-unknown-uefi
+        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
       - name: Hermit
-        run: cargo xbuild --features=rdrand --target x86_64-unknown-hermit
+        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-hermit
       - name: L4Re
-        run: cargo xbuild --features=rdrand --target x86_64-unknown-l4re-uclibc
+        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
       - name: VxWorks
-        run: cargo xbuild --features=rdrand --target x86_64-wrs-vxworks
+        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-wrs-vxworks
 
   clippy-fmt:
     name: Clippy + rustfmt
