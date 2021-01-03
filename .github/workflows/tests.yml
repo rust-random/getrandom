@@ -24,7 +24,12 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - run: cargo install cargo-deadlinks
+      - name: Install deadlinks
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-deadlinks
+          version: latest
+          use-tool-cache: true
       - run: cargo deadlinks -- --features=custom,std
       - run: cargo generate-lockfile -Z minimal-versions && cargo test
 
@@ -112,13 +117,12 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: ${{ matrix.toolchain }}
           override: true
-      - name: Cache cargo plugins
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-plugins
       - name: Install cross
-        run: cargo install cross || true
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cross
+          version: latest
+          use-tool-cache: true
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=custom,std
 
