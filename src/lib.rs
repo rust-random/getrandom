@@ -13,7 +13,7 @@
 //! | Target            | Target Triple      | Implementation
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random` |
-//! | Windows           | `*‑pc‑windows‑*`   | [`BCryptGenRandom`][3] |
+//! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`][3] |
 //! | macOS             | `*‑apple‑darwin`   | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)
 //! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`][4]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
