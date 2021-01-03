@@ -1,10 +1,18 @@
 # getrandom
 
-[![Build Status](https://travis-ci.org/rust-random/getrandom.svg?branch=master)](https://travis-ci.org/rust-random/getrandom)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/rust-random/getrandom?svg=true)](https://ci.appveyor.com/project/rust-random/getrandom)
-[![Crate](https://img.shields.io/crates/v/getrandom.svg)](https://crates.io/crates/getrandom)
-[![Documentation](https://docs.rs/getrandom/badge.svg)](https://docs.rs/getrandom)
-[![Dependency status](https://deps.rs/repo/github/rust-random/getrandom/status.svg)](https://deps.rs/repo/github/rust-random/getrandom)
+[![Build Status]][GitHub Actions] [![Crate]][crates.io] [![Documentation]][docs.rs] [![Dependency Status]][deps.rs] [![Downloads]][crates.io] [![License]][LICENSE-MIT]
+
+[GitHub Actions]: https://github.com/rust-random/getrandom/actions?query=workflow:Tests+branch:0.1
+[Build Status]: https://github.com/rust-random/getrandom/workflows/Tests/badge.svg?branch=0.1
+[crates.io]: https://crates.io/crates/getrandom/0.1.16
+[Crate]: https://img.shields.io/badge/crates.io-v0.1.16-orange.svg
+[docs.rs]: https://docs.rs/getrandom/0.1
+[Documentation]: https://docs.rs/getrandom/badge.svg?version=0.1
+[deps.rs]: https://deps.rs/crate/getrandom/0.1.16
+[Dependency Status]: https://deps.rs/crate/getrandom/0.1.16/status.svg
+[Downloads]: https://img.shields.io/crates/d/getrandom
+[LICENSE-MIT]: https://raw.githubusercontent.com/rust-random/getrandom/0.1/LICENSE-MIT
+[License]: https://img.shields.io/crates/l/getrandom
 
 
 A Rust library for retrieving random data from (operating) system source. It is
