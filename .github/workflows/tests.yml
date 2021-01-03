@@ -14,7 +14,7 @@ env:
 
 jobs:
   check-doc:
-    name: Doc deadlinks
+    name: Docs, deadlinks, minimal dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,6 +26,7 @@ jobs:
           override: true
       - run: cargo install cargo-deadlinks
       - run: cargo deadlinks -- --features=custom,std
+      - run: cargo generate-lockfile -Z minimal-versions && cargo test
 
   main-tests:
     name: Main tests
