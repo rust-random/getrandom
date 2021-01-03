@@ -14,18 +14,25 @@ env:
 
 jobs:
   check-doc:
-    name: Doc deadlinks
+    name: Docs, deadlinks, minimal dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: nightly # Needed for -Z minimal-versions
           override: true
-      - run: cargo install cargo-deadlinks
-      - run: cargo deadlinks -- --features custom
+      - name: Install deadlinks
+        run: |
+          export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
+          wget -O /tmp/cargo-deadlinks $URL
+          chmod +x /tmp/cargo-deadlinks
+          mv /tmp/cargo-deadlinks ~/.cargo/bin
+      - run: cargo deadlinks -- --features=custom,std
+      - run: |
+          cargo generate-lockfile -Z minimal-versions
+          cargo test --features=custom,std
 
   main-tests:
     name: Main tests
@@ -36,14 +43,14 @@ jobs:
         toolchain: [nightly, beta, stable, 1.34]
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
       - run: cargo test
-      - run: cargo test --features std
+      - run: cargo test --features=std
+      - run: cargo test --features=custom
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo build --benches
 
@@ -59,18 +66,40 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
-          override: true
-      # update is needed to fix the 404 error on install, see:
-      # https://github.com/actions/virtual-environments/issues/675
-      - run: sudo apt-get update
-      - run: sudo apt-get install gcc-multilib
-      - run: cargo test --target ${{ matrix.target }}
+      - name: Install multilib
+        # update is needed to fix the 404 error on install, see:
+        # https://github.com/actions/virtual-environments/issues/675
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-multilib
+      - run: cargo test --target=${{ matrix.target }} --features=std
+
+  # We can only Build/Link on these targets for now.
+  # TODO: Run the iOS binaries in the simulator
+  # TODO: build/run aarch64-apple-darwin binaries on a x86_64 Mac
+  apple-tests:
+    name: Additional Apple targets
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [
+          aarch64-apple-ios,
+          x86_64-apple-ios,
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: stable
+      - name: Build Tests
+        run: cargo test --no-run --target=${{ matrix.target }} --features=std
 
   windows-tests:
     name: Additional Windows targets
@@ -90,63 +119,131 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
-      - run: cargo test
+      - run: cargo test --features=std
 
+  # TODO: Add emscripten when it's working with Cross
   cross-tests:
-    name: Cross tests
-    runs-on: ${{ matrix.os }}
+    name: Cross Test
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            target: mips-unknown-linux-gnu
-            toolchain: stable
+        target: [
+          aarch64-unknown-linux-gnu,
+          aarch64-linux-android,
+          mips-unknown-linux-gnu,
+        ]
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           target: ${{ matrix.target }}
-          toolchain: ${{ matrix.toolchain }}
-          override: true
-      - name: Cache cargo plugins
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-plugins
+          toolchain: stable
       - name: Install cross
-        run: cargo install cross || true
+        run: |
+          export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+          wget -O /tmp/binaries.tar.gz $URL
+          tar -C /tmp -xzf /tmp/binaries.tar.gz
+          mv /tmp/cross ~/.cargo/bin
       - name: Test
-        run: cross test --no-fail-fast --target ${{ matrix.target }}
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
 
-  build:
-    name: Build-only
+  cross-link:
+    name: Cross Build/Link
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target: [
           x86_64-sun-solaris,
+          x86_64-unknown-netbsd,
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: stable
+      - name: Install cross
+        run: |
+          export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+          wget -O /tmp/binaries.tar.gz $URL
+          tar -C /tmp -xzf /tmp/binaries.tar.gz
+          mv /tmp/cross ~/.cargo/bin
+      - name: Build Tests
+        run: cross test --no-run --target=${{ matrix.target }} --features=std
+
+  web-tests:
+    name: Web tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: wasm32-unknown-unknown
+          toolchain: stable
+      - name: Install wasm-bindgen-test-runner
+        run: |
+          export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
+          wget -O /tmp/binaries.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
+          tar -C /tmp -xzf /tmp/binaries.tar.gz --strip-components=1
+          mv /tmp/wasm-bindgen-test-runner ~/.cargo/bin
+      - name: Test (Node)
+        run: cargo test --target=wasm32-unknown-unknown --features=js
+      - name: Test (Firefox)
+        env:
+          GECKODRIVER: /usr/bin/geckodriver
+        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+      - name: Test (Chrome)
+        env:
+          CHROMEDRIVER: /usr/bin/chromedriver
+        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+      - name: Build Tests (with custom, without JS)
+        run: cargo test --no-run --target=wasm32-unknown-unknown --features=custom
+
+  wasi-tests:
+    name: WASI test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: wasm32-wasi
+          toolchain: stable
+      - name: Install wasmtime
+        run: |
+          export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
+          wget -O /tmp/binaries.tar.xz $URL
+          tar -C /tmp -xf /tmp/binaries.tar.xz --strip-components=1
+          mv /tmp/wasmtime ~/.cargo/bin
+      - run: cargo test --target wasm32-wasi
+
+  build:
+    name: Build only
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [
           x86_64-unknown-freebsd,
           x86_64-fuchsia,
-          x86_64-unknown-netbsd,
           x86_64-unknown-redox,
           x86_64-fortanix-unknown-sgx,
         ]
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           target: ${{ matrix.target }}
-          toolchain: nightly
+          toolchain: nightly # Required to build libc for Redox
           override: true
       - name: Build
-        run: cargo build --target ${{ matrix.target }}
+        run: cargo build --target=${{ matrix.target }} --features=std
 
-  build-rdrand:
-    name: Build-only RDRAND
+  build-std:
+    name: Build-only (build-std)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -154,17 +251,17 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: nightly # Required to build libcore
           components: rust-src
           override: true
-      - name: UEFI
+      - name: UEFI (RDRAND)
         run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
-      - name: Hermit
+      - name: Hermit (RDRAND)
         run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-hermit
-      - name: L4Re
+      - name: L4Re (RDRAND)
         run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
       - name: VxWorks
-        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-wrs-vxworks
+        run: cargo build -Z build-std=core --target=x86_64-wrs-vxworks
 
   clippy-fmt:
     name: Clippy + rustfmt
@@ -180,6 +277,6 @@ jobs:
           components: rustfmt, clippy
           override: true
       - name: clippy
-        run: cargo clippy --all
+        run: cargo clippy --all --features=custom,std
       - name: fmt
         run: cargo fmt --all -- --check
