@@ -25,7 +25,7 @@ jobs:
           toolchain: nightly
           override: true
       - run: cargo install cargo-deadlinks
-      - run: cargo deadlinks -- --features custom
+      - run: cargo deadlinks -- --features=custom,std
 
   main-tests:
     name: Main tests
@@ -43,7 +43,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
       - run: cargo test
-      - run: cargo test --features std
+      - run: cargo test --features=std
+      - run: cargo test --features=custom
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo build --benches
 
@@ -70,7 +71,7 @@ jobs:
       # https://github.com/actions/virtual-environments/issues/675
       - run: sudo apt-get update
       - run: sudo apt-get install gcc-multilib
-      - run: cargo test --target ${{ matrix.target }}
+      - run: cargo test --target=${{ matrix.target }} --features=custom,std
 
   windows-tests:
     name: Additional Windows targets
@@ -90,7 +91,7 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
-      - run: cargo test
+      - run: cargo test --features=custom,std
 
   cross-tests:
     name: Cross tests
@@ -118,7 +119,7 @@ jobs:
       - name: Install cross
         run: cargo install cross || true
       - name: Test
-        run: cross test --no-fail-fast --target ${{ matrix.target }}
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=custom,std
 
   build:
     name: Build-only
@@ -143,7 +144,7 @@ jobs:
           toolchain: nightly
           override: true
       - name: Build
-        run: cargo build --target ${{ matrix.target }}
+        run: cargo build --target=${{ matrix.target }} --features=custom,std
 
   build-rdrand:
     name: Build-only RDRAND
@@ -180,6 +181,6 @@ jobs:
           components: rustfmt, clippy
           override: true
       - name: clippy
-        run: cargo clippy --all
+        run: cargo clippy --all --features=custom,std
       - name: fmt
         run: cargo fmt --all -- --check
