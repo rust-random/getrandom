@@ -53,6 +53,7 @@ jobs:
       - run: cargo test --features=custom
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo build --benches
+      - run: rustc --print cfg
 
   linux-tests:
     name: Additional Linux targets
@@ -77,7 +78,8 @@ jobs:
       # https://github.com/actions/virtual-environments/issues/675
       - run: sudo apt-get update
       - run: sudo apt-get install gcc-multilib
-      - run: cargo test --target=${{ matrix.target }} --features=custom,std
+      - run: cargo test --features=custom,std
+      - run: rustc --print cfg
 
   windows-tests:
     name: Additional Windows targets
@@ -98,6 +100,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
       - run: cargo test --features=custom,std
+      - run: rustc --print cfg
 
   cross-tests:
     name: Cross tests
@@ -149,7 +152,8 @@ jobs:
           toolchain: nightly
           override: true
       - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=custom,std
+        run: cargo build --features=custom,std
+      - run: rustc --print cfg
 
   build-rdrand:
     name: Build-only RDRAND

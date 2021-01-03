@@ -65,3 +65,11 @@ fn test_multithreading() {
         tx.send(()).unwrap();
     }
 }
+
+#[cfg(target_pointer_width = "32")]
+#[test]
+fn test_32bit_ptr() {}
+
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn test_64bit_ptr() {}
