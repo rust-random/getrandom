@@ -146,8 +146,6 @@
 )]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
-// `matches!` macro was added only in Rust 1.42, which is bigger than our MSRV
-#![allow(clippy::match_like_matches_macro)]
 
 #[macro_use]
 extern crate cfg_if;

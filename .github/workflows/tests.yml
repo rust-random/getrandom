@@ -174,8 +174,11 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          # https://github.com/rust-lang/rust-clippy/pull/6379 added MSRV
+          # support, so we need to use nightly until this is on stable.
+          toolchain: nightly
           components: rustfmt, clippy
+          override: true
       - name: clippy
         run: cargo clippy --all
       - name: fmt
