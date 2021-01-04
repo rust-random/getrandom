@@ -23,7 +23,7 @@ jobs:
           profile: minimal
           toolchain: nightly # Needed for -Z minimal-versions
           override: true
-      - name: Install deadlinks
+      - name: Install precompiled cargo-deadlinks
         run: |
           export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
           wget -O /tmp/cargo-deadlinks $URL
@@ -54,7 +54,7 @@ jobs:
           override: true
       - run: cargo test
       - run: cargo test --features=std
-      - run: cargo test --features=custom
+      - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo build --benches
 
@@ -143,7 +143,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
-      - name: Install cross
+      - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.gz $URL
@@ -168,7 +168,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
-      - name: Install cross
+      - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.gz $URL
@@ -187,7 +187,7 @@ jobs:
           profile: minimal
           target: wasm32-unknown-unknown
           toolchain: stable
-      - name: Install wasm-bindgen-test-runner
+      - name: Install precompiled wasm-bindgen-test-runner
         run: |
           export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
           wget -O /tmp/binaries.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
@@ -216,7 +216,7 @@ jobs:
           profile: minimal
           target: wasm32-wasi
           toolchain: stable
-      - name: Install wasmtime
+      - name: Install precompiled wasmtime
         run: |
           export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.xz $URL
