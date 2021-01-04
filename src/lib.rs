@@ -233,8 +233,3 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     }
     imp::getrandom_inner(dest)
 }
-
-#[cfg(test)]
-mod test_common;
-#[cfg(test)]
-mod test_rdrand;
