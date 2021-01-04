@@ -8,11 +8,7 @@ description = "A small cross-platform library for retrieving random data from sy
 documentation = "https://docs.rs/getrandom"
 repository = "https://github.com/rust-random/getrandom"
 categories = ["os", "no-std"]
-exclude = ["utils/*", ".*", "appveyor.yml"]
-
-[badges]
-travis-ci = { repository = "rust-random/getrandom" }
-appveyor = { repository = "rust-random/getrandom" }
+exclude = [".*"]
 
 [dependencies]
 cfg-if = "1"
