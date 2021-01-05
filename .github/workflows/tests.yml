@@ -202,8 +202,8 @@ jobs:
         env:
           CHROMEDRIVER: /usr/bin/chromedriver
         run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
-      - name: Build Tests (with custom, without JS)
-        run: cargo test --no-run --target=wasm32-unknown-unknown --features=custom
+      - name: Test (custom getrandom)
+        run: cargo test --target=wasm32-unknown-unknown --features=custom
 
   wasi-tests:
     name: WASI test
