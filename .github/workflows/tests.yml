@@ -11,6 +11,7 @@ on:
 env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-Dwarnings"
+  EMSDK_VERSION: 1.39.20 # Last emsdk compatible with Rust's LLVM 11
 
 jobs:
   check-doc:
@@ -125,7 +126,6 @@ jobs:
           override: true
       - run: cargo test --features=std
 
-  # TODO: Add emscripten when it's working with Cross
   cross-tests:
     name: Cross Test
     runs-on: ubuntu-latest
@@ -223,6 +223,38 @@ jobs:
           tar -C /tmp -xf /tmp/binaries.tar.xz --strip-components=1
           mv /tmp/wasmtime ~/.cargo/bin
       - run: cargo test --target wasm32-wasi
+
+  emscripten-tests:
+    name: Emscripten tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - run: rustup target add wasm32-unknown-emscripten
+      - run: rustup target add asmjs-unknown-emscripten
+      - name: Cache emsdk
+        id: cache-emsdk
+        uses: actions/cache@v2
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-${{ env.EMSDK_VERSION }}-emsdk
+      - name: Install emsdk
+        if: steps.cache-emsdk.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
+          cd ~/emsdk
+          ./emsdk install $EMSDK_VERSION
+          ./emsdk activate $EMSDK_VERSION
+      - run: echo "$HOME/emsdk/upstream/emscripten" >> $GITHUB_PATH
+      - name: wasm test
+        run: cargo test --target=wasm32-unknown-emscripten --features=std
+      - name: asm.js test
+        run: | # Debug info breaks on asm.js
+          RUSTFLAGS="$RUSTFLAGS -C debuginfo=0"
+          cargo test --target=asmjs-unknown-emscripten --features=std
 
   build:
     name: Build only
