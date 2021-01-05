@@ -11,7 +11,6 @@ on:
 env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-Dwarnings"
-  EMSDK_VERSION: 1.39.20 # Last emsdk compatible with Rust's LLVM 11
 
 jobs:
   check-doc:
@@ -227,6 +226,8 @@ jobs:
   emscripten-tests:
     name: Emscripten tests
     runs-on: ubuntu-latest
+    env:
+      EMSDK_VERSION: 1.39.20 # Last emsdk compatible with Rust's LLVM 11
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
