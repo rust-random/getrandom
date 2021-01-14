@@ -23,6 +23,7 @@ jobs:
           profile: minimal
           toolchain: nightly # Needed for -Z minimal-versions
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cargo-deadlinks
         run: |
           export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
@@ -52,6 +53,7 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
+      - uses: Swatinem/rust-cache@v1
       - run: cargo test
       - run: cargo test --features=std
       - run: cargo test --features=custom # custom should do nothing here
@@ -75,6 +77,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Install multilib
         # update is needed to fix the 404 error on install, see:
         # https://github.com/actions/virtual-environments/issues/675
@@ -102,6 +105,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Build Tests
         run: cargo test --no-run --target=${{ matrix.target }} --features=std
 
@@ -123,6 +127,7 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
+      - uses: Swatinem/rust-cache@v1
       - run: cargo test --features=std
 
   cross-tests:
@@ -142,6 +147,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
@@ -167,6 +173,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/rust-embedded/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
@@ -186,6 +193,7 @@ jobs:
           profile: minimal
           target: wasm32-unknown-unknown
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasm-bindgen-test-runner
         run: |
           export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
@@ -215,6 +223,7 @@ jobs:
           profile: minimal
           target: wasm32-wasi
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasmtime
         run: |
           export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
@@ -236,6 +245,7 @@ jobs:
           toolchain: stable
       - run: rustup target add wasm32-unknown-emscripten
       - run: rustup target add asmjs-unknown-emscripten
+      - uses: Swatinem/rust-cache@v1
       - name: Cache emsdk
         id: cache-emsdk
         uses: actions/cache@v2
@@ -276,6 +286,7 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: nightly # Required to build libc for Redox
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Build
         run: cargo build --target=${{ matrix.target }} --features=std
 
@@ -291,6 +302,7 @@ jobs:
           toolchain: nightly # Required to build libcore
           components: rust-src
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: UEFI (RDRAND)
         run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
       - name: Hermit (RDRAND)
@@ -313,6 +325,7 @@ jobs:
           toolchain: nightly
           components: rustfmt, clippy
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: clippy
         run: cargo clippy --all --features=custom,std
       - name: fmt
