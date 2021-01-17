@@ -50,3 +50,4 @@ test-in-browser = []
 
 [package.metadata.docs.rs]
 features = ["std", "custom"]
+rustdoc-args = ["--cfg", "docsrs"]
