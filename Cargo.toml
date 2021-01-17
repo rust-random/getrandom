@@ -39,7 +39,12 @@ js = ["wasm-bindgen", "js-sys"]
 # Feature to enable custom RNG implementations
 custom = []
 # Unstable feature to support being a libstd dependency
-rustc-dep-of-std = ["compiler_builtins", "core"]
+rustc-dep-of-std = [
+  "compiler_builtins",
+  "core",
+  "libc/rustc-dep-of-std",
+  "wasi/rustc-dep-of-std",
+]
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
 
