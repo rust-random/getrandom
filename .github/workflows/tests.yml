@@ -21,7 +21,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly # Needed for -Z minimal-versions
+          toolchain: nightly # Needed for -Z minimal-versions and doc_cfg
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cargo-deadlinks
@@ -30,7 +30,10 @@ jobs:
           wget -O /tmp/cargo-deadlinks $URL
           chmod +x /tmp/cargo-deadlinks
           mv /tmp/cargo-deadlinks ~/.cargo/bin
-      - run: cargo deadlinks -- --features=custom,std
+      - name: Generate Docs
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
+        run: cargo deadlinks -- --features=custom,std
       - run: |
           cargo generate-lockfile -Z minimal-versions
           cargo test --features=custom,std
