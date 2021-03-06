@@ -59,7 +59,8 @@
 //! This crate fully supports the
 //! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and
 //! [`wasm32-unknown-emscripten`](https://www.hellorust.com/setup/emscripten/)
-//! targets. However, the `wasm32-unknown-unknown` target is not automatically
+//! targets. However, the `wasm32-unknown-unknown` target (i.e. the target used
+//! by `wasm-pack`) is not automatically
 //! supported since, from the target name alone, we cannot deduce which
 //! JavaScript interface is in use (or if JavaScript is available at all).
 //!
@@ -209,6 +210,11 @@ cfg_if! {
         #[path = "js.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
+        compile_error!("the wasm32-unknown-unknown target is not supported by \
+                        default, you may need to enable the \"js\" feature. \
+                        For more information see: \
+                        https://docs.rs/getrandom/#webassembly-support");
     } else {
         compile_error!("target is not supported, for more information see: \
                         https://docs.rs/getrandom/#unsupported-targets");
