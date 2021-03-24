@@ -19,7 +19,7 @@
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][6]
 //! | NetBSD            | `*‑netbsd`         | [`kern.arandom`][7]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`/dev/random`][8]
+//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom()`][22] if available, otherwise [`/dev/random`][8]
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
 //! | Redox             | `*‑redox`          | [`rand:`][12]
@@ -139,6 +139,7 @@
 //! [19]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
+//! [22]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -167,8 +168,8 @@ pub use crate::error::Error;
 //
 // These should all provide getrandom_inner with the same signature as getrandom.
 cfg_if! {
-    if #[cfg(any(target_os = "dragonfly", target_os = "emscripten",
-                 target_os = "haiku",     target_os = "redox"))] {
+    if #[cfg(any(target_os = "emscripten", target_os = "haiku",
+                 target_os = "redox"))] {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
@@ -182,6 +183,10 @@ cfg_if! {
     } else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
         mod util_libc;
         #[path = "bsd_arandom.rs"] mod imp;
+    } else if #[cfg(target_os = "dragonfly")] {
+        mod util_libc;
+        mod use_file;
+        #[path = "dragonfly.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(target_os = "ios")] {
