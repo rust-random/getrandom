@@ -7,7 +7,6 @@
 // except according to those terms.
 use crate::Error;
 
-extern crate std;
 use std::thread_local;
 
 use js_sys::Uint8Array;

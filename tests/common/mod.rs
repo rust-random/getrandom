@@ -39,7 +39,6 @@ fn test_huge() {
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn test_multithreading() {
-    extern crate std;
     use std::{sync::mpsc::channel, thread, vec};
 
     let mut txs = vec![];
