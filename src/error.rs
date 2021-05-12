@@ -162,7 +162,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::WINDOWS_RTL_GEN_RANDOM => Some("RtlGenRandom: Windows system function failure"),
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
         Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
-        Error::WEB_CRYPTO => Some("Web API self.crypto is unavailable"),
+        Error::WEB_CRYPTO => Some("Web Crypto API is unavailable"),
         Error::WEB_GET_RANDOM_VALUES => Some("Web API crypto.getRandomValues is unavailable"),
         Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
         Error::NODE_CRYPTO => Some("Node.js crypto module is unavailable"),
