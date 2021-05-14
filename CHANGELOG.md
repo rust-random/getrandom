@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Replace build.rs with link attributes. [#205]
 - Add support for getrandom syscall on DragonFly BSD. [#210]
+- Improve Node.js detection. [#215]
 
 [#205]: https://github.com/rust-random/getrandom/pull/205
 [#210]: https://github.com/rust-random/getrandom/pull/210
+[#215]: https://github.com/rust-random/getrandom/pull/215
 
 ## [0.2.2] - 2021-01-19
 ### Changed
