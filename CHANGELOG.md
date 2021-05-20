@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2021-04-10
+### Changed
+- Replace build.rs with link attributes. [#205]
+- Add support for getrandom syscall on DragonFly BSD. [#210]
+- Improve Node.js detection. [#215]
+
+[#205]: https://github.com/rust-random/getrandom/pull/205
+[#210]: https://github.com/rust-random/getrandom/pull/210
+[#215]: https://github.com/rust-random/getrandom/pull/215
+
 ## [0.2.2] - 2021-01-19
 ### Changed
 - Forward `rustc-dep-of-std` to dependencies. [#198]
