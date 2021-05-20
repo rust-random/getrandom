@@ -11,7 +11,7 @@ extern crate std;
 use std::thread_local;
 
 use js_sys::Uint8Array;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
@@ -57,50 +57,65 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {
-    if let Ok(self_) = Global::get_self() {
-        // If `self` is defined then we're in a browser somehow (main window
-        // or web worker). We get `self.crypto` (called `msCrypto` on IE), so we
-        // can call `crypto.getRandomValues`. If `crypto` isn't defined, we
-        // assume we're in an older web browser and the OS RNG isn't available.
-
-        let crypto: BrowserCrypto = match (self_.crypto(), self_.ms_crypto()) {
-            (crypto, _) if !crypto.is_undefined() => crypto,
-            (_, crypto) if !crypto.is_undefined() => crypto,
-            _ => return Err(Error::WEB_CRYPTO),
-        };
-
-        let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
-        return Ok(RngSource::Browser(crypto, buf));
+    let global: Global = js_sys::global().unchecked_into();
+    if is_node(&global) {
+        let crypto = require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
+        return Ok(RngSource::Node(crypto));
     }
 
-    let crypto = MODULE.require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
-    Ok(RngSource::Node(crypto))
+    // Assume we are in some Web environment (browser or web worker). We get
+    // `self.crypto` (called `msCrypto` on IE), so we can call
+    // `crypto.getRandomValues`. If `crypto` isn't defined, we assume that
+    // we are in an older web browser and the OS RNG isn't available.
+    let crypto = match (global.crypto(), global.ms_crypto()) {
+        (c, _) if c.is_object() => c,
+        (_, c) if c.is_object() => c,
+        _ => return Err(Error::WEB_CRYPTO),
+    };
+
+    let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
+    Ok(RngSource::Browser(crypto, buf))
+}
+
+// Taken from https://www.npmjs.com/package/browser-or-node
+fn is_node(global: &Global) -> bool {
+    let process = global.process();
+    if process.is_object() {
+        let versions = process.versions();
+        if versions.is_object() {
+            return versions.node().is_string();
+        }
+    }
+    false
 }
 
 #[wasm_bindgen]
 extern "C" {
-    type Global;
-    #[wasm_bindgen(getter, catch, static_method_of = Global, js_class = self, js_name = self)]
-    fn get_self() -> Result<Self_, JsValue>;
+    type Global; // Return type of js_sys::global()
 
-    type Self_;
+    // Web Crypto API (https://www.w3.org/TR/WebCryptoAPI/)
     #[wasm_bindgen(method, getter, js_name = "msCrypto")]
-    fn ms_crypto(me: &Self_) -> BrowserCrypto;
+    fn ms_crypto(this: &Global) -> BrowserCrypto;
     #[wasm_bindgen(method, getter)]
-    fn crypto(me: &Self_) -> BrowserCrypto;
-
+    fn crypto(this: &Global) -> BrowserCrypto;
     type BrowserCrypto;
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
-    fn get_random_values(me: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
+    fn get_random_values(this: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = module)]
-    static MODULE: NodeModule;
-
-    type NodeModule;
-    #[wasm_bindgen(method, catch)]
-    fn require(this: &NodeModule, s: &str) -> Result<NodeCrypto, JsValue>;
-
+    // Node JS crypto module (https://nodejs.org/api/crypto.html)
+    #[wasm_bindgen(catch, js_name = "module.require")]
+    fn require(s: &str) -> Result<NodeCrypto, JsValue>;
     type NodeCrypto;
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
-    fn random_fill_sync(crypto: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+    fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+
+    // Node JS process Object (https://nodejs.org/api/process.html)
+    #[wasm_bindgen(method, getter)]
+    fn process(this: &Global) -> Process;
+    type Process;
+    #[wasm_bindgen(method, getter)]
+    fn versions(this: &Process) -> Versions;
+    type Versions;
+    #[wasm_bindgen(method, getter)]
+    fn node(this: &Versions) -> JsValue;
 }
