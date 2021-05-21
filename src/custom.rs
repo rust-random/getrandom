@@ -16,7 +16,7 @@ use core::num::NonZeroU32;
 ///
 /// The function to register must have the same signature as
 /// [`getrandom::getrandom`](crate::getrandom). The function can be defined
-/// wherever you want, either in root crate or a dependant crate.
+/// wherever you want, either in root crate or a dependent crate.
 ///
 /// For example, if we wanted a `failure-getrandom` crate containing an
 /// implementation that always fails, we would first depend on `getrandom`
