@@ -55,8 +55,8 @@ The following (off by default) Cargo features have been added:
 - Unsupported targets no longer compile [#107]
 - Change/Add `Error` constants [#120]
 - Only impl `std` traits when the `"std"` Cargo feature is specified [#106]
-- Remove offical support for Hermit, L4Re, and UEFI [#133]
-- Remove optional `"log"` dependancy [#131]
+- Remove official support for Hermit, L4Re, and UEFI [#133]
+- Remove optional `"log"` dependency [#131]
 - Update minimum supported Linux kernel to 2.6.32 [#153]
 - Update MSRV to 1.34 [#159]
 
