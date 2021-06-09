@@ -30,6 +30,7 @@
 //! | WASI              | `wasm32‑wasi`      | [`random_get`][17]
 //! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
 //! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomBytes`][15], see [WebAssembly support][16]
+//! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //!
 //! There is no blanket implementation on `unix` targets that reads from
 //! `/dev/urandom`. This ensures all supported targets are using the recommended
@@ -203,6 +204,8 @@ cfg_if! {
     } else if #[cfg(target_os = "vxworks")] {
         mod util_libc;
         #[path = "vxworks.rs"] mod imp;
+    } else if #[cfg(target_os = "solid_asp3")] {
+        #[path = "solid.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
