@@ -10,8 +10,8 @@ use crate::Error;
 extern crate std;
 use std::thread_local;
 
-use js_sys::Uint8Array;
-use wasm_bindgen::{prelude::*, JsCast};
+use js_sys::{global, Uint8Array};
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
@@ -57,7 +57,7 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {
-    let global: Global = js_sys::global().unchecked_into();
+    let global: Global = global().unchecked_into();
     if is_node(&global) {
         let crypto = require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
         return Ok(RngSource::Node(crypto));
