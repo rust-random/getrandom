@@ -22,7 +22,7 @@
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom()`][22] if available, otherwise [`/dev/random`][8]
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
-//! | Redox             | `*‑redox`          | [`rand:`][12]
+//! | Redox             | `*‑redox`          | [`/dev/urandom`][12]
 //! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
