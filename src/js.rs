@@ -59,7 +59,9 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 fn getrandom_init() -> Result<RngSource, Error> {
     let global: Global = global().unchecked_into();
     if is_node(&global) {
-        let crypto = require("crypto").map_err(|_| Error::NODE_CRYPTO)?;
+        let crypto = NODE_MODULE
+            .require("crypto")
+            .map_err(|_| Error::NODE_CRYPTO)?;
         return Ok(RngSource::Node(crypto));
     }
 
@@ -102,9 +104,12 @@ extern "C" {
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values(this: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
 
+    type NodeModule;
+    #[wasm_bindgen(js_name = module)]
+    static NODE_MODULE: NodeModule;
     // Node JS crypto module (https://nodejs.org/api/crypto.html)
-    #[wasm_bindgen(catch, js_name = "module.require")]
-    fn require(s: &str) -> Result<NodeCrypto, JsValue>;
+    #[wasm_bindgen(method, catch)]
+    fn require(this: &NodeModule, s: &str) -> Result<NodeCrypto, JsValue>;
     type NodeCrypto;
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
     fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
