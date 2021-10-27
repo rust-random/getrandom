@@ -16,7 +16,9 @@ extern "C" {
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     let ret = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr(), dest.len()) };
-    if let Some(ret) = NonZeroU32::new(ret as u32) {
+    // ITRON error numbers are always negative, so we negate it so that it
+    // doesn't fall in the range `INTERNAL_START..`.
+    if let Some(ret) = NonZeroU32::new((-ret) as u32) {
         Err(ret.into())
     } else {
         Ok(())
