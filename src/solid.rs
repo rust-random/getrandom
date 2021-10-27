@@ -15,9 +15,9 @@ extern "C" {
 }
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let er = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr(), dest.len()) };
-    if let Some(er) = NonZeroU32::new(er as u32) {
-        Err(er.into())
+    let ret = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr(), dest.len()) };
+    if let Some(ret) = NonZeroU32::new(ret as u32) {
+        Err(ret.into())
     } else {
         Ok(())
     }
