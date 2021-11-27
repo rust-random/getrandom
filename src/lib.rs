@@ -24,6 +24,7 @@
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]
 //! | Redox             | `*‑redox`          | [`/dev/urandom`][12]
 //! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
+//! | Hermit            | `x86_64-*-hermit`  | [`RDRAND`][18]
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
@@ -200,6 +201,8 @@ cfg_if! {
         #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(target_os = "wasi")] {
         #[path = "wasi.rs"] mod imp;
+    } else if #[cfg(all(target_arch = "x86_64", target_os = "hermit"))] {
+        #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(target_os = "vxworks")] {
         mod util_libc;
         #[path = "vxworks.rs"] mod imp;
