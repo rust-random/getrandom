@@ -73,7 +73,14 @@ impl Error {
     #[inline]
     pub fn raw_os_error(self) -> Option<i32> {
         if self.0.get() < Self::INTERNAL_START {
-            Some(self.0.get() as i32)
+            match () {
+                #[cfg(target_os = "solid_asp3")]
+                // On SOLID, negate the error code again to obtain the original
+                // error code.
+                () => Some(-(self.0.get() as i32)),
+                #[cfg(not(target_os = "solid_asp3"))]
+                () => Some(self.0.get() as i32),
+            }
         } else {
             None
         }

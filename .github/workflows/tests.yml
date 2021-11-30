@@ -314,6 +314,8 @@ jobs:
         run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
       - name: VxWorks
         run: cargo build -Z build-std=core --target=x86_64-wrs-vxworks
+      - name: SOLID
+        run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
 
   clippy-fmt:
     name: Clippy + rustfmt
