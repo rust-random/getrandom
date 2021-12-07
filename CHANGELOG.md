@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `NonZeroU32::new_unchecked` to convert wasi error [#233]
 
 ### Added
-- SOLID target support [#235]
-- `x86_64-unknown-hermit` support [#236]
+- SOLID targets (`*-kmc-solid_*`) support [#235]
+- Limited Hermit (`x86_64-unknown-hermit`) support [#236]
 
 [#220]: https://github.com/rust-random/getrandom/pull/220
 [#222]: https://github.com/rust-random/getrandom/pull/222
