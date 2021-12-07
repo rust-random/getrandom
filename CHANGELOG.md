@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+- Added x86_64-unknown-hermit support [#236]
+
+[#236]: https://github.com/rust-random/getrandom/pull/236
+
 ## [0.2.3] - 2021-04-10
 ### Changed
 - Replace build.rs with link attributes. [#205]
