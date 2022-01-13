@@ -45,7 +45,7 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 // Returns the file descriptor for the device file used to retrieve random
-// bytes. The file will be opened exactly once. All successful calls will
+// bytes. The file will be opened exactly once. All subsequent calls will
 // return the same file descriptor. This file descriptor is never closed.
 fn get_rng_fd() -> Result<libc::c_int, Error> {
     static FD: AtomicUsize = AtomicUsize::new(LazyUsize::UNINIT);
