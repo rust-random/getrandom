@@ -104,6 +104,9 @@ extern "C" {
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values(this: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
 
+    // We use a "module" object here instead of just annotating require() with
+    // js_name = "module.require", so that Webpack doesn't give a warning. See:
+    //   https://github.com/rust-random/getrandom/issues/224
     type NodeModule;
     #[wasm_bindgen(js_name = module)]
     static NODE_MODULE: NodeModule;
