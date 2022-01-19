@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2022-01-18
+### Fixed
+- Fix Webpack dynamic require warning on `wasm32-unknown-unknown` [#234]
+- Fix build breakage on `wasm32-wasi` target [#242]
+
+[#234]: https://github.com/rust-random/getrandom/pull/234
+[#242]: https://github.com/rust-random/getrandom/pull/242
+
 ## [0.2.4] - 2021-12-13
 ### Changed
 - Use explicit imports in the `js` backend [#220]
