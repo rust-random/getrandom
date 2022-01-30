@@ -20,9 +20,6 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html
     //
     // However tracking if some of these entropy sources is enabled is way too difficult to implement here
-    //
-    // Using esp_fill_random since it has some optimizations regarding filling a byte array from an
-    // u32 source.  See https://github.com/espressif/esp-idf/blob/master/components/esp_hw_support/hw_random.c
     unsafe { esp_fill_random(dest.as_mut_ptr().cast(), dest.len()) };
 
     Ok(())
