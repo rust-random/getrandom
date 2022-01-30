@@ -143,7 +143,7 @@
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 //! [22]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
-//! [23]: https://github.com/espressif/esp-idf/blob/master/components/esp_hw_support/hw_random.c
+//! [23]: https://docs.espressif.com/projects/esp-idf/en/release-v4.1/api-reference/system/system.html?highlight=esp_fill_random#_CPPv415esp_fill_randomPv6size_t
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
