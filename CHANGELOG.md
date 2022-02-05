@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2022-02-08
+### Added
+- ESP-IDF targets (`*‑espidf`) support [#245]
+
+### Fixed
+- Webpack warning caused by dynamic require [#234]
+- Error checking on iOS for `SecRandomCopyBytes` [#244]
+
+[#234]: https://github.com/rust-random/getrandom/pull/234
+[#244]: https://github.com/rust-random/getrandom/pull/244
+[#245]: https://github.com/rust-random/getrandom/pull/245
+
 ## [0.2.4] - 2021-12-13
 ### Changed
 - Use explicit imports in the `js` backend [#220]
