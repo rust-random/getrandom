@@ -27,6 +27,7 @@
 //! | Hermit            | `x86_64-*-hermit`  | [`RDRAND`][18]
 //! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
+//! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random()`][23]
 //! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
 //! | WASI              | `wasm32‑wasi`      | [`random_get`][17]
 //! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
@@ -142,6 +143,7 @@
 //! [20]: https://www.unix.com/man-page/mojave/4/random/
 //! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 //! [22]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
+//! [23]: https://docs.espressif.com/projects/esp-idf/en/release-v4.1/api-reference/system/system.html?highlight=esp_fill_random#_CPPv415esp_fill_randomPv6size_t
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -209,6 +211,8 @@ cfg_if! {
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(target_os = "solid_asp3")] {
         #[path = "solid.rs"] mod imp;
+    } else if #[cfg(target_os = "espidf")] {
+        #[path = "espidf.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
