@@ -33,6 +33,7 @@
 //! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]
 //! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomBytes`][15], see [WebAssembly support][16]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
+//! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
 //!
 //! There is no blanket implementation on `unix` targets that reads from
 //! `/dev/urandom`. This ensures all supported targets are using the recommended
@@ -223,6 +224,11 @@ cfg_if! {
     } else if #[cfg(all(feature = "js",
                         target_arch = "wasm32", target_os = "unknown"))] {
         #[path = "js.rs"] mod imp;
+    } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
+        // We check for target_arch = "arm" because the Nintendo Switch also
+        // uses Horizon OS (it is aarch64).
+        mod util_libc;
+        #[path = "3ds.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
