@@ -107,9 +107,15 @@ cfg_if! {
 // SAFETY: path must be null terminated, FD must be manually closed.
 pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
     debug_assert_eq!(path.as_bytes().last(), Some(&0));
-    let fd = open(path.as_ptr() as *const _, libc::O_RDONLY | libc::O_CLOEXEC);
-    if fd < 0 {
-        return Err(last_os_error());
+    loop {
+        let fd = open(path.as_ptr() as *const _, libc::O_RDONLY | libc::O_CLOEXEC);
+        if fd >= 0 {
+            return Ok(fd);
+        }
+        let err = last_os_error();
+        // We should try again if open() was interrupted.
+        if err.raw_os_error() != Some(libc::EINTR) {
+            return Err(err);
+        }
     }
-    Ok(fd)
 }
