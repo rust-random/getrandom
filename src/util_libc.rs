@@ -20,7 +20,7 @@ cfg_if! {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;
-    } else if #[cfg(target_os = "horizon")] {
+    } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
         extern "C" {
             // Not provided by libc: https://github.com/rust-lang/libc/issues/1995
             fn __errno() -> *mut libc::c_int;
