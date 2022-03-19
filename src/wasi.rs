@@ -12,12 +12,10 @@ use core::num::NonZeroU32;
 use wasi::random_get;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    unsafe {
-        random_get(dest.as_mut_ptr(), dest.len()).map_err(|e: wasi::Error| {
-            // convert wasi's Error into getrandom's NonZeroU32 error
-            // SAFETY: `wasi::Error` is `NonZeroU16` internally, so `e.raw_error()`
-            // will never return 0
-            NonZeroU32::new_unchecked(e.raw_error() as u32).into()
-        })
-    }
+    random_get(dest.as_mut_ptr(), dest.len()).map_err(|e: wasi::Errno| {
+        // NOTE: `random_get` deals with return value of zero for us, so the
+        // unwrap below won't panic. However in case the code ever changes we
+        // don't want to use `new_unchecked` and cause UB.
+        NonZeroU32::new(e.raw() as u32).unwrap().into()
+    })
 }
