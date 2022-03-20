@@ -316,6 +316,8 @@ jobs:
         run: cargo build -Z build-std=core --target=x86_64-wrs-vxworks
       - name: SOLID
         run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
+      - name: Nintendo 3DS
+        run: cargo build -Z build-std=core --target=armv6k-nintendo-3ds
 
   clippy-fmt:
     name: Clippy + rustfmt
