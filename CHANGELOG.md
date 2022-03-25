@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2022-03-28
+### Added
+- Nintendo 3DS (`armv6k-nintendo-3ds`) support [#248]
+
+### Changed
+- Retry `open` when interrupted [#252]
+
+[#248]: https://github.com/rust-random/getrandom/pull/248
+[#252]: https://github.com/rust-random/getrandom/pull/252
+
 ## [0.2.5] - 2022-02-22
 ### Added
 - ESP-IDF targets (`*‑espidf`) support [#245]
@@ -281,6 +291,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.2.5]: https://github.com/rust-random/getrandom/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/rust-random/getrandom/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/rust-random/getrandom/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/rust-random/getrandom/compare/v0.2.2...v0.2.3
