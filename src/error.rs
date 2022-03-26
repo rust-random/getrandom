@@ -97,7 +97,7 @@ impl Error {
 }
 
 cfg_if! {
-    if #[cfg(unix)] {
+    if #[cfg(any(unix, target_os = "wasi"))] {
         fn os_err(errno: i32, buf: &mut [u8]) -> Option<&str> {
             let buf_ptr = buf.as_mut_ptr() as *mut libc::c_char;
             if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {
@@ -108,12 +108,6 @@ cfg_if! {
             let n = buf.len();
             let idx = buf.iter().position(|&b| b == 0).unwrap_or(n);
             core::str::from_utf8(&buf[..idx]).ok()
-        }
-    } else if #[cfg(target_os = "wasi")] {
-        fn os_err(errno: i32, _buf: &mut [u8]) -> Option<wasi::Errno> {
-            // Can't create `Errno` at the moment, see
-            // <https://github.com/bytecodealliance/wasi/issues/64>.
-            None
         }
     } else {
         fn os_err(_errno: i32, _buf: &mut [u8]) -> Option<&str> {

@@ -9,13 +9,11 @@
 //! Implementation for WASI
 use crate::Error;
 use core::num::NonZeroU32;
-use wasi::random_get;
+use wasi::wasi_snapshot_preview1::random_get;
 
 pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    random_get(dest.as_mut_ptr(), dest.len()).map_err(|e: wasi::Errno| {
-        // NOTE: `random_get` deals with return value of zero for us, so the
-        // unwrap below won't panic. However in case the code ever changes we
-        // don't want to use `new_unchecked` and cause UB.
-        NonZeroU32::new(e.raw() as u32).unwrap().into()
-    })
+    match unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) } {
+        0 => Ok(()),
+        err => Err(unsafe { NonZeroU32::new_unchecked(err as u32) }.into()),
+    }
 }
