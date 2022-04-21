@@ -205,7 +205,9 @@ jobs:
           tar -C /tmp -xzf /tmp/binaries.tar.gz --strip-components=1
           mv /tmp/wasm-bindgen-test-runner ~/.cargo/bin
       - name: Test (Node)
-        run: cargo test --target=wasm32-unknown-unknown --features=js
+        run: |
+          cargo test --target=wasm32-unknown-unknown
+          cargo test --target=wasm32-unknown-unknown --features=js
       - name: Test (Firefox)
         env:
           GECKODRIVER: /usr/bin/geckodriver
