@@ -108,7 +108,7 @@ impl Weak {
     }
 
     // Return the address of a function if present at runtime. Otherwise,
-    // return null. Multiple callers can call ptr() concurrently. It will
+    // return None. Multiple callers can call ptr() concurrently. It will
     // always return _some_ value returned by libc::dlsym. However, the
     // dlsym function may be called multiple times.
     pub fn ptr(&self) -> Option<NonNull<c_void>> {
