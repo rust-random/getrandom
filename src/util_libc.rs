@@ -81,8 +81,9 @@ pub fn sys_fill_exact(
 
 // A "weak" binding to a C function that may or may not be present at runtime.
 // Used for supporting newer OS features while still building on older systems.
-// Based off of the DlsymWeak struct in libstd (src/sys/unix/weak.rs), except
-// that the caller must cast self.ptr() to a function pointer.
+// Based off of the DlsymWeak struct in libstd:
+// https://github.com/rust-lang/rust/blob/1.61.0/library/std/src/sys/unix/weak.rs#L84
+// except that the caller must manually cast self.ptr() to a function pointer.
 pub struct Weak {
     name: &'static str,
     addr: AtomicPtr<c_void>,
