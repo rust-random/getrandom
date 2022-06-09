@@ -10,7 +10,7 @@ use crate::Error;
 use core::{
     num::NonZeroU32,
     ptr::NonNull,
-    sync::atomic::{AtomicPtr, Ordering},
+    sync::atomic::{fence, AtomicPtr, Ordering},
 };
 use libc::c_void;
 
@@ -113,17 +113,25 @@ impl Weak {
     // dlsym function may be called multiple times.
     pub fn ptr(&self) -> Option<NonNull<c_void>> {
         // Despite having only a single atomic variable (self.addr), we still
-        // need a "consume" ordering as we will generally be reading though
-        // this value (by calling the function we dlsym'ed). Rust lacks this
-        // ordering, so we have to go with the next strongest: Acquire/Release.
-        // As noted in libstd, this might be unnecessary.
-        let mut addr = self.addr.load(Ordering::Acquire);
-        if addr == Self::UNINIT {
-            let symbol = self.name.as_ptr() as *const _;
-            addr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, symbol) };
-            self.addr.store(addr, Ordering::Release);
+        // cannot always use Ordering::Relaxed, as we need to make sure a
+        // successful call to dlsym() is "ordered before" any data read through
+        // the returned pointer (which occurs when the function is called).
+        // Our implementation mirrors that of the one in libstd, meaning that
+        // the use of non-Relaxed operations is probably unnecessary.
+        match self.addr.load(Ordering::Relaxed) {
+            Self::UNINIT => {
+                let symbol = self.name.as_ptr() as *const _;
+                let addr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, symbol) };
+                // Synchronizes with the Acquire fence below
+                self.addr.store(addr, Ordering::Release);
+                NonNull::new(addr)
+            }
+            addr => {
+                let func = NonNull::new(addr)?;
+                fence(Ordering::Acquire);
+                Some(func)
+            }
         }
-        NonNull::new(addr)
     }
 }
 
