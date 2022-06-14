@@ -10,34 +10,39 @@ use crate::Error;
 extern crate std;
 use std::thread_local;
 
-use js_sys::{global, Uint8Array};
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use js_sys::Uint8Array;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-// Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
+// Maximum length for Node's crypto.getRandomValues
+const NODE_MAX_BUFFER_SIZE: usize = (1 << 31) - 1;
+
+// Maximum length Web's crypto. is 65536 bytes, see:
+// https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const BROWSER_CRYPTO_BUFFER_SIZE: usize = 256;
 
 enum RngSource {
-    Node(NodeCrypto),
-    Browser(BrowserCrypto, Uint8Array),
+    Node,
+    Web(WebCrypto, Uint8Array),
+    Failed(Error),
 }
 
 // JsValues are always per-thread, so we initialize RngSource for each thread.
 //   See: https://github.com/rustwasm/wasm-bindgen/pull/955
 thread_local!(
-    static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
+    static RNG_SOURCE: RngSource = getrandom_init();
 );
 
 pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    RNG_SOURCE.with(|result| {
-        let source = result.as_ref().map_err(|&e| e)?;
-
+    RNG_SOURCE.with(|source| {
         match source {
-            RngSource::Node(n) => {
-                if n.random_fill_sync(dest).is_err() {
-                    return Err(Error::NODE_RANDOM_FILL_SYNC);
+            RngSource::Node => {
+                for chunk in dest.chunks_mut(NODE_MAX_BUFFER_SIZE) {
+                    if NODE_CRYPTO.random_fill_sync(chunk).is_err() {
+                        return Err(Error::NODE_RANDOM_FILL_SYNC);
+                    }
                 }
             }
-            RngSource::Browser(crypto, buf) => {
+            RngSource::Web(crypto, buf) => {
                 // getRandomValues does not work with all types of WASM memory,
                 // so we initially write to browser memory to avoid exceptions.
                 for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
@@ -51,79 +56,51 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     sub_buf.copy_to(chunk);
                 }
             }
-        };
+            RngSource::Failed(err) => return Err(*err),
+        }
         Ok(())
     })
 }
 
-fn getrandom_init() -> Result<RngSource, Error> {
-    let global: Global = global().unchecked_into();
-    if is_node(&global) {
-        let crypto = NODE_MODULE
-            .require("crypto")
-            .map_err(|_| Error::NODE_CRYPTO)?;
-        return Ok(RngSource::Node(crypto));
+fn getrandom_init() -> RngSource {
+    if *IS_NODE {
+        if !NODE_CRYPTO.is_object() {
+            return RngSource::Failed(Error::NODE_CRYPTO);
+        }
+        return RngSource::Node;
     }
 
     // Assume we are in some Web environment (browser or web worker). We get
     // `self.crypto` (called `msCrypto` on IE), so we can call
     // `crypto.getRandomValues`. If `crypto` isn't defined, we assume that
     // we are in an older web browser and the OS RNG isn't available.
-    let crypto = match (global.crypto(), global.ms_crypto()) {
-        (c, _) if c.is_object() => c,
-        (_, c) if c.is_object() => c,
-        _ => return Err(Error::WEB_CRYPTO),
-    };
-
-    let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
-    Ok(RngSource::Browser(crypto, buf))
-}
-
-// Taken from https://www.npmjs.com/package/browser-or-node
-fn is_node(global: &Global) -> bool {
-    let process = global.process();
-    if process.is_object() {
-        let versions = process.versions();
-        if versions.is_object() {
-            return versions.node().is_string();
+    match web_crypto() {
+        Ok(crypto) if crypto.is_object() => {
+            let buf = Uint8Array::new_with_length(BROWSER_CRYPTO_BUFFER_SIZE as u32);
+            RngSource::Web(crypto, buf)
         }
+        _ => RngSource::Failed(Error::WEB_CRYPTO),
     }
-    false
 }
 
 #[wasm_bindgen]
 extern "C" {
-    type Global; // Return type of js_sys::global()
-
     // Web Crypto API (https://www.w3.org/TR/WebCryptoAPI/)
-    #[wasm_bindgen(method, getter, js_name = "msCrypto")]
-    fn ms_crypto(this: &Global) -> BrowserCrypto;
-    #[wasm_bindgen(method, getter)]
-    fn crypto(this: &Global) -> BrowserCrypto;
-    type BrowserCrypto;
+    type WebCrypto;
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
-    fn get_random_values(this: &BrowserCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
+    fn get_random_values(this: &WebCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
 
-    // We use a "module" object here instead of just annotating require() with
-    // js_name = "module.require", so that Webpack doesn't give a warning. See:
-    //   https://github.com/rust-random/getrandom/issues/224
-    type NodeModule;
-    #[wasm_bindgen(js_name = module)]
-    static NODE_MODULE: NodeModule;
     // Node JS crypto module (https://nodejs.org/api/crypto.html)
-    #[wasm_bindgen(method, catch)]
-    fn require(this: &NodeModule, s: &str) -> Result<NodeCrypto, JsValue>;
     type NodeCrypto;
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
     fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+}
 
-    // Node JS process Object (https://nodejs.org/api/process.html)
-    #[wasm_bindgen(method, getter)]
-    fn process(this: &Global) -> Process;
-    type Process;
-    #[wasm_bindgen(method, getter)]
-    fn versions(this: &Process) -> Versions;
-    type Versions;
-    #[wasm_bindgen(method, getter)]
-    fn node(this: &Versions) -> JsValue;
+#[wasm_bindgen(module = "/src/js.js")]
+extern "C" {
+    static IS_NODE: bool;
+    static NODE_CRYPTO: NodeCrypto;
+
+    #[wasm_bindgen(catch)]
+    fn web_crypto() -> Result<WebCrypto, JsValue>;
 }
