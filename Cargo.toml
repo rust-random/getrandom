@@ -38,6 +38,8 @@ rdrand = []
 js = ["wasm-bindgen", "js-sys"]
 # Feature to enable custom RNG implementations
 custom = []
+# Feature to force usage of custom RNG implementation
+force-custom = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = [
   "compiler_builtins",
