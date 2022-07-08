@@ -7,22 +7,23 @@
 // except according to those terms.
 
 //! Implementation for macOS
+use core::mem::{transmute, MaybeUninit};
+
 use crate::{
     use_file,
     util_libc::{last_os_error, Weak},
     Error,
 };
-use core::mem;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getentropy(2) was added in 10.12, Rust supports 10.7+
     static GETENTROPY: Weak = unsafe { Weak::new("getentropy\0") };
     if let Some(fptr) = GETENTROPY.ptr() {
-        let func: GetEntropyFn = unsafe { mem::transmute(fptr) };
+        let func: GetEntropyFn = unsafe { transmute(fptr) };
         for chunk in dest.chunks_mut(256) {
-            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len()) };
+            let ret = unsafe { func(chunk.as_mut_ptr() as *mut u8, chunk.len()) };
             if ret != 0 {
                 return Err(last_os_error());
             }

@@ -48,6 +48,9 @@ rustc-dep-of-std = [
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
 
+# Nightly-only implementation with `std::io::ReadBuf` struct.
+rdbuf-impl = []
+
 [package.metadata.docs.rs]
 features = ["std", "custom"]
 rustdoc-args = ["--cfg", "docsrs"]

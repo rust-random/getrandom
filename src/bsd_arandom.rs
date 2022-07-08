@@ -7,10 +7,13 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD and NetBSD
-use crate::{util_libc::sys_fill_exact, Error};
+use core::mem::MaybeUninit;
 use core::ptr;
 
-fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
+use crate::util_libc::sys_fill_exact;
+use crate::Error;
+
+fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
     let mut len = buf.len();
     let ret = unsafe {
@@ -30,7 +33,7 @@ fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
     }
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in FreeBSD 12.0 and NetBSD 10.0
     #[cfg(target_os = "freebsd")]
     {
@@ -41,7 +44,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 
         if let Some(fptr) = GETRANDOM.ptr() {
             let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
-            return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
+            return sys_fill_exact(dest, |buf| unsafe {
+                func(buf.as_mut_ptr() as *mut MaybeUninit<u8>, buf.len(), 0)
+            });
         }
     }
     // Both FreeBSD and NetBSD will only return up to 256 bytes at a time, and

@@ -6,13 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #![allow(dead_code)]
-use crate::Error;
-use core::{
-    num::NonZeroU32,
-    ptr::NonNull,
-    sync::atomic::{fence, AtomicPtr, Ordering},
-};
+use core::mem::MaybeUninit;
+use core::num::NonZeroU32;
+use core::ptr::NonNull;
+use core::sync::atomic::{fence, AtomicPtr, Ordering};
+
 use libc::c_void;
+
+use crate::Error;
 
 cfg_if! {
     if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
@@ -59,8 +60,8 @@ pub fn last_os_error() -> Error {
 //   - should return -1 and set errno on failure
 //   - should return the number of bytes written on success
 pub fn sys_fill_exact(
-    mut buf: &mut [u8],
-    sys_fill: impl Fn(&mut [u8]) -> libc::ssize_t,
+    mut buf: &mut [MaybeUninit<u8>],
+    sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> libc::ssize_t,
 ) -> Result<(), Error> {
     while !buf.is_empty() {
         let res = sys_fill(buf);

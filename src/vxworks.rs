@@ -7,10 +7,12 @@
 // except according to those terms.
 
 //! Implementation for VxWorks
-use crate::{util_libc::last_os_error, Error};
+use core::mem::MaybeUninit;
 use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+use crate::{util_libc::last_os_error, Error};
+
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RNG_INIT: AtomicBool = AtomicBool::new(false);
     while !RNG_INIT.load(Relaxed) {
         let ret = unsafe { libc::randSecure() };
@@ -25,7 +27,9 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 
     // Prevent overflow of i32
     for chunk in dest.chunks_mut(i32::max_value() as usize) {
-        let ret = unsafe { libc::randABytes(chunk.as_mut_ptr(), chunk.len() as i32) };
+        let ret = unsafe {
+            libc::randABytes(chunk.as_mut_ptr() as *mut libc::c_uchar, chunk.len() as i32)
+        };
         if ret != 0 {
             return Err(last_os_error());
         }

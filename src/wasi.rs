@@ -11,9 +11,11 @@ use crate::Error;
 use core::num::NonZeroU32;
 use wasi::wasi_snapshot_preview1::random_get;
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    match unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) } {
-        0 => Ok(()),
-        err => Err(unsafe { NonZeroU32::new_unchecked(err as u32) }.into()),
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    let res = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
+    if res == 0 {
+        Ok(())
+    } else {
+        Err(unsafe { NonZeroU32::new_unchecked(res as u32) }.into())
     }
 }

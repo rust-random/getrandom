@@ -7,13 +7,13 @@
 // except according to those terms.
 
 //! Implementation for DragonFly BSD
-use crate::{
-    use_file,
-    util_libc::{sys_fill_exact, Weak},
-    Error,
-};
+use core::mem::MaybeUninit;
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+use crate::use_file;
+use crate::util_libc::{sys_fill_exact, Weak};
+use crate::Error;
+
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
     type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 

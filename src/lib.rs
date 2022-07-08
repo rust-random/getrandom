@@ -155,6 +155,8 @@
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+use core::mem::MaybeUninit;
+
 #[macro_use]
 extern crate cfg_if;
 
@@ -259,5 +261,41 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
     if dest.is_empty() {
         return Ok(());
     }
-    imp::getrandom_inner(dest)
+    imp::getrandom_inner(
+        // SAFETY: `MaybeUninit` have same size and alignment as wrapped value
+        // and it is safe to convert init value to MaybeUninit.
+        // See https://doc.rust-lang.org/stable/std/mem/union.MaybeUninit.html#layout
+        unsafe {
+            core::slice::from_raw_parts_mut(dest.as_mut_ptr() as *mut MaybeUninit<u8>, dest.len())
+        },
+    )
+}
+
+/// This version uses rdbuf-impl
+/// It is intended to replace function that accepts `&mut [u8]`
+/// once MSRV is bumped so you may want to use this to make easier switch
+///
+/// Caller must clear dest before use because function only append data to buffer
+/// until fill it to capacity.
+///
+/// Blocking is possible, at least during early boot; see module documentation.
+///
+/// In general, `getrandom` will be fast enough for interactive usage, though
+/// significantly slower than a user-space CSPRNG; for the latter consider
+/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+#[cfg(any(doc, feature = "rdbuf-impl"))]
+pub fn getrandom_buf(dest: &mut std::io::ReadBuf) -> Result<(), Error> {
+    if dest.capacity() == dest.filled_len() {
+        // Already filled
+        return Ok(());
+    }
+    // SAFETY:
+    // 1. getrandom_inner must fill all bytes provided if succeedes.
+    // 2. getrandom_inner must not read from provided buffer because it can be uninit.
+    unsafe {
+        imp::getrandom_inner(dest.unfilled_mut())?;
+        dest.assume_init(dest.capacity());
+        dest.set_filled(dest.capacity());
+    }
+    Ok(())
 }

@@ -5,6 +5,9 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
+use core::mem::MaybeUninit;
+use core::ptr;
+
 use crate::Error;
 
 extern crate std;
@@ -27,7 +30,7 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
@@ -48,7 +51,17 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     if crypto.get_random_values(&sub_buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
-                    sub_buf.copy_to(chunk);
+                    // SAFETY: Safe because MaybeUninit have same alignment and size as wrapped type
+                    // and exclusive slices are always valid.
+                    // Switch to https://doc.rust-lang.org/stable/std/mem/union.MaybeUninit.html#method.write_slice
+                    // when min supported Rust would have this.
+                    unsafe {
+                        ptr::copy_nonoverlapping(
+                            chunk.as_ptr(),
+                            chunk.as_mut_ptr() as *mut u8,
+                            chunk.len(),
+                        );
+                    }
                 }
             }
         };
@@ -115,7 +128,7 @@ extern "C" {
     fn require(this: &NodeModule, s: &str) -> Result<NodeCrypto, JsValue>;
     type NodeCrypto;
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
-    fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+    fn random_fill_sync(this: &NodeCrypto, buf: &mut [MaybeUninit<u8>]) -> Result<(), JsValue>;
 
     // Node JS process Object (https://nodejs.org/api/process.html)
     #[wasm_bindgen(method, getter)]

@@ -69,7 +69,7 @@ fn is_rdrand_supported() -> bool {
     HAS_RDRAND.unsync_init(|| unsafe { (arch::__cpuid(1).ecx & FLAG) != 0 })
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [mem::MaybeUninit<u8>]) -> Result<(), Error> {
     if !is_rdrand_supported() {
         return Err(Error::NO_RDRAND);
     }
@@ -80,18 +80,24 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[target_feature(enable = "rdrand")]
-unsafe fn rdrand_exact(dest: &mut [u8]) -> Result<(), Error> {
+unsafe fn rdrand_exact(dest: &mut [mem::MaybeUninit<u8>]) -> Result<(), Error> {
     // We use chunks_exact_mut instead of chunks_mut as it allows almost all
     // calls to memcpy to be elided by the compiler.
     let mut chunks = dest.chunks_exact_mut(WORD_SIZE);
     for chunk in chunks.by_ref() {
-        chunk.copy_from_slice(&rdrand()?);
+        let data = rdrand()?;
+        // SAFETY: MaybeUninit has same alignment and size as wrapped type.
+        // Switch to https://doc.rust-lang.org/stable/std/mem/union.MaybeUninit.html#method.write_slice
+        // when it would be supported by minimal Rust version.
+        core::ptr::copy_nonoverlapping(data.as_ptr(), chunk.as_mut_ptr() as *mut u8, data.len());
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        tail.copy_from_slice(&rdrand()?[..n]);
+        let data = rdrand()?;
+        // SAFETY: same as above
+        core::ptr::copy_nonoverlapping(data.as_ptr(), tail.as_mut_ptr() as *mut u8, n);
     }
     Ok(())
 }
