@@ -115,13 +115,22 @@
 //! entropy yet. To avoid returning low-entropy bytes, we first poll
 //! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
 //!
+//! On OpenBSD, this kind of entropy accounting isn't available, and on
+//! NetBSD, blocking on it is discouraged. On these platforms, nonblocking
+//! interfaces are used, even when reliable entropy may not be available.
+//! On the platforms where it is used, the reliability of entropy accounting
+//! itself isn't free from controversy. This library provides randomness
+//! sourced according to the platform's best practices, but each platform has
+//! its own limits on the grade of randomness it can promise in environments
+//! with few sources of entropy.
+//!
 //! ## Error handling
 //!
-//! We always choose failure over returning insecure "random" bytes. In general,
-//! on supported platforms, failure is highly unlikely, though not impossible.
-//! If an error does occur, then it is likely that it will occur on every call to
-//! `getrandom`, hence after the first successful call one can be reasonably
-//! confident that no errors will occur.
+//! We always choose failure over returning known insecure "random" bytes. In
+//! general, on supported platforms, failure is highly unlikely, though not
+//! impossible. If an error does occur, then it is likely that it will occur
+//! on every call to `getrandom`, hence after the first successful call one
+//! can be reasonably confident that no errors will occur.
 //!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
