@@ -72,8 +72,7 @@
 //! that you are building for an environment containing JavaScript, and will
 //! call the appropriate methods. Both web browser (main window and Web Workers)
 //! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets) using the
-//! [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) toolchain.
+//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
 //!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
@@ -154,6 +153,7 @@
 //! [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
 //! [`random_get`]: https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 //! [WebAssembly support]: #webassembly-support
+//! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
