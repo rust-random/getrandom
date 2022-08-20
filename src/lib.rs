@@ -74,6 +74,14 @@
 //! and Node.js environments are supported, invoking the methods
 //! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
 //!
+//! To enable `js` Cargo feature. Place following line under dependencies
+//! section in your `Cargo.toml` file. Even `getrandom` is not direct dependency
+//! for you, you still need to add this line to enable the `js` feature.
+//! ```toml
+//! [dependencies]
+//! getrandom = { version = "0.2", features = ["js"] }
+//! ```
+//!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
 //! ### Custom implementations
