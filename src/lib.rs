@@ -82,7 +82,9 @@
 //! getrandom = { version = "0.2", features = ["js"] }
 //! ```
 //!
-//! This feature has no effect on targets other than `wasm32-unknown-unknown`.
+//! Note this feature should only be enabled for binary crates. Not for library,
+//! tests and benchmarks crates. This feature has no effect on targets other
+//! than `wasm32-unknown-unknown`.
 //!
 //! ### Custom implementations
 //!
