@@ -102,16 +102,6 @@
 //! using `rdrand` and `js` Cargo features) continue using their normal
 //! implementations even if a function is registered.
 //!
-//! ### Indirect Dependencies
-//!
-//! If `getrandom` is not a direct dependency of your crate, you can still
-//! enable any of the above fallback behaviors by enabling the relevant
-//! feature in your root crate's `Cargo.toml`:
-//! ```toml
-//! [dependencies]
-//! getrandom = { version = "0.2", features = ["js"] }
-//! ```
-//!
 //! ## Early boot
 //!
 //! Sometimes, early in the boot process, the OS has not collected enough
