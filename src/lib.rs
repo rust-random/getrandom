@@ -86,7 +86,8 @@
 //!
 //! This feature should only be enabled for binary, test, or benchmark crates.
 //! Library crates should generally not enable this feature, leaving such a
-//! decision to *users* of their library.
+//! decision to *users* of their library. Also, libraries should not introduce
+//! their own `js` features *just* to enable `getrandom`'s `js` feature.
 //!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
