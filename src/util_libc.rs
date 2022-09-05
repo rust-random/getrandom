@@ -32,6 +32,8 @@ cfg_if! {
             fn __errno() -> *mut libc::c_int;
         }
         use __errno as errno_location;
+    } else if #[cfg(target_os = "aix")] {
+        use libc::_Errno as errno_location;
     }
 }
 

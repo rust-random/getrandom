@@ -25,6 +25,7 @@ use core::{
 #[cfg(any(target_os = "solaris", target_os = "illumos"))]
 const FILE_PATH: &str = "/dev/random\0";
 #[cfg(any(
+    target_os = "aix",
     target_os = "android",
     target_os = "linux",
     target_os = "redox",
