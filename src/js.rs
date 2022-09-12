@@ -85,7 +85,7 @@ fn is_node(global: &Global) -> bool {
     if process.is_object() {
         let versions = process.versions();
         if versions.is_object() {
-            return versions.node().is_string();
+            return versions.node().is_string() && versions.electron().is_undefined();
         }
     }
     false
@@ -126,4 +126,6 @@ extern "C" {
     type Versions;
     #[wasm_bindgen(method, getter)]
     fn node(this: &Versions) -> JsValue;
+    #[wasm_bindgen(method, getter)]
+    fn electron(this: &Versions) -> JsValue;
 }
