@@ -43,15 +43,15 @@ impl Error {
     pub const FAILED_RDRAND: Error = internal_error(5);
     /// RDRAND instruction unsupported on this target.
     pub const NO_RDRAND: Error = internal_error(6);
-    /// The browser does not have support for `self.crypto`.
+    /// The environment does not support the Web Crypto API.
     pub const WEB_CRYPTO: Error = internal_error(7);
-    /// The browser does not have support for `crypto.getRandomValues`.
+    /// Calling Web Crypto API `crypto.getRandomValues` failed.
     pub const WEB_GET_RANDOM_VALUES: Error = internal_error(8);
     /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
     pub const VXWORKS_RAND_SECURE: Error = internal_error(11);
-    /// NodeJS does not have support for the `crypto` module.
+    /// Node.js does not have the `crypto` CommonJS module.
     pub const NODE_CRYPTO: Error = internal_error(12);
-    /// NodeJS does not have support for `crypto.randomFillSync`.
+    /// Calling Node.js function `crypto.randomFillSync` failed.
     pub const NODE_RANDOM_FILL_SYNC: Error = internal_error(13);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
@@ -166,10 +166,10 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
         Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
         Error::WEB_CRYPTO => Some("Web Crypto API is unavailable"),
-        Error::WEB_GET_RANDOM_VALUES => Some("Web API crypto.getRandomValues is unavailable"),
+        Error::WEB_GET_RANDOM_VALUES => Some("Calling Web API crypto.getRandomValues failed"),
         Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
-        Error::NODE_CRYPTO => Some("Node.js crypto module is unavailable"),
-        Error::NODE_RANDOM_FILL_SYNC => Some("Node.js API crypto.randomFillSync is unavailable"),
+        Error::NODE_CRYPTO => Some("Node.js crypto CommonJS module is unavailable"),
+        Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
         _ => None,
     }
 }
