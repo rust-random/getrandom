@@ -53,6 +53,9 @@ impl Error {
     pub const NODE_CRYPTO: Error = internal_error(12);
     /// Calling Node.js function `crypto.randomFillSync` failed.
     pub const NODE_RANDOM_FILL_SYNC: Error = internal_error(13);
+    /// Called from an ES module on Node.js. This is unsupported, see:
+    /// https://docs.rs/getrandom#nodejs-es6-module-support.
+    pub const NODE_ES_MODULE: Error = internal_error(14);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -170,6 +173,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
         Error::NODE_CRYPTO => Some("Node.js crypto CommonJS module is unavailable"),
         Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
+        Error::NODE_ES_MODULE => Some("Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es6-module-support"),
         _ => None,
     }
 }

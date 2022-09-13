@@ -10,7 +10,7 @@ use crate::Error;
 extern crate std;
 use std::thread_local;
 
-use js_sys::{global, Uint8Array};
+use js_sys::{global, Function, Uint8Array};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
@@ -68,10 +68,14 @@ fn getrandom_init() -> Result<RngSource, Error> {
         c if c.is_object() => c,
         // Node.js CommonJS Crypto module
         _ if is_node(&global) => {
-            match MODULE.require("crypto") {
-                Ok(n) if n.is_object() => return Ok(RngSource::Node(n)),
-                _ => return Err(Error::NODE_CRYPTO),
-            };
+            // If require isn't a valid function, we are in an ES module.
+            match Module::require_fn().dyn_into::<Function>() {
+                Ok(require_fn) => match require_fn.call1(&global, &JsValue::from_str("crypto")) {
+                    Ok(n) => return Ok(RngSource::Node(n.unchecked_into())),
+                    Err(_) => return Err(Error::NODE_CRYPTO),
+                },
+                Err(_) => return Err(Error::NODE_ES_MODULE),
+            }
         }
         // IE 11 Workaround
         _ => match global.ms_crypto() {
@@ -122,10 +126,8 @@ extern "C" {
     // js_name = "module.require", so that Webpack doesn't give a warning. See:
     //   https://github.com/rust-random/getrandom/issues/224
     type Module;
-    #[wasm_bindgen(js_name = module)]
-    static MODULE: Module;
-    #[wasm_bindgen(method, catch)]
-    fn require(this: &Module, s: &str) -> Result<NodeCrypto, JsValue>;
+    #[wasm_bindgen(getter, static_method_of = Module, js_class = module, js_name = require)]
+    fn require_fn() -> JsValue;
 
     // Node JS process Object (https://nodejs.org/api/process.html)
     #[wasm_bindgen(method, getter)]
