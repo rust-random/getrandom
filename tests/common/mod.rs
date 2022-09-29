@@ -1,4 +1,4 @@
-use super::getrandom_impl;
+use super::getrandom;
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -9,16 +9,16 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[test]
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
-    getrandom_impl(&mut [0u8; 0]).unwrap();
+    getrandom(&mut [0u8; 0]).unwrap();
 }
 
 #[test]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
-    getrandom_impl(&mut v1).unwrap();
+    getrandom(&mut v1).unwrap();
 
     let mut v2 = [0u8; 1000];
-    getrandom_impl(&mut v2).unwrap();
+    getrandom(&mut v2).unwrap();
 
     let mut n_diff_bits = 0;
     for i in 0..v1.len() {
@@ -32,7 +32,7 @@ fn test_diff() {
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
-    getrandom_impl(&mut huge).unwrap();
+    getrandom(&mut huge).unwrap();
 }
 
 // On WASM, the thread API always fails/panics
@@ -53,7 +53,7 @@ fn test_multithreading() {
             let mut v = [0u8; 1000];
 
             for _ in 0..100 {
-                getrandom_impl(&mut v).unwrap();
+                getrandom(&mut v).unwrap();
                 thread::yield_now();
             }
         });

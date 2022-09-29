@@ -78,9 +78,9 @@ macro_rules! register_custom_getrandom {
     ($path:path) => {
         // We use an extern "C" function to get the guarantees of a stable ABI.
         #[no_mangle]
-        extern "C" fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+        extern "C" fn __getrandom_custom(dst: *mut u8, len: usize) -> u32 {
             let f: fn(&mut [u8]) -> Result<(), $crate::Error> = $path;
-            let slice = unsafe { ::core::slice::from_raw_parts_mut(dest, len) };
+            let slice = unsafe { ::core::slice::from_raw_parts_mut(dst, len) };
             match f(slice) {
                 Ok(()) => 0,
                 Err(e) => e.code().get(),
@@ -90,11 +90,11 @@ macro_rules! register_custom_getrandom {
 }
 
 #[allow(dead_code)]
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     extern "C" {
-        fn __getrandom_custom(dest: *mut u8, len: usize) -> u32;
+        fn __getrandom_custom(dst: *mut u8, len: usize) -> u32;
     }
-    let ret = unsafe { __getrandom_custom(dest.as_mut_ptr(), dest.len()) };
+    let ret = unsafe { __getrandom_custom(dst, len) };
     match NonZeroU32::new(ret) {
         None => Ok(()),
         Some(code) => Err(Error::from(code)),

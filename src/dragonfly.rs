@@ -13,15 +13,15 @@ use crate::{
     Error,
 };
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
     type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
     // getrandom(2) was introduced in DragonflyBSD 5.7
     if let Some(fptr) = GETRANDOM.ptr() {
-        let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
-        return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
+        let func: GetRandomFn = core::mem::transmute(fptr);
+        sys_fill_exact(dst, len, |cdst, clen| func(cdst, clen, 0))
     } else {
-        use_file::getrandom_inner(dest)
+        use_file::getrandom_inner(dst, len)
     }
 }

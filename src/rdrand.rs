@@ -8,7 +8,7 @@
 
 //! Implementation for SGX using RDRAND instruction
 use crate::Error;
-use core::mem;
+use core::{mem, ptr};
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
@@ -69,29 +69,31 @@ fn is_rdrand_supported() -> bool {
     HAS_RDRAND.unsync_init(|| unsafe { (arch::__cpuid(1).ecx & FLAG) != 0 })
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     if !is_rdrand_supported() {
         return Err(Error::NO_RDRAND);
     }
 
     // SAFETY: After this point, rdrand is supported, so calling the rdrand
     // functions is not undefined behavior.
-    unsafe { rdrand_exact(dest) }
+    rdrand_exact(dst, len)
 }
 
 #[target_feature(enable = "rdrand")]
-unsafe fn rdrand_exact(dest: &mut [u8]) -> Result<(), Error> {
-    // We use chunks_exact_mut instead of chunks_mut as it allows almost all
-    // calls to memcpy to be elided by the compiler.
-    let mut chunks = dest.chunks_exact_mut(WORD_SIZE);
-    for chunk in chunks.by_ref() {
-        chunk.copy_from_slice(&rdrand()?);
+unsafe fn rdrand_exact(mut dst: *mut u8, mut len: usize) -> Result<(), Error> {
+    while len >= WORD_SIZE {
+        // TODO: use `cast` on MSRV bump to 1.38
+        ptr::write(dst as *mut [u8; WORD_SIZE], rdrand()?);
+        dst = dst.add(WORD_SIZE);
+        len -= WORD_SIZE;
     }
 
-    let tail = chunks.into_remainder();
-    let n = tail.len();
-    if n > 0 {
-        tail.copy_from_slice(&rdrand()?[..n]);
+    if len != 0 {
+        let src = rdrand()?;
+        // TODO: use `cast` on MSRV bump to 1.38
+        let src_ptr = &src as *const [u8; WORD_SIZE] as *const u8;
+        ptr::copy_nonoverlapping(src_ptr, dst, len)
     }
+
     Ok(())
 }

@@ -13,15 +13,16 @@ use crate::{
     {use_file, Error},
 };
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
-        sys_fill_exact(dest, |buf| unsafe {
-            getrandom(buf.as_mut_ptr() as *mut libc::c_void, buf.len(), 0)
+        // TODO: use `cast` on MSRV bump to 1.38
+        sys_fill_exact(dst, len, |cdst, clen| {
+            getrandom(cdst as *mut libc::c_void, clen, 0)
         })
     } else {
-        use_file::getrandom_inner(dest)
+        use_file::getrandom_inner(dst, len)
     }
 }
 

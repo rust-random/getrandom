@@ -7,22 +7,20 @@
 // except according to those terms.
 
 //! Implementation for FreeBSD and NetBSD
-use crate::{util_libc::sys_fill_exact, Error};
+use crate::{util::raw_chunks, util_libc::sys_fill_exact, Error};
 use core::ptr;
 
-fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
+unsafe fn kern_arnd(dst: *mut u8, mut len: usize) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
-    let mut len = buf.len();
-    let ret = unsafe {
-        libc::sysctl(
-            MIB.as_ptr(),
-            MIB.len() as libc::c_uint,
-            buf.as_mut_ptr() as *mut _,
-            &mut len,
-            ptr::null(),
-            0,
-        )
-    };
+    // TODO: use `cast` on MSRV bump to 1.38
+    let ret = libc::sysctl(
+        MIB.as_ptr(),
+        MIB.len() as libc::c_uint,
+        dst as *mut libc::c_void,
+        &mut len,
+        ptr::null(),
+        0,
+    );
     if ret == -1 {
         -1
     } else {
@@ -30,7 +28,7 @@ fn kern_arnd(buf: &mut [u8]) -> libc::ssize_t {
     }
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     // getrandom(2) was introduced in FreeBSD 12.0 and NetBSD 10.0
     #[cfg(target_os = "freebsd")]
     {
@@ -40,14 +38,13 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
         if let Some(fptr) = GETRANDOM.ptr() {
-            let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
-            return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
+            let func: GetRandomFn = core::mem::transmute(fptr);
+            return sys_fill_exact(dst, len, |cdst, clen| func(cdst, clen, 0));
         }
     }
     // Both FreeBSD and NetBSD will only return up to 256 bytes at a time, and
     // older NetBSD kernels will fail on longer buffers.
-    for chunk in dest.chunks_mut(256) {
-        sys_fill_exact(chunk, kern_arnd)?
-    }
-    Ok(())
+    raw_chunks(dst, len, 256, |cdst, clen| {
+        sys_fill_exact(cdst, clen, |cdst2, clen2| kern_arnd(cdst2, clen2))
+    })
 }

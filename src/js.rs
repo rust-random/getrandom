@@ -5,7 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use crate::Error;
+use crate::{util::raw_chunks, Error};
 
 extern crate std;
 use std::thread_local;
@@ -27,32 +27,34 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub(crate) unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
         match source {
             RngSource::Node(n) => {
-                if n.random_fill_sync(dest).is_err() {
-                    return Err(Error::NODE_RANDOM_FILL_SYNC);
-                }
+                // We have to create a slice to pass it to the Node function.
+                // Since `dst` may be uninitialized, we have to initialize it first.
+                core::ptr::write_bytes(dst, 0, len);
+                let dst = core::slice::from_raw_parts_mut(dst, len);
+                n.random_fill_sync(dst)
+                    .map_err(|_| Error::NODE_RANDOM_FILL_SYNC)
             }
             RngSource::Browser(crypto, buf) => {
                 // getRandomValues does not work with all types of WASM memory,
                 // so we initially write to browser memory to avoid exceptions.
-                for chunk in dest.chunks_mut(BROWSER_CRYPTO_BUFFER_SIZE) {
+                raw_chunks(dst, len, BROWSER_CRYPTO_BUFFER_SIZE, |cdst, clen| {
                     // The chunk can be smaller than buf's length, so we call to
                     // JS to create a smaller view of buf without allocation.
-                    let sub_buf = buf.subarray(0, chunk.len() as u32);
-
-                    if crypto.get_random_values(&sub_buf).is_err() {
-                        return Err(Error::WEB_GET_RANDOM_VALUES);
-                    }
-                    sub_buf.copy_to(chunk);
-                }
+                    let sub_buf = buf.subarray(0, clen as u32);
+                    crypto
+                        .get_random_values(&sub_buf)
+                        .map_err(|_| Error::WEB_GET_RANDOM_VALUES)?;
+                    sub_buf.raw_copy_to_ptr(cdst);
+                    Ok(())
+                })
             }
-        };
-        Ok(())
+        }
     })
 }
 

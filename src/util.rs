@@ -62,3 +62,20 @@ impl LazyBool {
         self.0.unsync_init(|| init() as usize) != 0
     }
 }
+
+pub unsafe fn raw_chunks(
+    mut dst: *mut u8,
+    mut len: usize,
+    chunk_len: usize,
+    f: impl Fn(*mut u8, usize) -> Result<(), crate::Error>,
+) -> Result<(), crate::Error> {
+    while len >= chunk_len {
+        f(dst, chunk_len)?;
+        dst = dst.add(chunk_len);
+        len -= chunk_len;
+    }
+    if len != 0 {
+        f(dst, len)?;
+    }
+    Ok(())
+}

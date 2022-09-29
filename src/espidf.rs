@@ -14,13 +14,13 @@ extern "C" {
     fn esp_fill_random(buf: *mut c_void, len: usize) -> u32;
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     // Not that NOT enabling WiFi, BT, or the voltage noise entropy source (via `bootloader_random_enable`)
     // will cause ESP-IDF to return pseudo-random numbers based on the voltage noise entropy, after the initial boot process:
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html
     //
     // However tracking if some of these entropy sources is enabled is way too difficult to implement here
-    unsafe { esp_fill_random(dest.as_mut_ptr().cast(), dest.len()) };
-
+    // TODO: use `cast` on MSRV bump to 1.38
+    esp_fill_random(dst as *mut c_void, len);
     Ok(())
 }

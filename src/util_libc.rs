@@ -58,12 +58,13 @@ pub fn last_os_error() -> Error {
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
 //   - should return -1 and set errno on failure
 //   - should return the number of bytes written on success
-pub fn sys_fill_exact(
-    mut buf: &mut [u8],
-    sys_fill: impl Fn(&mut [u8]) -> libc::ssize_t,
+pub unsafe fn sys_fill_exact(
+    mut dst: *mut u8,
+    mut len: usize,
+    sys_fill: impl Fn(*mut u8, usize) -> libc::ssize_t,
 ) -> Result<(), Error> {
-    while !buf.is_empty() {
-        let res = sys_fill(buf);
+    while len != 0 {
+        let res = sys_fill(dst, len);
         if res < 0 {
             let err = last_os_error();
             // We should try again if the call was interrupted.
@@ -73,7 +74,9 @@ pub fn sys_fill_exact(
         } else {
             // We don't check for EOF (ret = 0) as the data we are reading
             // should be an infinite stream of random bytes.
-            buf = &mut buf[(res as usize)..];
+            let res = res as usize;
+            dst = dst.add(res);
+            len -= res;
         }
     }
     Ok(())

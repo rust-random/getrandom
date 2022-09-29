@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crate::Error;
+use crate::{util::raw_chunks, Error};
 use core::{ffi::c_void, num::NonZeroU32, ptr};
 
 const BCRYPT_USE_SYSTEM_PREFERRED_RNG: u32 = 0x00000002;
@@ -21,18 +21,16 @@ extern "system" {
     ) -> u32;
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     // Prevent overflow of u32
-    for chunk in dest.chunks_mut(u32::max_value() as usize) {
+    raw_chunks(dst, len, u32::max_value() as usize, |cdst, clen| {
         // BCryptGenRandom was introduced in Windows Vista
-        let ret = unsafe {
-            BCryptGenRandom(
-                ptr::null_mut(),
-                chunk.as_mut_ptr(),
-                chunk.len() as u32,
-                BCRYPT_USE_SYSTEM_PREFERRED_RNG,
-            )
-        };
+        let ret = BCryptGenRandom(
+            ptr::null_mut(),
+            cdst,
+            clen as u32,
+            BCRYPT_USE_SYSTEM_PREFERRED_RNG,
+        );
         // NTSTATUS codes use the two highest bits for severity status.
         if ret >> 30 == 0b11 {
             // We zeroize the highest bit, so the error code will reside
@@ -41,9 +39,10 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
             // SAFETY: the second highest bit is always equal to one,
             // so it's impossible to get zero. Unfortunately the type
             // system does not have a way to express this yet.
-            let code = unsafe { NonZeroU32::new_unchecked(code) };
-            return Err(Error::from(code));
+            let code = NonZeroU32::new_unchecked(code);
+            Err(Error::from(code))
+        } else {
+            Ok(())
         }
-    }
-    Ok(())
+    })
 }

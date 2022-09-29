@@ -14,8 +14,8 @@ extern "C" {
     pub fn SOLID_RNG_SampleRandomBytes(buffer: *mut u8, length: usize) -> i32;
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    let ret = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr(), dest.len()) };
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
+    let ret = SOLID_RNG_SampleRandomBytes(dst, len);
     if ret >= 0 {
         Ok(())
     } else {

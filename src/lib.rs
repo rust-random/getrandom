@@ -251,7 +251,7 @@ cfg_if! {
     }
 }
 
-/// Fill `dest` with random bytes from the system's preferred random number
+/// Fill `dst` with random bytes from the system's preferred random number
 /// source.
 ///
 /// This function returns an error on any failure, including partial reads. We
@@ -264,9 +264,41 @@ cfg_if! {
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    if dest.is_empty() {
-        return Ok(());
+#[inline]
+pub fn getrandom(dst: &mut [u8]) -> Result<(), Error> {
+    unsafe { getrandom_raw(dst.as_mut_ptr(), dst.len()) }
+}
+
+/// Raw version of the `getrandom` function.
+///
+/// If this function returns `Ok(())`, then it's safe to assume that the
+/// `len` random bytes were written to the memory pointed by `dst`.
+///
+/// # Safety
+///
+/// `dst` MUST be [valid] for writes of `len` bytes.
+///
+/// [valid]: core::ptr#safety
+///
+/// # Examples
+///
+/// ```ignore
+/// # // We ignore this doctest because `MaybeUninit` was stabilized
+/// # // in Rust 1.36, while this crate has MSRV equal to 1.34.
+/// # fn main() -> Result<(), getrandom::Error> {
+/// const BUF_SIZE: usize = 1024;
+///
+/// let buf: [u8; BUF_SIZE] = unsafe {
+///     let mut buf = core::mem::MaybeUninit::uninit();
+///     getrandom::getrandom_raw(buf.as_mut_ptr() as *mut u8, BUF_SIZE)?;
+///     buf.assume_init()
+/// };
+/// # Ok(()) }
+/// ```
+#[inline]
+pub unsafe fn getrandom_raw(dst: *mut u8, len: usize) -> Result<(), Error> {
+    match len {
+        0 => Ok(()),
+        _ => imp::getrandom_inner(dst, len),
     }
-    imp::getrandom_inner(dest)
 }

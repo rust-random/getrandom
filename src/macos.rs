@@ -9,6 +9,7 @@
 //! Implementation for macOS
 use crate::{
     use_file,
+    util::raw_chunks,
     util_libc::{last_os_error, Weak},
     Error,
 };
@@ -16,21 +17,21 @@ use core::mem;
 
 type GetEntropyFn = unsafe extern "C" fn(*mut u8, libc::size_t) -> libc::c_int;
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     // getentropy(2) was added in 10.12, Rust supports 10.7+
     static GETENTROPY: Weak = unsafe { Weak::new("getentropy\0") };
     if let Some(fptr) = GETENTROPY.ptr() {
-        let func: GetEntropyFn = unsafe { mem::transmute(fptr) };
-        for chunk in dest.chunks_mut(256) {
-            let ret = unsafe { func(chunk.as_mut_ptr(), chunk.len()) };
-            if ret != 0 {
-                return Err(last_os_error());
+        let func: GetEntropyFn = mem::transmute(fptr);
+        raw_chunks(dst, len, 256, |cdst, clen| {
+            let ret = func(cdst, clen);
+            match ret {
+                0 => Ok(()),
+                _ => Err(last_os_error()),
             }
-        }
-        Ok(())
+        })
     } else {
         // We fallback to reading from /dev/random instead of SecRandomCopyBytes
         // to avoid high startup costs and linking the Security framework.
-        use_file::getrandom_inner(dest)
+        use_file::getrandom_inner(dst, len)
     }
 }

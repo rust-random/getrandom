@@ -29,17 +29,22 @@ const FILE_PATH: &str = "/dev/random\0";
 #[cfg(any(target_os = "android", target_os = "linux", target_os = "redox"))]
 const FILE_PATH: &str = "/dev/urandom\0";
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     let fd = get_rng_fd()?;
-    let read = |buf: &mut [u8]| unsafe { libc::read(fd, buf.as_mut_ptr() as *mut _, buf.len()) };
+    let read = |dst: *mut u8, len: usize| libc::read(fd, dst as *mut _, len);
 
     if cfg!(target_os = "emscripten") {
-        // `Crypto.getRandomValues` documents `dest` should be at most 65536 bytes.
-        for chunk in dest.chunks_mut(65536) {
-            sys_fill_exact(chunk, read)?;
+        // `Crypto.getRandomValues` documents `len` should be at most 65536 bytes.
+        let mut dst = dst;
+        let mut len = len;
+        while len != 0 {
+            let chunk_len = core::cmp::min(len, 65536);
+            sys_fill_exact(dst, chunk_len, read)?;
+            dst = dst.add(chunk_len);
+            len -= chunk_len;
         }
     } else {
-        sys_fill_exact(dest, read)?;
+        sys_fill_exact(dst, len, read)?;
     }
     Ok(())
 }

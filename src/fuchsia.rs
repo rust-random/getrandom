@@ -14,7 +14,7 @@ extern "C" {
     fn zx_cprng_draw(buffer: *mut u8, length: usize);
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
-    unsafe { zx_cprng_draw(dest.as_mut_ptr(), dest.len()) }
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
+    zx_cprng_draw(dst, len);
     Ok(())
 }
