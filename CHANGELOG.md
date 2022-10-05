@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `getrandom_raw` and `getrandom_uninit` functions [#279]
+
+### Changed
+- Bump MSRV to 1.36 [#279]
+
+[#279]: https://github.com/rust-random/getrandom/pull/279
+
 ## [0.2.7] - 2022-06-14
 ### Changed
 - Update `wasi` dependency to `0.11` [#253]

@@ -167,6 +167,8 @@
 #[macro_use]
 extern crate cfg_if;
 
+use core::mem::MaybeUninit;
+
 mod error;
 mod util;
 // To prevent a breaking change when targets are added, we always export the
@@ -282,9 +284,7 @@ pub fn getrandom(dst: &mut [u8]) -> Result<(), Error> {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// # // We ignore this doctest because `MaybeUninit` was stabilized
-/// # // in Rust 1.36, while this crate has MSRV equal to 1.34.
+/// ```
 /// # fn main() -> Result<(), getrandom::Error> {
 /// const BUF_SIZE: usize = 1024;
 ///
@@ -300,5 +300,32 @@ pub unsafe fn getrandom_raw(dst: *mut u8, len: usize) -> Result<(), Error> {
     match len {
         0 => Ok(()),
         _ => imp::getrandom_inner(dst, len),
+    }
+}
+
+/// Version of the `getrandom` function which fills uninitialized buffer
+/// and returns initialized slice of equal length.
+///
+/// On successful completion this function is guaranteed to return slice
+/// which points to the same memory as `dst` and has the same length.
+/// In other words, it's safe to assume that `dst` is initialized after
+/// this function has returned `Ok`.
+///
+/// # Examples
+///
+/// ```ignore
+/// # // We ignore this test since `uninit_array` requires Nigthly
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
+/// let buf: &mut [u8] = getrandom::getrandom_uninit(&mut buf)?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn getrandom_uninit(dst: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+    let dst_ptr = dst.as_mut_ptr() as *mut u8;
+    let dst_len = dst.len();
+    unsafe {
+        getrandom_raw(dst_ptr, dst_len)?;
+        Ok(core::slice::from_raw_parts_mut(dst_ptr, dst_len))
     }
 }
