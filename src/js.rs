@@ -68,8 +68,8 @@ fn getrandom_init() -> Result<RngSource, Error> {
         c if c.is_object() => c,
         // Node.js CommonJS Crypto module
         _ if is_node(&global) => {
-            // If require isn't a valid function, we are in an ES module.
-            match Module::require_fn().dyn_into::<Function>() {
+            // If module.require isn't a valid function, we are in an ES module.
+            match Module::require_fn().and_then(JsCast::dyn_into::<Function>) {
                 Ok(require_fn) => match require_fn.call1(&global, &JsValue::from_str("crypto")) {
                     Ok(n) => return Ok(RngSource::Node(n.unchecked_into())),
                     Err(_) => return Err(Error::NODE_CRYPTO),
@@ -126,8 +126,8 @@ extern "C" {
     // js_name = "module.require", so that Webpack doesn't give a warning. See:
     //   https://github.com/rust-random/getrandom/issues/224
     type Module;
-    #[wasm_bindgen(getter, static_method_of = Module, js_class = module, js_name = require)]
-    fn require_fn() -> JsValue;
+    #[wasm_bindgen(getter, static_method_of = Module, js_class = module, js_name = require, catch)]
+    fn require_fn() -> Result<JsValue, JsValue>;
 
     // Node JS process Object (https://nodejs.org/api/process.html)
     #[wasm_bindgen(method, getter)]
