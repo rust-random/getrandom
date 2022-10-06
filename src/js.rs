@@ -122,9 +122,12 @@ extern "C" {
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
     fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
 
-    // We use a "module" object here instead of just annotating require() with
-    // js_name = "module.require", so that Webpack doesn't give a warning. See:
+    // Ideally, we would just use `fn require(s: &str)` here. However, doing
+    // this causes a Webpack warning. So we instead return the function itself
+    // and manually invoke it using call1. This also lets us to check that the
+    // function actually exists, allowing for better error messages. See:
     //   https://github.com/rust-random/getrandom/issues/224
+    //   https://github.com/rust-random/getrandom/issues/256
     type Module;
     #[wasm_bindgen(getter, static_method_of = Module, js_class = module, js_name = require, catch)]
     fn require_fn() -> Result<JsValue, JsValue>;
