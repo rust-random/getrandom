@@ -31,7 +31,7 @@
 //! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
 //! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues`], see [WebAssembly support]
-//! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomBytes`], see [WebAssembly support]
+//! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomFillSync`], see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
 //!
@@ -72,10 +72,36 @@
 //! that you are building for an environment containing JavaScript, and will
 //! call the appropriate methods. Both web browser (main window and Web Workers)
 //! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets) using the
-//! [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) toolchain.
+//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
+//!
+//! To enable the `js` Cargo feature, add the following to the `dependencies`
+//! section in your `Cargo.toml` file:
+//! ```toml
+//! [dependencies]
+//! getrandom = { version = "0.2", features = ["js"] }
+//! ```
+//!
+//! This can be done even if `getrandom` is not a direct dependency. Cargo
+//! allows crates to enable features for indirect dependencies.
+//!
+//! This feature should only be enabled for binary, test, or benchmark crates.
+//! Library crates should generally not enable this feature, leaving such a
+//! decision to *users* of their library. Also, libraries should not introduce
+//! their own `js` features *just* to enable `getrandom`'s `js` feature.
 //!
 //! This feature has no effect on targets other than `wasm32-unknown-unknown`.
+//!
+//! #### Node.js ES module support
+//!
+//! Node.js supports both [CommonJS modules] and [ES modules]. Due to
+//! limitations in wasm-bindgen's [`module`] support, we cannot directly
+//! support ES Modules running on Node.js. However, on Node v15 and later, the
+//! module author can add a simple shim to support the Web Cryptography API:
+//! ```js
+//! import { webcrypto } from 'node:crypto'
+//! globalThis.crypto = webcrypto
+//! ```
+//! This crate will then use the provided `webcrypto` implementation.
 //!
 //! ### Custom implementations
 //!
@@ -88,16 +114,6 @@
 //! that would otherwise not compile. Any supported targets (including those
 //! using `rdrand` and `js` Cargo features) continue using their normal
 //! implementations even if a function is registered.
-//!
-//! ### Indirect Dependencies
-//!
-//! If `getrandom` is not a direct dependency of your crate, you can still
-//! enable any of the above fallback behaviors by enabling the relevant
-//! feature in your root crate's `Cargo.toml`:
-//! ```toml
-//! [dependencies]
-//! getrandom = { version = "0.2", features = ["js"] }
-//! ```
 //!
 //! ## Early boot
 //!
@@ -150,10 +166,14 @@
 //! [`RDRAND`]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [`SecRandomCopyBytes`]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
 //! [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
-//! [`crypto.randomBytes`]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback
+//! [`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 //! [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
 //! [`random_get`]: https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 //! [WebAssembly support]: #webassembly-support
+//! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
+//! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
+//! [CommonJS modules]: https://nodejs.org/api/modules.html
+//! [ES modules]: https://nodejs.org/api/esm.html
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
