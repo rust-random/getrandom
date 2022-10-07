@@ -90,11 +90,11 @@ macro_rules! register_custom_getrandom {
 }
 
 #[allow(dead_code)]
-pub fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
+pub unsafe fn getrandom_inner(dst: *mut u8, len: usize) -> Result<(), Error> {
     extern "C" {
         fn __getrandom_custom(dst: *mut u8, len: usize) -> u32;
     }
-    let ret = unsafe { __getrandom_custom(dst, len) };
+    let ret = __getrandom_custom(dst, len);
     match NonZeroU32::new(ret) {
         None => Ok(()),
         Some(code) => Err(Error::from(code)),
