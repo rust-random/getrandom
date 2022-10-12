@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `getrandom_uninit` [#291]
+
+### Breaking Changes
+- Update MSRV to 1.36 [#291]
+
+[#291]: https://github.com/rust-random/getrandom/pull/291
+
 ## [0.2.8] - 2022-10-20
 ### Changed
 - The [Web Cryptography API] will now be preferred on `wasm32-unknown-unknown`

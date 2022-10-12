@@ -1,4 +1,5 @@
 use super::getrandom_impl;
+use core::mem::{self, MaybeUninit};
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -9,16 +10,16 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[test]
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
-    getrandom_impl(&mut [0u8; 0]).unwrap();
+    getrandom_impl(unsafe { slice_as_uninit_mut(&mut [0u8; 0]) }).unwrap();
 }
 
 #[test]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
-    getrandom_impl(&mut v1).unwrap();
+    getrandom_impl(unsafe { slice_as_uninit_mut(&mut v1) }).unwrap();
 
     let mut v2 = [0u8; 1000];
-    getrandom_impl(&mut v2).unwrap();
+    getrandom_impl(unsafe { slice_as_uninit_mut(&mut v2) }).unwrap();
 
     let mut n_diff_bits = 0;
     for i in 0..v1.len() {
@@ -32,7 +33,7 @@ fn test_diff() {
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
-    getrandom_impl(&mut huge).unwrap();
+    getrandom_impl(unsafe { slice_as_uninit_mut(&mut huge) }).unwrap();
 }
 
 // On WASM, the thread API always fails/panics
@@ -51,9 +52,9 @@ fn test_multithreading() {
             // wait until all the tasks are ready to go.
             rx.recv().unwrap();
             let mut v = [0u8; 1000];
-
+            let y = unsafe { slice_as_uninit_mut(&mut v) };
             for _ in 0..100 {
-                getrandom_impl(&mut v).unwrap();
+                getrandom_impl(y).unwrap();
                 thread::yield_now();
             }
         });
@@ -63,4 +64,10 @@ fn test_multithreading() {
     for tx in txs.iter() {
         tx.send(()).unwrap();
     }
+}
+
+#[inline(always)]
+unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
+    // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
+    mem::transmute(slice)
 }

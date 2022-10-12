@@ -14,6 +14,7 @@ use crate::{
 };
 use core::{
     cell::UnsafeCell,
+    mem::MaybeUninit,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
 
@@ -29,9 +30,11 @@ const FILE_PATH: &str = "/dev/random\0";
 #[cfg(any(target_os = "android", target_os = "linux", target_os = "redox"))]
 const FILE_PATH: &str = "/dev/urandom\0";
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
-    let read = |buf: &mut [u8]| unsafe { libc::read(fd, buf.as_mut_ptr() as *mut _, buf.len()) };
+    let read = |buf: &mut [MaybeUninit<u8>]| unsafe {
+        libc::read(fd, buf.as_mut_ptr() as *mut _, buf.len())
+    };
 
     if cfg!(target_os = "emscripten") {
         // `Crypto.getRandomValues` documents `dest` should be at most 65536 bytes.

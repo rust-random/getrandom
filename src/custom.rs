@@ -7,8 +7,8 @@
 // except according to those terms.
 
 //! An implementation which calls out to an externally defined function.
-use crate::Error;
-use core::num::NonZeroU32;
+use crate::{util::uninit_slice_fill_zero, Error};
+use core::{mem::MaybeUninit, num::NonZeroU32};
 
 /// Register a function to be invoked by `getrandom` on unsupported targets.
 ///
@@ -90,10 +90,16 @@ macro_rules! register_custom_getrandom {
 }
 
 #[allow(dead_code)]
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     extern "C" {
         fn __getrandom_custom(dest: *mut u8, len: usize) -> u32;
     }
+    // Previously we always passed a valid, initialized slice to
+    // `__getrandom_custom`. Ensure `dest` has been initialized for backward
+    // compatibility with implementations that rely on that (e.g. Rust
+    // implementations that construct a `&mut [u8]` slice from `dest` and
+    // `len`).
+    let dest = uninit_slice_fill_zero(dest);
     let ret = unsafe { __getrandom_custom(dest.as_mut_ptr(), dest.len()) };
     match NonZeroU32::new(ret) {
         None => Ok(()),
