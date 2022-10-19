@@ -7,5 +7,5 @@
 )))]
 
 // Use the normal getrandom implementation on this architecture.
-use getrandom::getrandom_uninit as getrandom_impl;
+use getrandom::getrandom as getrandom_impl;
 mod common;
