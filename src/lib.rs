@@ -327,3 +327,9 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     // since it returned `Ok`.
     Ok(unsafe { slice_assume_init_mut(dest) })
 }
+
+#[cfg(feature = "array")]
+mod array;
+
+#[cfg(feature = "array")]
+pub use array::*;

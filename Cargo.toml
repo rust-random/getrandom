@@ -30,6 +30,8 @@ js-sys = { version = "0.3", optional = true }
 wasm-bindgen-test = "0.3.18"
 
 [features]
+# Feature to enable the `array()` function, which requires Rust 1.51 or later.
+array = []
 # Implement std-only traits for getrandom::Error
 std = []
 # Feature to enable fallback RDRAND-based implementation on x86/x86_64
@@ -49,5 +51,5 @@ rustc-dep-of-std = [
 test-in-browser = []
 
 [package.metadata.docs.rs]
-features = ["std", "custom"]
+features = ["array", "custom", "std"]
 rustdoc-args = ["--cfg", "docsrs"]
