@@ -1,4 +1,6 @@
 #![feature(test)]
+#![feature(maybe_uninit_as_bytes)]
+
 extern crate test;
 
 use std::mem::MaybeUninit;
@@ -21,16 +23,9 @@ fn bench_getrandom<const N: usize>(b: &mut test::Bencher) {
 fn bench_getrandom_uninit<const N: usize>(b: &mut test::Bencher) {
     b.bytes = N as u64;
     b.iter(|| {
-        // TODO: When the feature `maybe_uninit_as_bytes` is available, use:
-        // ```
-        // let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
-        // getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
-        // test::black_box(unsafe { buf.assume_init() })
-        // ```
-        // since that is the shape we expect most callers to have.
-        let mut buf = [MaybeUninit::new(0u8); N];
-        let buf = getrandom::getrandom_uninit(&mut buf[..]).unwrap();
-        test::black_box(&buf);
+        let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
+        let buf = getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
+        test::black_box(buf);
     });
 }
 
