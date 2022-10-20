@@ -7,7 +7,7 @@
 // except according to those terms.
 #![allow(dead_code)]
 use core::{
-    mem::{self, MaybeUninit},
+    mem::MaybeUninit,
     ptr,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
@@ -73,7 +73,7 @@ impl LazyBool {
 #[inline(always)]
 pub unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &mut [T] {
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
-    mem::transmute(slice)
+    &mut *(slice as *mut [MaybeUninit<T>] as *mut [T])
 }
 
 #[inline]
@@ -87,7 +87,7 @@ pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     // There is no risk of writing a `MaybeUninit<T>` into the result since
     // the result isn't mutable.
-    unsafe { mem::transmute(slice) }
+    unsafe { &*(slice as *const [T] as *const [MaybeUninit<T>]) }
 }
 
 /// View an mutable initialized array as potentially-uninitialized.
@@ -97,5 +97,5 @@ pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
 #[inline(always)]
 pub unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
-    mem::transmute(slice)
+    &mut *(slice as *mut [T] as *mut [MaybeUninit<T>])
 }
