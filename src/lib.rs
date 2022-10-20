@@ -30,8 +30,7 @@
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
 //! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
-//! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues`], see [WebAssembly support]
-//! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomFillSync`], see [WebAssembly support]
+//! | Web Browser and Node.js | `wasm32‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
 //!
