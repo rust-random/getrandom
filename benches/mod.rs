@@ -13,7 +13,7 @@ fn bench_getrandom<const N: usize>(b: &mut test::Bencher) {
     b.iter(|| {
         let mut buf = [0u8; N];
         getrandom::getrandom(&mut buf[..]).unwrap();
-        test::black_box(&buf);
+        test::black_box(buf);
     });
 }
 
@@ -24,8 +24,9 @@ fn bench_getrandom_uninit<const N: usize>(b: &mut test::Bencher) {
     b.bytes = N as u64;
     b.iter(|| {
         let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
-        let buf = getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
-        test::black_box(buf);
+        let _ = getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
+        let buf: [u8; N] = unsafe { buf.assume_init() };
+        test::black_box(buf)
     });
 }
 
