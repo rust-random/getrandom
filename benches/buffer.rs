@@ -1,46 +1,53 @@
-#![feature(test)]
-#![feature(maybe_uninit_as_bytes)]
-
+#![feature(test, maybe_uninit_uninit_array_transpose)]
 extern crate test;
 
 use std::mem::MaybeUninit;
 
-// Used to benchmark the throughput of getrandom in an optimal scenario.
-// The buffer is hot, and does not require initialization.
+// Call getrandom on a zero-initialized stack buffer
 #[inline(always)]
-fn bench_getrandom<const N: usize>(b: &mut test::Bencher) {
-    b.bytes = N as u64;
-    b.iter(|| {
-        let mut buf = [0u8; N];
-        getrandom::getrandom(&mut buf[..]).unwrap();
-        test::black_box(buf);
-    });
+fn bench_getrandom<const N: usize>() {
+    let mut buf = [0u8; N];
+    getrandom::getrandom(&mut buf).unwrap();
+    test::black_box(&buf as &[u8]);
 }
 
-// Used to benchmark the throughput of getrandom is a slightly less optimal
-// scenario. The buffer is still hot, but requires initialization.
+// Call getrandom_uninit on an uninitialized stack buffer
 #[inline(always)]
-fn bench_getrandom_uninit<const N: usize>(b: &mut test::Bencher) {
-    b.bytes = N as u64;
-    b.iter(|| {
-        let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
-        let _ = getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
-        let buf: [u8; N] = unsafe { buf.assume_init() };
-        test::black_box(buf)
-    });
+fn bench_getrandom_uninit<const N: usize>() {
+    let mut uninit = [MaybeUninit::uninit(); N];
+    let buf: &[u8] = getrandom::getrandom_uninit(&mut uninit).unwrap();
+    test::black_box(buf);
 }
 
+// We benchmark using #[inline(never)] "inner" functions for two reasons:
+//  - Avoiding inlining reduces a source of variance when running benchmarks.
+//  - It is _much_ easier to get the assembly or IR for the inner loop.
+//
+// For example, using cargo-show-asm (https://github.com/pacak/cargo-show-asm),
+// we can get the assembly for a particular benchmark's inner loop by running:
+//   cargo asm --bench buffer --release buffer::p384::bench_getrandom::inner
 macro_rules! bench {
     ( $name:ident, $size:expr ) => {
         pub mod $name {
             #[bench]
             pub fn bench_getrandom(b: &mut test::Bencher) {
-                super::bench_getrandom::<{ $size }>(b);
-            }
+                #[inline(never)]
+                fn inner() {
+                    super::bench_getrandom::<{ $size }>()
+                }
 
+                b.bytes = $size as u64;
+                b.iter(inner);
+            }
             #[bench]
             pub fn bench_getrandom_uninit(b: &mut test::Bencher) {
-                super::bench_getrandom_uninit::<{ $size }>(b);
+                #[inline(never)]
+                fn inner() {
+                    super::bench_getrandom_uninit::<{ $size }>()
+                }
+
+                b.bytes = $size as u64;
+                b.iter(inner);
             }
         }
     };
