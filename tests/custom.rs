@@ -7,8 +7,6 @@
 ))]
 
 use wasm_bindgen_test::wasm_bindgen_test as test;
-#[cfg(feature = "test-in-browser")]
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 use core::num::NonZeroU32;
 use getrandom::{getrandom, register_custom_getrandom, Error};
@@ -32,6 +30,9 @@ fn super_insecure_rng(buf: &mut [u8]) -> Result<(), Error> {
 }
 
 register_custom_getrandom!(super_insecure_rng);
+
+use getrandom::getrandom as getrandom_impl;
+mod common;
 
 #[test]
 fn custom_rng_output() {

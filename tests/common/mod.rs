@@ -13,6 +13,7 @@ fn test_zero() {
 }
 
 #[test]
+#[cfg(not(feature = "custom"))]
 fn test_diff() {
     let mut v1 = [0u8; 1000];
     getrandom_impl(&mut v1).unwrap();
