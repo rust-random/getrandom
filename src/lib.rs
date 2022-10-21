@@ -322,7 +322,9 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
 /// ```
 #[inline]
 pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
-    imp::getrandom_inner(dest)?;
+    if !dest.is_empty() {
+        imp::getrandom_inner(dest)?;
+    }
     // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
     // since it returned `Ok`.
     Ok(unsafe { slice_assume_init_mut(dest) })
