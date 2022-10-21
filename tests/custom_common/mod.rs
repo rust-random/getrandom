@@ -10,6 +10,9 @@ pub fn len7_err() -> Error {
 }
 
 fn super_insecure_rng(buf: &mut [u8]) -> Result<(), Error> {
+    // `getrandom` guarantees it will not call any implementation if the output
+    // buffer is empty.
+    assert!(!buf.is_empty());
     // Length 7 buffers return a custom error
     if buf.len() == 7 {
         return Err(len7_err());
