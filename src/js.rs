@@ -5,10 +5,10 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use crate::Error;
+use crate::{util::uninit_slice_fill_zero, Error};
 
 extern crate std;
-use std::thread_local;
+use std::{mem::MaybeUninit, thread_local};
 
 use js_sys::{global, Function, Uint8Array};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
@@ -28,12 +28,16 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
         match source {
             RngSource::Node(n) => {
+                // XXX(perf): `random_fill_sync` requires a `&mut [u8]` so we
+                // have to ensure the memory in `dest` is initialized.
+                let dest = uninit_slice_fill_zero(dest);
+
                 if n.random_fill_sync(dest).is_err() {
                     return Err(Error::NODE_RANDOM_FILL_SYNC);
                 }
@@ -49,7 +53,9 @@ pub(crate) fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
                     if crypto.get_random_values(&sub_buf).is_err() {
                         return Err(Error::WEB_GET_RANDOM_VALUES);
                     }
-                    sub_buf.copy_to(chunk);
+
+                    // SAFETY: `sub_buf`'s length is the same length as `chunk`
+                    unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr() as *mut u8) };
                 }
             }
         };

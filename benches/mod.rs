@@ -1,94 +1,64 @@
 #![feature(test)]
+#![feature(maybe_uninit_as_bytes)]
+
 extern crate test;
 
-use std::{
-    alloc::{alloc_zeroed, dealloc, Layout},
-    ptr::NonNull,
-};
-
-// AlignedBuffer is like a Box<[u8; N]> except that it is always N-byte aligned
-struct AlignedBuffer<const N: usize>(NonNull<[u8; N]>);
-
-impl<const N: usize> AlignedBuffer<N> {
-    fn layout() -> Layout {
-        Layout::from_size_align(N, N).unwrap()
-    }
-
-    fn new() -> Self {
-        let p = unsafe { alloc_zeroed(Self::layout()) } as *mut [u8; N];
-        Self(NonNull::new(p).unwrap())
-    }
-
-    fn buf(&mut self) -> &mut [u8; N] {
-        unsafe { self.0.as_mut() }
-    }
-}
-
-impl<const N: usize> Drop for AlignedBuffer<N> {
-    fn drop(&mut self) {
-        unsafe { dealloc(self.0.as_ptr() as *mut u8, Self::layout()) }
-    }
-}
+use std::mem::MaybeUninit;
 
 // Used to benchmark the throughput of getrandom in an optimal scenario.
 // The buffer is hot, and does not require initialization.
 #[inline(always)]
-fn bench<const N: usize>(b: &mut test::Bencher) {
-    let mut ab = AlignedBuffer::<N>::new();
-    let buf = ab.buf();
-    b.iter(|| {
-        getrandom::getrandom(&mut buf[..]).unwrap();
-        test::black_box(&buf);
-    });
+fn bench_getrandom<const N: usize>(b: &mut test::Bencher) {
     b.bytes = N as u64;
+    b.iter(|| {
+        let mut buf = [0u8; N];
+        getrandom::getrandom(&mut buf[..]).unwrap();
+        test::black_box(buf);
+    });
 }
 
 // Used to benchmark the throughput of getrandom is a slightly less optimal
 // scenario. The buffer is still hot, but requires initialization.
 #[inline(always)]
-fn bench_with_init<const N: usize>(b: &mut test::Bencher) {
-    let mut ab = AlignedBuffer::<N>::new();
-    let buf = ab.buf();
-    b.iter(|| {
-        for byte in buf.iter_mut() {
-            *byte = 0;
-        }
-        getrandom::getrandom(&mut buf[..]).unwrap();
-        test::black_box(&buf);
-    });
+fn bench_getrandom_uninit<const N: usize>(b: &mut test::Bencher) {
     b.bytes = N as u64;
+    b.iter(|| {
+        let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
+        let _ = getrandom::getrandom_uninit(buf.as_bytes_mut()).unwrap();
+        let buf: [u8; N] = unsafe { buf.assume_init() };
+        test::black_box(buf)
+    });
 }
 
-// 32 bytes (256-bit) is the seed sized used for rand::thread_rng
-const SEED: usize = 32;
-// Common size of a page, 4 KiB
-const PAGE: usize = 4096;
-// Large buffer to get asymptotic performance, 2 MiB
-const LARGE: usize = 1 << 21;
+macro_rules! bench {
+    ( $name:ident, $size:expr ) => {
+        pub mod $name {
+            #[bench]
+            pub fn bench_getrandom(b: &mut test::Bencher) {
+                super::bench_getrandom::<{ $size }>(b);
+            }
 
-#[bench]
-fn bench_seed(b: &mut test::Bencher) {
-    bench::<SEED>(b);
-}
-#[bench]
-fn bench_seed_init(b: &mut test::Bencher) {
-    bench_with_init::<SEED>(b);
-}
-
-#[bench]
-fn bench_page(b: &mut test::Bencher) {
-    bench::<PAGE>(b);
-}
-#[bench]
-fn bench_page_init(b: &mut test::Bencher) {
-    bench_with_init::<PAGE>(b);
+            #[bench]
+            pub fn bench_getrandom_uninit(b: &mut test::Bencher) {
+                super::bench_getrandom_uninit::<{ $size }>(b);
+            }
+        }
+    };
 }
 
-#[bench]
-fn bench_large(b: &mut test::Bencher) {
-    bench::<LARGE>(b);
-}
-#[bench]
-fn bench_large_init(b: &mut test::Bencher) {
-    bench_with_init::<LARGE>(b);
-}
+// 16 bytes (128 bits) is the size of an 128-bit AES key/nonce.
+bench!(aes128, 128 / 8);
+
+// 32 bytes (256 bits) is the seed sized used for rand::thread_rng
+// and the `random` value in a ClientHello/ServerHello for TLS.
+// This is also the size of a 256-bit AES/HMAC/P-256/Curve25519 key
+// and/or nonce.
+bench!(p256, 256 / 8);
+
+// A P-384/HMAC-384 key and/or nonce.
+bench!(p384, 384 / 8);
+
+// Initializing larger buffers is not the primary use case of this library, as
+// this should normally be done by a userspace CSPRNG. However, we have a test
+// here to see the effects of a lower (amortized) syscall overhead.
+bench!(page, 4096);

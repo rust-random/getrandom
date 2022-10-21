@@ -186,6 +186,9 @@
 #[macro_use]
 extern crate cfg_if;
 
+use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
+use core::mem::MaybeUninit;
+
 mod error;
 mod util;
 // To prevent a breaking change when targets are added, we always export the
@@ -199,7 +202,11 @@ pub use crate::error::Error;
 
 // System-specific implementations.
 //
-// These should all provide getrandom_inner with the same signature as getrandom.
+// These should all provide getrandom_inner with the signature
+// `fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
+// The function MUST fully initialize `dest` when `Ok(())` is returned.
+// The function MUST NOT ever write uninitialized bytes into `dest`,
+// regardless of what value it returns.
 cfg_if! {
     if #[cfg(any(target_os = "emscripten", target_os = "haiku",
                  target_os = "redox"))] {
@@ -283,9 +290,40 @@ cfg_if! {
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+#[inline]
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    if dest.is_empty() {
-        return Ok(());
-    }
-    imp::getrandom_inner(dest)
+    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape, and
+    // `getrandom_uninit` guarantees it will never de-initialize any part of
+    // `dest`.
+    getrandom_uninit(unsafe { slice_as_uninit_mut(dest) })?;
+    Ok(())
+}
+
+/// Version of the `getrandom` function which fills `dest` with random bytes
+/// returns a mutable reference to those bytes.
+///
+/// On successful completion this function is guaranteed to return a slice
+/// which points to the same memory as `dest` and has the same length.
+/// In other words, it's safe to assume that `dest` is initialized after
+/// this function has returned `Ok`.
+///
+/// No part of `dest` will ever be de-initialized at any point, regardless
+/// of what is returned.
+///
+/// # Examples
+///
+/// ```ignore
+/// # // We ignore this test since `uninit_array` is unstable.
+/// #![feature(maybe_uninit_uninit_array)]
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
+/// let buf: &mut [u8] = getrandom::getrandom_uninit(&mut buf)?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+    imp::getrandom_inner(dest)?;
+    // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
+    // since it returned `Ok`.
+    Ok(unsafe { slice_assume_init_mut(dest) })
 }

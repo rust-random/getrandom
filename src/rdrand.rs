@@ -7,8 +7,8 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use crate::Error;
-use core::mem;
+use crate::{util::slice_as_uninit, Error};
+use core::mem::{self, MaybeUninit};
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
@@ -69,7 +69,7 @@ fn is_rdrand_supported() -> bool {
     HAS_RDRAND.unsync_init(|| unsafe { (arch::__cpuid(1).ecx & FLAG) != 0 })
 }
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !is_rdrand_supported() {
         return Err(Error::NO_RDRAND);
     }
@@ -80,18 +80,18 @@ pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
 }
 
 #[target_feature(enable = "rdrand")]
-unsafe fn rdrand_exact(dest: &mut [u8]) -> Result<(), Error> {
+unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // We use chunks_exact_mut instead of chunks_mut as it allows almost all
     // calls to memcpy to be elided by the compiler.
     let mut chunks = dest.chunks_exact_mut(WORD_SIZE);
     for chunk in chunks.by_ref() {
-        chunk.copy_from_slice(&rdrand()?);
+        chunk.copy_from_slice(slice_as_uninit(&rdrand()?));
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        tail.copy_from_slice(&rdrand()?[..n]);
+        tail.copy_from_slice(slice_as_uninit(&rdrand()?[..n]));
     }
     Ok(())
 }

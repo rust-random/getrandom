@@ -12,8 +12,9 @@ use crate::{
     util_libc::{sys_fill_exact, Weak},
     Error,
 };
+use std::mem::MaybeUninit;
 
-pub fn getrandom_inner(dest: &mut [u8]) -> Result<(), Error> {
+pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
     type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
