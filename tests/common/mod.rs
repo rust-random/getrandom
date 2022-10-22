@@ -16,11 +16,10 @@ fn test_zero() {
 #[cfg(not(feature = "custom"))]
 fn num_diff_bits(s1: &[u8], s2: &[u8]) -> usize {
     assert_eq!(s1.len(), s2.len());
-    let mut n = 0;
-    for i in 0..s1.len() {
-        n += (s1[i] ^ s2[i]).count_ones() as usize;
-    }
-    n
+    s1.iter()
+        .zip(s2.iter())
+        .map(|(a, b)| (a ^ b).count_ones() as usize)
+        .sum()
 }
 
 // Tests the quality of calling getrandom on two large buffers
