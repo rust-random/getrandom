@@ -40,6 +40,30 @@ fn test_diff() {
     assert!(d < 4500);
 }
 
+// Tests the quality of calling getrandom repeatedly on small buffers
+#[test]
+#[cfg(not(feature = "custom"))]
+fn test_small() {
+    // For each buffer size, get at least 256 bytes and check that between
+    // 3 and 5 bits per byte differ. Probability of failure:
+    // ~ 2^(-91) = 64 * 2 * CDF[BinomialDistribution[8*256, 0.5], 3*256]
+    for size in 1..=64 {
+        let mut num_bytes = 0;
+        let mut diff_bits = 0;
+        while num_bytes < 256 {
+            let mut s1 = vec![0u8; size];
+            getrandom_impl(&mut s1).unwrap();
+            let mut s2 = vec![0u8; size];
+            getrandom_impl(&mut s2).unwrap();
+
+            num_bytes += size;
+            diff_bits += num_diff_bits(&s1, &s2);
+        }
+        assert!(diff_bits > 3 * num_bytes);
+        assert!(diff_bits < 5 * num_bytes);
+    }
+}
+
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
