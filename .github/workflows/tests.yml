@@ -219,6 +219,24 @@ jobs:
       - name: Test (custom getrandom)
         run: cargo test --target=wasm32-unknown-unknown --features=custom
 
+  wasm64-tests:
+    name: WASM memory64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rust-src
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Build and Link tests (build-std)
+        # This target is Tier 3, so we have to build libstd ourselves.
+        # We currently cannot run these tests because wasm-bindgen-test-runner
+        # does not yet support memory64.
+        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
+
   wasi-tests:
     name: WASI test
     runs-on: ubuntu-latest
