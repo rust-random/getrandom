@@ -12,7 +12,7 @@ use crate::{
     util_libc::{sys_fill_exact, Weak},
     Error,
 };
-use std::mem::MaybeUninit;
+use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
@@ -21,7 +21,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in DragonflyBSD 5.7
     if let Some(fptr) = GETRANDOM.ptr() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
-        return sys_fill_exact(dest, |buf| unsafe { func(buf.as_mut_ptr(), buf.len(), 0) });
+        return sys_fill_exact(dest, |buf| unsafe {
+            func(buf.as_mut_ptr() as *mut u8, buf.len(), 0)
+        });
     } else {
         use_file::getrandom_inner(dest)
     }

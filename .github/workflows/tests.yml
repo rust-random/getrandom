@@ -319,6 +319,12 @@ jobs:
         run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
       - name: Nintendo 3DS
         run: cargo build -Z build-std=core --target=armv6k-nintendo-3ds
+      - name: OpenBSD
+        run: cargo build -Z build-std=std --target=x86_64-unknown-openbsd --features=std
+      - name: Dragonfly BSD
+        run: cargo build -Z build-std=std --target=x86_64-unknown-dragonfly --features=std
+      - name: Haiku OS
+        run: cargo build -Z build-std=std --target=x86_64-unknown-haiku --features=std
 
   clippy-fmt:
     name: Clippy + rustfmt

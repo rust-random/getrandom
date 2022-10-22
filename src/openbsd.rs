@@ -8,6 +8,7 @@
 
 //! Implementation for OpenBSD
 use crate::{util_libc::last_os_error, Error};
+use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getentropy(2) was added in OpenBSD 5.6, so we can use it unconditionally.
