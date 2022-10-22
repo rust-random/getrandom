@@ -166,8 +166,9 @@ jobs:
     strategy:
       matrix:
         target: [
-          # See: https://github.com/rust-random/getrandom/issues/254
-          # sparcv9-sun-solaris,
+          sparcv9-sun-solaris,
+          x86_64-unknown-illumos,
+          x86_64-unknown-freebsd,
           x86_64-unknown-netbsd,
         ]
     steps:
@@ -277,7 +278,6 @@ jobs:
     strategy:
       matrix:
         target: [
-          x86_64-unknown-freebsd,
           x86_64-fuchsia,
           x86_64-unknown-redox,
           x86_64-fortanix-unknown-sgx,
@@ -288,7 +288,7 @@ jobs:
         with:
           profile: minimal
           target: ${{ matrix.target }}
-          toolchain: nightly # Required to build libc for Redox
+          toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Build
@@ -319,6 +319,14 @@ jobs:
         run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
       - name: Nintendo 3DS
         run: cargo build -Z build-std=core --target=armv6k-nintendo-3ds
+      - name: RISC-V ESP-IDF
+        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+      - name: OpenBSD
+        run: cargo build -Z build-std=std --target=x86_64-unknown-openbsd --features=std
+      - name: Dragonfly BSD
+        run: cargo build -Z build-std=std --target=x86_64-unknown-dragonfly --features=std
+      - name: Haiku OS
+        run: cargo build -Z build-std=std --target=x86_64-unknown-haiku --features=std
 
   clippy-fmt:
     name: Clippy + rustfmt
