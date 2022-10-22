@@ -166,8 +166,7 @@ jobs:
     strategy:
       matrix:
         target: [
-          # See: https://github.com/rust-random/getrandom/issues/254
-          # sparcv9-sun-solaris,
+          sparcv9-sun-solaris,
           x86_64-unknown-netbsd,
         ]
     steps:

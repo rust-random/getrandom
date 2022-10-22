@@ -22,7 +22,7 @@ use crate::{
     util_libc::{sys_fill_exact, Weak},
     Error,
 };
-use core::mem;
+use core::mem::{self, MaybeUninit};
 
 #[cfg(target_os = "illumos")]
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
@@ -38,7 +38,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // derived platforms for atomically obtaining random data.
         for chunk in dest.chunks_mut(256) {
             sys_fill_exact(chunk, |buf| unsafe {
-                func(buf.as_mut_ptr(), buf.len(), 0) as libc::ssize_t
+                func(buf.as_mut_ptr() as *mut u8, buf.len(), 0) as libc::ssize_t
             })?
         }
         Ok(())
