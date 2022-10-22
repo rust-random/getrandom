@@ -12,6 +12,18 @@ fn test_zero() {
     getrandom_impl(&mut [0u8; 0]).unwrap();
 }
 
+// Return the number of bits in which s1 and s2 differ
+#[cfg(not(feature = "custom"))]
+fn num_diff_bits(s1: &[u8], s2: &[u8]) -> usize {
+    assert_eq!(s1.len(), s2.len());
+    let mut n = 0;
+    for i in 0..s1.len() {
+        n += (s1[i] ^ s2[i]).count_ones() as usize;
+    }
+    n
+}
+
+// Tests the quality of calling getrandom on two large buffers
 #[test]
 #[cfg(not(feature = "custom"))]
 fn test_diff() {
@@ -21,13 +33,11 @@ fn test_diff() {
     let mut v2 = [0u8; 1000];
     getrandom_impl(&mut v2).unwrap();
 
-    let mut n_diff_bits = 0;
-    for i in 0..v1.len() {
-        n_diff_bits += (v1[i] ^ v2[i]).count_ones();
-    }
-
-    // Check at least 1 bit per byte differs. p(failure) < 1e-1000 with random input.
-    assert!(n_diff_bits >= v1.len() as u32);
+    // Between 3.5 and 4.5 bits per byte should differ. Probability of failure:
+    // ~ 2^(-94) = 2 * CDF[BinomialDistribution[8000, 0.5], 3500]
+    let d = num_diff_bits(&v1, &v2);
+    assert!(d > 3500);
+    assert!(d < 4500);
 }
 
 #[test]
