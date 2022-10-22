@@ -287,7 +287,7 @@ jobs:
         with:
           profile: minimal
           target: ${{ matrix.target }}
-          toolchain: nightly # Required to build libc for Redox
+          toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Build
