@@ -14,21 +14,21 @@
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 //! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`]
-//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3] if available, otherwise [`/dev/random`][4] (identical to `/dev/urandom`)
+//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3] if available, otherwise [`/dev/urandom`][4] (identical to `/dev/random`)
 //! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`kern.arandom`][8]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9] if available, otherwise [`/dev/random`][10]
+//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9] if available, otherwise [`/dev/urandom`][10] (identical to `/dev/random`)
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom`][11] if available, otherwise [`/dev/random`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
-//! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)
+//! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
 //! | Hermit            | `x86_64-*-hermit`  | [`RDRAND`]
 //! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
-//! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)
+//! | Emscripten        | `*‑emscripten`     | `/dev/urandom` (identical to `/dev/random`)
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
 //! | Web Browser and Node.js | `wasm32‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
@@ -150,7 +150,7 @@
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
-//! [4]: https://www.unix.com/man-page/mojave/4/random/
+//! [4]: https://www.unix.com/man-page/mojave/4/urandom/
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 //! [6]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
 //! [7]: https://man.openbsd.org/getentropy.2
