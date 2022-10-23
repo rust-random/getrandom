@@ -29,7 +29,6 @@ const FILE_PATH: &str = "/dev/random\0";
     target_os = "linux",
     target_os = "redox",
     target_os = "dragonfly",
-    target_os = "emscripten",
     target_os = "haiku",
     target_os = "macos"
 ))]
@@ -37,19 +36,9 @@ const FILE_PATH: &str = "/dev/urandom\0";
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
-    let read = |buf: &mut [MaybeUninit<u8>]| unsafe {
-        libc::read(fd, buf.as_mut_ptr() as *mut _, buf.len())
-    };
-
-    if cfg!(target_os = "emscripten") {
-        // `Crypto.getRandomValues` documents `dest` should be at most 65536 bytes.
-        for chunk in dest.chunks_mut(65536) {
-            sys_fill_exact(chunk, read)?;
-        }
-    } else {
-        sys_fill_exact(dest, read)?;
-    }
-    Ok(())
+    sys_fill_exact(dest, |buf| unsafe {
+        libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len())
+    })
 }
 
 // Returns the file descriptor for the device file used to retrieve random
