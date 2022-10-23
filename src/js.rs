@@ -16,6 +16,8 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const WEB_CRYPTO_BUFFER_SIZE: usize = 256;
+// Node.js's crypto.randomFillSync requires the size to be less than 2**31.
+const NODE_MAX_BUFFER_SIZE: usize = (1 << 31) - 1;
 
 enum RngSource {
     Node(NodeCrypto),
@@ -38,8 +40,10 @@ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>
                 // have to ensure the memory in `dest` is initialized.
                 let dest = uninit_slice_fill_zero(dest);
 
-                if n.random_fill_sync(dest).is_err() {
-                    return Err(Error::NODE_RANDOM_FILL_SYNC);
+                for chunk in dest.chunks_mut(NODE_MAX_BUFFER_SIZE) {
+                    if n.random_fill_sync(chunk).is_err() {
+                        return Err(Error::NODE_RANDOM_FILL_SYNC);
+                    }
                 }
             }
             RngSource::Web(crypto, buf) => {

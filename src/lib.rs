@@ -30,7 +30,7 @@
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
 //! | Emscripten        | `*‑emscripten`     | `/dev/urandom` (identical to `/dev/random`)
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
-//! | Web Browser and Node.js | `wasm32‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
+//! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
 //!
@@ -262,12 +262,14 @@ cfg_if! {
                         any(target_arch = "x86_64", target_arch = "x86")))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
-                        target_arch = "wasm32", target_os = "unknown"))] {
+                        any(target_arch = "wasm32", target_arch = "wasm64"),
+                        target_os = "unknown"))] {
         #[path = "js.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
-        compile_error!("the wasm32-unknown-unknown target is not supported by \
+    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),
+                        target_os = "unknown"))] {
+        compile_error!("the wasm*-unknown-unknown targets are not supported by \
                         default, you may need to enable the \"js\" feature. \
                         For more information see: \
                         https://docs.rs/getrandom/#webassembly-support");
