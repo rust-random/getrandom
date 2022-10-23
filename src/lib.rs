@@ -238,7 +238,7 @@ cfg_if! {
     } else if #[cfg(target_os = "openbsd")] {
         mod util_libc;
         #[path = "openbsd.rs"] mod imp;
-    } else if #[cfg(target_os = "wasi")] {
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_os = "hermit"))] {
         #[path = "rdrand.rs"] mod imp;
