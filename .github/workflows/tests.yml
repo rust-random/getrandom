@@ -61,7 +61,7 @@ jobs:
       - run: cargo test --features=std
       - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
-        run: cargo build --benches
+        run: cargo test --benches
 
   linux-tests:
     name: Additional Linux targets
