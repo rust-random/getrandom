@@ -5,7 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use crate::{util::uninit_slice_fill_zero, Error};
+use crate::Error;
 
 extern crate std;
 use std::{mem::MaybeUninit, thread_local};
@@ -36,12 +36,19 @@ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>
 
         match source {
             RngSource::Node(n) => {
-                // XXX(perf): `random_fill_sync` requires a `&mut [u8]` so we
-                // have to ensure the memory in `dest` is initialized.
-                let dest = uninit_slice_fill_zero(dest);
-
                 for chunk in dest.chunks_mut(NODE_MAX_BUFFER_SIZE) {
-                    if n.random_fill_sync(chunk).is_err() {
+                    // SAFETY: chunk is never used directly, the memory is only
+                    // modified via the Uint8Array view, which is passed
+                    // directly to JavaScript. Also, crypto.randomFillSync does
+                    // not resize the buffer. We know the length is less than
+                    // u32::MAX because of the chunking above.
+                    // Note that this uses the fact that JavaScript doesn't
+                    // have a notion of "uninitialized memory", this is purely
+                    // a Rust/C/C++ concept.
+                    let res = n.random_fill_sync(unsafe {
+                        Uint8Array::view_mut_raw(chunk.as_mut_ptr() as *mut u8, chunk.len())
+                    });
+                    if res.is_err() {
                         return Err(Error::NODE_RANDOM_FILL_SYNC);
                     }
                 }
@@ -130,7 +137,7 @@ extern "C" {
     type NodeCrypto;
     // crypto.randomFillSync()
     #[wasm_bindgen(method, js_name = randomFillSync, catch)]
-    fn random_fill_sync(this: &NodeCrypto, buf: &mut [u8]) -> Result<(), JsValue>;
+    fn random_fill_sync(this: &NodeCrypto, buf: Uint8Array) -> Result<(), JsValue>;
 
     // Ideally, we would just use `fn require(s: &str)` here. However, doing
     // this causes a Webpack warning. So we instead return the function itself
