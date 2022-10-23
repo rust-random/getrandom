@@ -251,6 +251,11 @@ cfg_if! {
         #[path = "espidf.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
+    } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
+        // We check for target_arch = "arm" because the Nintendo Switch also
+        // uses Horizon OS (it is aarch64).
+        mod util_libc;
+        #[path = "3ds.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
@@ -259,11 +264,6 @@ cfg_if! {
     } else if #[cfg(all(feature = "js",
                         target_arch = "wasm32", target_os = "unknown"))] {
         #[path = "js.rs"] mod imp;
-    } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
-        // We check for target_arch = "arm" because the Nintendo Switch also
-        // uses Horizon OS (it is aarch64).
-        mod util_libc;
-        #[path = "3ds.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
