@@ -1,7 +1,7 @@
 [package]
 name = "getrandom"
 version = "0.2.8" # Also update html_root_url in lib.rs when bumping this
-edition = "2018"
+edition = "2021"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
 description = "A small cross-platform library for retrieving random data from system source"
