@@ -258,7 +258,7 @@ jobs:
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo test --no-run --target=${{ matrix.target }} --features=std
 
   build-std:
     name: Build-only (build-std)
@@ -274,25 +274,25 @@ jobs:
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Hermit (x86-64 only)
-        run: cargo build -Z build-std=core --target=x86_64-unknown-hermit
+        run: cargo test --no-run -Z build-std=core --target=x86_64-unknown-hermit
       - name: UEFI (RDRAND)
-        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
+        run: cargo test --no-run -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
       - name: L4Re (RDRAND)
-        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
+        run: cargo test --no-run -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
       - name: VxWorks
-        run: cargo build -Z build-std=core --target=x86_64-wrs-vxworks
+        run: cargo test --no-run -Z build-std=core --target=x86_64-wrs-vxworks
       - name: SOLID
-        run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
+        run: cargo test --no-run -Z build-std=core --target=aarch64-kmc-solid_asp3
       - name: Nintendo 3DS
-        run: cargo build -Z build-std=core --target=armv6k-nintendo-3ds
+        run: cargo test --no-run -Z build-std=core --target=armv6k-nintendo-3ds
       - name: RISC-V ESP-IDF
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+        run: cargo test --no-run -Z build-std=core --target=riscv32imc-esp-espidf
       - name: OpenBSD
-        run: cargo build -Z build-std=std --target=x86_64-unknown-openbsd --features=std
+        run: cargo test --no-run -Z build-std=std --target=x86_64-unknown-openbsd --features=std
       - name: Dragonfly BSD
-        run: cargo build -Z build-std=std --target=x86_64-unknown-dragonfly --features=std
+        run: cargo test --no-run -Z build-std=std --target=x86_64-unknown-dragonfly --features=std
       - name: Haiku OS
-        run: cargo build -Z build-std=std --target=x86_64-unknown-haiku --features=std
+        run: cargo test --no-run -Z build-std=std --target=x86_64-unknown-haiku --features=std
 
   clippy-fmt:
     name: Clippy + rustfmt
