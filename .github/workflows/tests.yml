@@ -19,13 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
-      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cargo-deadlinks
         run: |
           export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
           wget -O /tmp/cargo-deadlinks $URL
           chmod +x /tmp/cargo-deadlinks
           mv /tmp/cargo-deadlinks ~/.cargo/bin
+      - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
@@ -51,7 +51,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - run: cargo test
       - run: cargo test --features=std
       - run: cargo test --features=custom # custom should do nothing here
@@ -73,13 +73,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v1
       - name: Install multilib
         # update is needed to fix the 404 error on install, see:
         # https://github.com/actions/virtual-environments/issues/675
         run: |
           sudo apt-get update
           sudo apt-get install gcc-multilib
+      - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=${{ matrix.target }} --features=std
 
   ios-tests:
@@ -90,7 +90,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
-      - uses: Swatinem/rust-cache@v1
       - name: Download cargo-dinghy
         run: |
           VERSION=0.6.2
@@ -103,6 +102,7 @@ jobs:
           SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-7 $RUNTIME_ID)
           xcrun simctl boot $SIM_ID
           echo "device=$SIM_ID" >> $GITHUB_ENV
+      - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo dinghy -d ${{ env.device }} test
 
@@ -121,7 +121,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - run: cargo test --features=std
 
   cross-tests:
@@ -137,13 +137,13 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.gz $URL
           tar -C /tmp -xzf /tmp/binaries.tar.gz
           mv /tmp/cross ~/.cargo/bin
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
 
@@ -155,7 +155,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
       - run: cargo test --no-run --target=aarch64-apple-ios --features=std
 
@@ -172,13 +172,13 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
           export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.gz $URL
           tar -C /tmp -xzf /tmp/binaries.tar.gz
           mv /tmp/cross ~/.cargo/bin
+      - uses: Swatinem/rust-cache@v2
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
 
@@ -190,13 +190,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasm-bindgen-test-runner
         run: |
           export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
           wget -O /tmp/binaries.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
           tar -C /tmp -xzf /tmp/binaries.tar.gz --strip-components=1
           mv /tmp/wasm-bindgen-test-runner ~/.cargo/bin
+      - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
         run: cargo test --target=wasm32-unknown-unknown --features=js
       - name: Test (Firefox)
@@ -218,7 +218,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
         with:
           components: rust-src
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Build and Link tests (build-std)
         # This target is Tier 3, so we have to build libstd ourselves.
         # We currently cannot run these tests because wasm-bindgen-test-runner
@@ -233,13 +233,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasi
-      - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasmtime
         run: |
           export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
           wget -O /tmp/binaries.tar.xz $URL
           tar -C /tmp -xf /tmp/binaries.tar.xz --strip-components=1
           mv /tmp/wasmtime ~/.cargo/bin
+      - uses: Swatinem/rust-cache@v2
       - run: cargo test --target wasm32-wasi
 
   build-tier2:
@@ -257,7 +257,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build --target=${{ matrix.target }} --features=std
 
@@ -269,7 +269,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Hermit (x86-64 only)
         run: cargo build -Z build-std=core --target=x86_64-unknown-hermit
       - name: UEFI (RDRAND)
@@ -299,7 +299,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: clippy
         run: cargo clippy --all --features=custom,std
       - name: fmt
