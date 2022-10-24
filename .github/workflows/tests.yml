@@ -18,11 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly # Needed for -Z minimal-versions and doc_cfg
-          override: true
+      - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cargo-deadlinks
         run: |
@@ -51,11 +47,9 @@ jobs:
             toolchain: stable
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.toolchain }}
-          override: true
       - uses: Swatinem/rust-cache@v1
       - run: cargo test
       - run: cargo test --features=std
@@ -75,11 +69,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          toolchain: stable
+          targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v1
       - name: Install multilib
         # update is needed to fix the 404 error on install, see:
@@ -103,11 +95,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          toolchain: stable
+          targets: x86_64-apple-ios
       - uses: Swatinem/rust-cache@v1
       - name: Build Tests
         run: cargo test --no-run --target=${{ matrix.target }} --features=std
@@ -124,12 +114,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.toolchain }}
-          override: true
       - uses: Swatinem/rust-cache@v1
       - run: cargo test --features=std
 
@@ -146,11 +133,6 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
@@ -174,11 +156,6 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
@@ -194,11 +171,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          target: wasm32-unknown-unknown
-          toolchain: stable
+          targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasm-bindgen-test-runner
         run: |
@@ -224,12 +199,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
         with:
-          profile: minimal
-          toolchain: nightly
           components: rust-src
-          override: true
       - uses: Swatinem/rust-cache@v1
       - name: Build and Link tests (build-std)
         # This target is Tier 3, so we have to build libstd ourselves.
@@ -242,11 +214,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          target: wasm32-wasi
-          toolchain: stable
+          targets: wasm32-wasi
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled wasmtime
         run: |
@@ -268,12 +238,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          toolchain: stable
-          override: true
+          targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v1
       - name: Build
         run: cargo build --target=${{ matrix.target }} --features=std
@@ -283,13 +250,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
-          profile: minimal
-          toolchain: nightly # Required to build libcore
           components: rust-src
-          override: true
       - uses: Swatinem/rust-cache@v1
       - name: Hermit (x86-64 only)
         run: cargo build -Z build-std=core --target=x86_64-unknown-hermit
@@ -317,14 +280,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          # https://github.com/rust-lang/rust-clippy/pull/6379 added MSRV
-          # support, so we need to use nightly until this is on stable.
-          toolchain: nightly
           components: rustfmt, clippy
-          override: true
       - uses: Swatinem/rust-cache@v1
       - name: clippy
         run: cargo clippy --all --features=custom,std
