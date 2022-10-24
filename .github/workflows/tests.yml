@@ -35,7 +35,7 @@ jobs:
           cargo test --features=custom,std
 
   main-tests:
-    name: Main tests
+    name: Tier 1 Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -58,7 +58,7 @@ jobs:
         run: cargo test --benches
 
   linux-tests:
-    name: Additional Linux targets
+    name: Linux Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -103,7 +103,7 @@ jobs:
         run: cargo test --no-run --target=${{ matrix.target }} --features=std
 
   windows-tests:
-    name: Additional Windows targets
+    name: Windows Test
     runs-on: windows-latest
     strategy:
       matrix:
@@ -167,7 +167,7 @@ jobs:
         run: cross test --no-run --target=${{ matrix.target }} --features=std
 
   web-tests:
-    name: Web tests
+    name: Web Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -195,7 +195,7 @@ jobs:
         run: cargo test --target=wasm32-unknown-unknown --features=custom
 
   wasm64-tests:
-    name: WASM memory64
+    name: wasm64 Build/Link
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -210,7 +210,7 @@ jobs:
         run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
 
   wasi-tests:
-    name: WASI test
+    name: WASI Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -226,8 +226,8 @@ jobs:
           mv /tmp/wasmtime ~/.cargo/bin
       - run: cargo test --target wasm32-wasi
 
-  build:
-    name: Build only
+  build-tier2:
+    name: Tier 2 Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -245,8 +245,8 @@ jobs:
       - name: Build
         run: cargo build --target=${{ matrix.target }} --features=std
 
-  build-std:
-    name: Build-only (build-std)
+  build-tier3:
+    name: Tier 3 Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
