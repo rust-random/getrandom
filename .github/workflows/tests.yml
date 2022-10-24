@@ -264,32 +264,36 @@ jobs:
   build-tier3:
     name: Tier 3 Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Supported tier 3 targets without libstd support
+        target: [
+          x86_64-unknown-hermit,
+          x86_64-wrs-vxworks,
+          aarch64-kmc-solid_asp3,
+          armv6k-nintendo-3ds,
+          riscv32imc-esp-espidf,
+        ]
+        include:
+          # Supported tier 3 targets without libstd support
+          - target: x86_64-unknown-openbsd
+            features: ["std"]
+          - target: x86_64-unknown-dragonfly
+            features: ["std"]
+          - target: x86_64-unknown-haiku
+            features: ["std"]
+          # Unsupported tier 3 targets to test the rdrand feature
+          - target: x86_64-unknown-uefi
+            features: ["rdrand"]
+          - target: x86_64-unknown-l4re-uclibc
+            features: ["rdrand"]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - name: Hermit (x86-64 only)
-        run: cargo build -Z build-std=core --target=x86_64-unknown-hermit
-      - name: UEFI (RDRAND)
-        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-uefi
-      - name: L4Re (RDRAND)
-        run: cargo build -Z build-std=core --features=rdrand --target=x86_64-unknown-l4re-uclibc
-      - name: VxWorks
-        run: cargo build -Z build-std=core --target=x86_64-wrs-vxworks
-      - name: SOLID
-        run: cargo build -Z build-std=core --target=aarch64-kmc-solid_asp3
-      - name: Nintendo 3DS
-        run: cargo build -Z build-std=core --target=armv6k-nintendo-3ds
-      - name: RISC-V ESP-IDF
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
-      - name: OpenBSD
-        run: cargo build -Z build-std=std --target=x86_64-unknown-openbsd --features=std
-      - name: Dragonfly BSD
-        run: cargo build -Z build-std=std --target=x86_64-unknown-dragonfly --features=std
-      - name: Haiku OS
-        run: cargo build -Z build-std=std --target=x86_64-unknown-haiku --features=std
+      - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
 
   clippy-fmt:
     name: Clippy + rustfmt
