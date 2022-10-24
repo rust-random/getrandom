@@ -34,6 +34,7 @@ jobs:
           cargo generate-lockfile -Z minimal-versions
           cargo test --features=custom,std
 
+  # TODO: add aarch64-based macOS runner when it's supported by Github Actions
   main-tests:
     name: Tier 1 Test
     runs-on: ${{ matrix.os }}
@@ -81,26 +82,29 @@ jobs:
           sudo apt-get install gcc-multilib
       - run: cargo test --target=${{ matrix.target }} --features=std
 
-  # We can only Build/Link on these targets for now.
-  # TODO: Run the iOS binaries in the simulator
-  # TODO: build/run aarch64-apple-darwin binaries on a x86_64 Mac
-  apple-tests:
-    name: Additional Apple targets
+  ios-tests:
+    name: iOS Simulator Test
     runs-on: macos-latest
-    strategy:
-      matrix:
-        target: [
-          aarch64-apple-ios,
-          x86_64-apple-ios,
-        ]
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
       - uses: Swatinem/rust-cache@v1
-      - name: Build Tests
-        run: cargo test --no-run --target=${{ matrix.target }} --features=std
+      - name: Download cargo-dinghy
+        run: |
+          VERSION=0.6.2
+          URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
+          curl -L $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          cargo dinghy --version
+      - name: Setup Simulator
+        run: |
+          RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
+          SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-7 $RUNTIME_ID)
+          xcrun simctl boot $SIM_ID
+          echo "device=$SIM_ID" >> $GITHUB_ENV
+      - name: Run tests
+        run: cargo dinghy -d ${{ env.device }} test
 
   windows-tests:
     name: Windows Test
@@ -142,6 +146,18 @@ jobs:
           mv /tmp/cross ~/.cargo/bin
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
+
+  macos-link:
+    name: macOS ARM64 Build/Link
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, aarch64-apple-ios
+      - uses: Swatinem/rust-cache@v1
+      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
+      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
 
   cross-link:
     name: Cross Build/Link
