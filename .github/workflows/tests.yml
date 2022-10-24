@@ -17,7 +17,7 @@ jobs:
     name: Docs, deadlinks, minimal dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cargo-deadlinks
@@ -47,7 +47,7 @@ jobs:
           - os: macos-latest
             toolchain: stable
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -69,7 +69,7 @@ jobs:
           i686-unknown-linux-musl,
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -86,7 +86,7 @@ jobs:
     name: iOS Simulator Test
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
@@ -117,7 +117,7 @@ jobs:
           stable-i686-msvc,
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -136,7 +136,7 @@ jobs:
           wasm32-unknown-emscripten,
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
@@ -151,7 +151,7 @@ jobs:
     name: macOS ARM64 Build/Link
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
@@ -171,7 +171,7 @@ jobs:
           x86_64-unknown-netbsd,
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v1
       - name: Install precompiled cross
         run: |
@@ -186,7 +186,7 @@ jobs:
     name: Web Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
@@ -214,7 +214,7 @@ jobs:
     name: wasm64 Build/Link
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
         with:
           components: rust-src
@@ -229,7 +229,7 @@ jobs:
     name: WASI Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasi
@@ -253,7 +253,7 @@ jobs:
           x86_64-fortanix-unknown-sgx,
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -265,7 +265,7 @@ jobs:
     name: Tier 3 Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
