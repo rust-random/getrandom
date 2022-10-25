@@ -152,12 +152,14 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
+          components: rust-src
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
       - run: cargo test --no-run --target=aarch64-apple-ios --features=std
+      - run: cargo test --no-run --target=aarch64-apple-watchos-sim -Zbuild-std --features=std
 
   cross-link:
     name: Cross Build/Link
@@ -273,6 +275,9 @@ jobs:
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
           riscv32imc-esp-espidf,
+          # `std` support still in progress. Can be moved up with the other
+          # apple targets after https://github.com/rust-lang/rust/pull/103503
+          aarch64-apple-tvos,
         ]
         include:
           # Supported tier 3 targets without libstd support
