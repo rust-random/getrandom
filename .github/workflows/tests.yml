@@ -186,31 +186,46 @@ jobs:
 
   web-tests:
     name: Web Test
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          # Reenable when Safari tests start working
+          # - os: macos-12
+          #   target: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-      - name: Install precompiled wasm-bindgen-test-runner
+      - run: choco install wget
+        if: matrix.os == 'windows-latest'
+      - name: Install precompiled wasm-pack
+        shell: bash
         run: |
-          export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
-          wget -O /tmp/binaries.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
-          tar -C /tmp -xzf /tmp/binaries.tar.gz --strip-components=1
-          mv /tmp/wasm-bindgen-test-runner ~/.cargo/bin
+          VERSION=$(wget -nv -O - https://api.github.com/repos/rustwasm/wasm-pack/releases/latest | jq -r '.tag_name')
+          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.target }}.tar.gz
+          wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          wasm-pack --version
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
-        run: cargo test --target=wasm32-unknown-unknown --features=js
+        run: wasm-pack test --node --features=js
       - name: Test (Firefox)
-        env:
-          GECKODRIVER: /usr/bin/geckodriver
-        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+        run: wasm-pack test --headless --firefox --features=js,test-in-browser
       - name: Test (Chrome)
-        env:
-          CHROMEDRIVER: /usr/bin/chromedriver
-        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+        run: wasm-pack test --headless --chrome --features=js,test-in-browser
+      - name: Test (Edge)
+        if: matrix.os == 'windows-latest'
+        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
+      # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
+      # - name: Test (Safari)
+      #   if: matrix.os == 'macos-12'
+      #   run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
-        run: cargo test --target=wasm32-unknown-unknown --features=custom
+        run: wasm-pack test --node --features=custom
 
   wasm64-tests:
     name: wasm64 Build/Link
