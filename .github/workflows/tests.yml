@@ -19,15 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/deadlinks/cargo-deadlinks/releases/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cargo-deadlinks
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=0.8.1
           URL="https://github.com/deadlinks/cargo-deadlinks/releases/download/${VERSION}/cargo-deadlinks-linux"
           wget -O ~/.cargo/bin/cargo-deadlinks $URL
           chmod +x ~/.cargo/bin/cargo-deadlinks
@@ -97,15 +91,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/sonos/dinghy/releases/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cargo-dinghy
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=0.6.2
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           cargo dinghy --version
@@ -150,15 +138,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/cross-rs/cross/releases/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cross
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=v0.2.4
           URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
@@ -193,15 +175,9 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/cross-rs/cross/releases/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cross
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=v0.2.4
           URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
@@ -228,16 +204,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
         if: matrix.os == 'windows-latest'
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/rustwasm/wasm-pack/releases/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=v0.10.3
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.target }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
@@ -281,15 +251,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasi
-      - uses: octokit/request-action@v2.x
-        id: latest
-        with:
-          route: GET /repos/cross-rs/bytecodealliance/wasmtime/latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled wasmtime
         run: |
-          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          VERSION=v2.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
