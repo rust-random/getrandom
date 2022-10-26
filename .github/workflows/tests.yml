@@ -19,12 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/deadlinks/cargo-deadlinks/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cargo-deadlinks
         run: |
-          export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
-          wget -O /tmp/cargo-deadlinks $URL
-          chmod +x /tmp/cargo-deadlinks
-          mv /tmp/cargo-deadlinks ~/.cargo/bin
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          URL="https://github.com/deadlinks/cargo-deadlinks/releases/download/${VERSION}/cargo-deadlinks-linux"
+          wget -O ~/.cargo/bin/cargo-deadlinks $URL
+          chmod +x ~/.cargo/bin/cargo-deadlinks
+          cargo deadlinks --version
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
@@ -90,11 +97,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
-      - name: Download cargo-dinghy
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/sonos/dinghy/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install precompiled cargo-dinghy
         run: |
-          VERSION=0.6.2
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
-          curl -L $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           cargo dinghy --version
       - name: Setup Simulator
         run: |
@@ -137,12 +150,18 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/cross-rs/cross/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cross
         run: |
-          export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.gz $URL
-          tar -C /tmp -xzf /tmp/binaries.tar.gz
-          mv /tmp/cross ~/.cargo/bin
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
@@ -174,12 +193,18 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v3
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/cross-rs/cross/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled cross
         run: |
-          export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.gz $URL
-          tar -C /tmp -xzf /tmp/binaries.tar.gz
-          mv /tmp/cross ~/.cargo/bin
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
       - uses: Swatinem/rust-cache@v2
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
@@ -203,10 +228,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
         if: matrix.os == 'windows-latest'
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/rustwasm/wasm-pack/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=$(wget -nv -O - https://api.github.com/repos/rustwasm/wasm-pack/releases/latest | jq -r '.tag_name')
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.target }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
@@ -250,12 +281,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasi
+      - uses: octokit/request-action@v2.x
+        id: latest
+        with:
+          route: GET /repos/cross-rs/bytecodealliance/wasmtime/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install precompiled wasmtime
         run: |
-          export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.xz $URL
-          tar -C /tmp -xf /tmp/binaries.tar.xz --strip-components=1
-          mv /tmp/wasmtime ~/.cargo/bin
+          VERSION=${{ fromJson(steps.latest.outputs.data).tag_name }}
+          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+          wasmtime --version
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target wasm32-wasi
 
