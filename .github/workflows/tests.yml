@@ -94,9 +94,15 @@ jobs:
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           cargo dinghy --version
       - name: Setup Simulator
+        # Use the first installed iOS runtime and the first (i.e. oldest) supported iPhone device.
         run: |
-          RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
-          SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-7 $RUNTIME_ID)
+          RUNTIME=$(xcrun simctl list runtimes --json | jq '.runtimes | map(select(.name | contains("iOS"))) | .[0]')
+          RUNTIME_ID=$(echo $RUNTIME | jq -r '.identifier')
+          echo "Using runtime:" $RUNTIME_ID
+          DEVICE_ID=$(echo $RUNTIME | jq -r '.supportedDeviceTypes | map(select(.productFamily == "iPhone")) | .[0].identifier')
+          echo "Using device:" $DEVICE_ID
+          SIM_ID=$(xcrun simctl create Test-iPhone $DEVICE_ID $RUNTIME_ID)
+          echo "Created simulator:" $SIM_ID
           xcrun simctl boot $SIM_ID
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
