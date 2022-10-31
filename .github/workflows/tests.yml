@@ -15,7 +15,7 @@ env:
 jobs:
   check-doc:
     name: Docs, deadlinks, minimal dependencies
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
@@ -41,7 +41,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-latest]
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
@@ -61,7 +61,7 @@ jobs:
 
   linux-tests:
     name: Linux Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -127,7 +127,7 @@ jobs:
 
   cross-tests:
     name: Cross Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -164,7 +164,7 @@ jobs:
 
   cross-link:
     name: Cross Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -191,7 +191,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             host: x86_64-unknown-linux-musl
           - os: windows-latest
             host: x86_64-pc-windows-msvc
@@ -230,7 +230,7 @@ jobs:
 
   wasm64-tests:
     name: wasm64 Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
@@ -245,7 +245,7 @@ jobs:
 
   wasi-tests:
     name: WASI Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -262,7 +262,7 @@ jobs:
 
   build-tier2:
     name: Tier 2 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -281,7 +281,7 @@ jobs:
 
   build-tier3:
     name: Tier 3 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         # Supported tier 3 targets without libstd support
@@ -318,7 +318,7 @@ jobs:
 
   clippy-fmt:
     name: Clippy + rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - uses: dtolnay/rust-toolchain@stable
