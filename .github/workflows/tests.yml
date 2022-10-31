@@ -203,7 +203,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
@@ -219,11 +219,11 @@ jobs:
       - name: Test (Chrome)
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
       # - name: Test (Safari)
-      #   if: matrix.os == 'macos-12'
+      #   if: runner.os == 'macOS'
       #   run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
