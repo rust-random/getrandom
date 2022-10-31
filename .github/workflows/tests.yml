@@ -15,7 +15,7 @@ env:
 jobs:
   check-doc:
     name: Docs, deadlinks, minimal dependencies
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
@@ -41,11 +41,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2022]
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
-          - os: macos-latest
+          - os: macos-12
             toolchain: stable
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
 
   linux-tests:
     name: Linux Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -75,17 +75,13 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Install multilib
-        # update is needed to fix the 404 error on install, see:
-        # https://github.com/actions/virtual-environments/issues/675
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc-multilib
+        run: sudo apt-get install gcc-multilib
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=${{ matrix.target }} --features=std
 
   ios-tests:
     name: iOS Simulator Test
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -98,9 +94,15 @@ jobs:
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           cargo dinghy --version
       - name: Setup Simulator
+        # Use the first installed iOS runtime and the first (i.e. oldest) supported iPhone device.
         run: |
-          RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
-          SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-7 $RUNTIME_ID)
+          RUNTIME=$(xcrun simctl list runtimes --json | jq '.runtimes | map(select(.name | contains("iOS"))) | .[0]')
+          RUNTIME_ID=$(echo $RUNTIME | jq -r '.identifier')
+          echo "Using runtime:" $RUNTIME_ID
+          DEVICE_ID=$(echo $RUNTIME | jq -r '.supportedDeviceTypes | map(select(.productFamily == "iPhone")) | .[0].identifier')
+          echo "Using device:" $DEVICE_ID
+          SIM_ID=$(xcrun simctl create Test-iPhone $DEVICE_ID $RUNTIME_ID)
+          echo "Created simulator:" $SIM_ID
           xcrun simctl boot $SIM_ID
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
@@ -109,7 +111,7 @@ jobs:
 
   windows-tests:
     name: Windows Test
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         toolchain: [
@@ -127,7 +129,7 @@ jobs:
 
   cross-tests:
     name: Cross Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -150,7 +152,7 @@ jobs:
 
   macos-link:
     name: macOS ARM64 Build/Link
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
@@ -164,7 +166,7 @@ jobs:
 
   cross-link:
     name: Cross Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -191,24 +193,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+          # Firefox isn't available on 22.04 yet, so we must use 20.04
+          - os: ubuntu-20.04
+            host: x86_64-unknown-linux-musl
+          - os: windows-2022
+            host: x86_64-pc-windows-msvc
           # Reenable when Safari tests start working
           # - os: macos-12
-          #   target: x86_64-apple-darwin
+          #   host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
           VERSION=v0.10.3
-          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.target }}.tar.gz
+          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
       - uses: Swatinem/rust-cache@v2
@@ -219,18 +222,18 @@ jobs:
       - name: Test (Chrome)
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
       # - name: Test (Safari)
-      #   if: matrix.os == 'macos-12'
+      #   if: runner.os == 'macOS'
       #   run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
 
   wasm64-tests:
     name: wasm64 Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
@@ -245,7 +248,7 @@ jobs:
 
   wasi-tests:
     name: WASI Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -262,7 +265,7 @@ jobs:
 
   build-tier2:
     name: Tier 2 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -281,7 +284,7 @@ jobs:
 
   build-tier3:
     name: Tier 3 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         # Supported tier 3 targets without libstd support
@@ -318,7 +321,7 @@ jobs:
 
   clippy-fmt:
     name: Clippy + rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - uses: dtolnay/rust-toolchain@stable
