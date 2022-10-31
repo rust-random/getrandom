@@ -41,7 +41,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-latest]
+        os: [ubuntu-22.04, windows-2022]
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
@@ -105,7 +105,7 @@ jobs:
 
   windows-tests:
     name: Windows Test
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         toolchain: [
@@ -189,7 +189,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             host: x86_64-unknown-linux-musl
-          - os: windows-latest
+          - os: windows-2022
             host: x86_64-pc-windows-msvc
           # Reenable when Safari tests start working
           # - os: macos-12
