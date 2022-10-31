@@ -45,7 +45,7 @@ jobs:
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
-          - os: macos-latest
+          - os: macos-12
             toolchain: stable
     steps:
       - uses: actions/checkout@v3
@@ -81,7 +81,7 @@ jobs:
 
   ios-tests:
     name: iOS Simulator Test
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -152,7 +152,7 @@ jobs:
 
   macos-link:
     name: macOS ARM64 Build/Link
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
