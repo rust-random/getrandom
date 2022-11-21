@@ -33,6 +33,7 @@
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
+//! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][14]
 //!
 //! There is no blanket implementation on `unix` targets that reads from
 //! `/dev/urandom`. This ensures all supported targets are using the recommended
@@ -160,6 +161,7 @@
 //! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [12]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
+//! [14]: https://www.ibm.com/docs/en/aix/7.3?topic=files-random-urandom-devices
 //!
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
