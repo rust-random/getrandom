@@ -294,6 +294,7 @@ jobs:
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
           riscv32imc-esp-espidf,
+          aarch64-unknown-nto-qnx710,
           # `std` support still in progress. Can be moved up with the other
           # apple targets after https://github.com/rust-lang/rust/pull/103503
           aarch64-apple-tvos,
