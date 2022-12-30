@@ -15,16 +15,17 @@ env:
 jobs:
   check-doc:
     name: Docs, deadlinks, minimal dependencies
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
       - name: Install precompiled cargo-deadlinks
         run: |
-          export URL=$(curl -s https://api.github.com/repos/deadlinks/cargo-deadlinks/releases/latest | jq -r '.assets[] | select(.name | contains("cargo-deadlinks-linux")) | .browser_download_url')
-          wget -O /tmp/cargo-deadlinks $URL
-          chmod +x /tmp/cargo-deadlinks
-          mv /tmp/cargo-deadlinks ~/.cargo/bin
+          VERSION=0.8.1
+          URL="https://github.com/deadlinks/cargo-deadlinks/releases/download/${VERSION}/cargo-deadlinks-linux"
+          wget -O ~/.cargo/bin/cargo-deadlinks $URL
+          chmod +x ~/.cargo/bin/cargo-deadlinks
+          cargo deadlinks --version
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
@@ -40,11 +41,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2022]
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
-          - os: macos-latest
+          - os: macos-12
             toolchain: stable
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +61,7 @@ jobs:
 
   linux-tests:
     name: Linux Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -74,32 +75,34 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Install multilib
-        # update is needed to fix the 404 error on install, see:
-        # https://github.com/actions/virtual-environments/issues/675
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc-multilib
+        run: sudo apt-get install gcc-multilib
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=${{ matrix.target }} --features=std
 
   ios-tests:
     name: iOS Simulator Test
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-ios
-      - name: Download cargo-dinghy
+      - name: Install precompiled cargo-dinghy
         run: |
           VERSION=0.6.2
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
-          curl -L $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           cargo dinghy --version
       - name: Setup Simulator
+        # Use the first installed iOS runtime and the first (i.e. oldest) supported iPhone device.
         run: |
-          RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
-          SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-7 $RUNTIME_ID)
+          RUNTIME=$(xcrun simctl list runtimes --json | jq '.runtimes | map(select(.name | contains("iOS"))) | .[0]')
+          RUNTIME_ID=$(echo $RUNTIME | jq -r '.identifier')
+          echo "Using runtime:" $RUNTIME_ID
+          DEVICE_ID=$(echo $RUNTIME | jq -r '.supportedDeviceTypes | map(select(.productFamily == "iPhone")) | .[0].identifier')
+          echo "Using device:" $DEVICE_ID
+          SIM_ID=$(xcrun simctl create Test-iPhone $DEVICE_ID $RUNTIME_ID)
+          echo "Created simulator:" $SIM_ID
           xcrun simctl boot $SIM_ID
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
@@ -108,7 +111,7 @@ jobs:
 
   windows-tests:
     name: Windows Test
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         toolchain: [
@@ -126,7 +129,7 @@ jobs:
 
   cross-tests:
     name: Cross Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -139,17 +142,17 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install precompiled cross
         run: |
-          export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.gz $URL
-          tar -C /tmp -xzf /tmp/binaries.tar.gz
-          mv /tmp/cross ~/.cargo/bin
+          VERSION=v0.2.4
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
 
   macos-link:
     name: macOS ARM64 Build/Link
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
@@ -163,7 +166,7 @@ jobs:
 
   cross-link:
     name: Cross Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -176,45 +179,61 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install precompiled cross
         run: |
-          export URL=$(curl -s https://api.github.com/repos/cross-rs/cross/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.gz $URL
-          tar -C /tmp -xzf /tmp/binaries.tar.gz
-          mv /tmp/cross ~/.cargo/bin
+          VERSION=v0.2.4
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
       - uses: Swatinem/rust-cache@v2
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
 
   web-tests:
     name: Web Test
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Firefox isn't available on 22.04 yet, so we must use 20.04
+          - os: ubuntu-20.04
+            host: x86_64-unknown-linux-musl
+          - os: windows-2022
+            host: x86_64-pc-windows-msvc
+          # Reenable when Safari tests start working
+          # - os: macos-12
+          #   host: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-      - name: Install precompiled wasm-bindgen-test-runner
+      - run: choco install wget
+        if: runner.os == 'Windows'
+      - name: Install precompiled wasm-pack
+        shell: bash
         run: |
-          export VERSION=$(cargo metadata --format-version=1 | jq -r '.packages[] | select ( .name == "wasm-bindgen" ) | .version')
-          wget -O /tmp/binaries.tar.gz https://github.com/rustwasm/wasm-bindgen/releases/download/$VERSION/wasm-bindgen-$VERSION-x86_64-unknown-linux-musl.tar.gz
-          tar -C /tmp -xzf /tmp/binaries.tar.gz --strip-components=1
-          mv /tmp/wasm-bindgen-test-runner ~/.cargo/bin
+          VERSION=v0.10.3
+          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
+          wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          wasm-pack --version
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
-        run: cargo test --target=wasm32-unknown-unknown --features=js
+        run: wasm-pack test --node --features=js
       - name: Test (Firefox)
-        env:
-          GECKODRIVER: /usr/bin/geckodriver
-        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+        run: wasm-pack test --headless --firefox --features=js,test-in-browser
       - name: Test (Chrome)
-        env:
-          CHROMEDRIVER: /usr/bin/chromedriver
-        run: cargo test --target=wasm32-unknown-unknown --features=js,test-in-browser
+        run: wasm-pack test --headless --chrome --features=js,test-in-browser
+      - name: Test (Edge)
+        if: runner.os == 'Windows'
+        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
+      # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
+      # - name: Test (Safari)
+      #   if: runner.os == 'macOS'
+      #   run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
-        run: cargo test --target=wasm32-unknown-unknown --features=custom
+        run: wasm-pack test --node --features=custom
 
   wasm64-tests:
     name: wasm64 Build/Link
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
@@ -229,7 +248,7 @@ jobs:
 
   wasi-tests:
     name: WASI Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -237,16 +256,16 @@ jobs:
           targets: wasm32-wasi
       - name: Install precompiled wasmtime
         run: |
-          export URL=$(curl -s https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-linux.tar.xz")) | .browser_download_url')
-          wget -O /tmp/binaries.tar.xz $URL
-          tar -C /tmp -xf /tmp/binaries.tar.xz --strip-components=1
-          mv /tmp/wasmtime ~/.cargo/bin
+          VERSION=v2.0.0
+          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+          wasmtime --version
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target wasm32-wasi
 
   build-tier2:
     name: Tier 2 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         target: [
@@ -265,7 +284,7 @@ jobs:
 
   build-tier3:
     name: Tier 3 Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         # Supported tier 3 targets without libstd support
@@ -275,6 +294,7 @@ jobs:
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
           riscv32imc-esp-espidf,
+          aarch64-unknown-nto-qnx710,
           # `std` support still in progress. Can be moved up with the other
           # apple targets after https://github.com/rust-lang/rust/pull/103503
           aarch64-apple-tvos,
@@ -302,7 +322,7 @@ jobs:
 
   clippy-fmt:
     name: Clippy + rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - uses: dtolnay/rust-toolchain@stable

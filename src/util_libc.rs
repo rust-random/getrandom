@@ -26,6 +26,8 @@ cfg_if! {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;
+    } else if #[cfg(target_os = "nto")] {
+        use libc::__get_errno_ptr as errno_location;
     } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
         extern "C" {
             // Not provided by libc: https://github.com/rust-lang/libc/issues/1995
