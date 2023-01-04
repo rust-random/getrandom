@@ -171,9 +171,11 @@ jobs:
       matrix:
         target: [
           sparcv9-sun-solaris,
-          x86_64-unknown-illumos,
-          x86_64-unknown-freebsd,
-          x86_64-unknown-netbsd,
+          # These jobs currently result in a linking error:
+          # https://github.com/rust-random/getrandom/actions/runs/3835874649/jobs/6529484986
+          # x86_64-unknown-illumos,
+          # x86_64-unknown-freebsd,
+          # x86_64-unknown-netbsd,
         ]
     steps:
       - uses: actions/checkout@v3
