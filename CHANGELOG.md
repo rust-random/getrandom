@@ -104,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.2] - 2021-01-19
 ### Changed
 - Forward `rustc-dep-of-std` to dependencies. [#198]
-- Highlight feature-dependend functionality in documentation using the `doc_cfg` feature. [#200]
+- Highlight feature-dependent functionality in documentation using the `doc_cfg` feature. [#200]
 
 [#198]: https://github.com/rust-random/getrandom/pull/198
 [#200]: https://github.com/rust-random/getrandom/pull/200
@@ -234,7 +234,7 @@ disabled `dummy` feature. [#90]
 ## [0.1.9] - 2019-08-14 [YANKED]
 ### Changed
 - Remove `std` dependency for opening and reading files. [#58]
-- Use `wasi` isntead of `libc` on WASI target. [#64]
+- Use `wasi` instead of `libc` on WASI target. [#64]
 - By default emit a compile-time error when built for an unsupported target.
 This behaviour can be disabled by using the `dummy` feature. [#71]
 
