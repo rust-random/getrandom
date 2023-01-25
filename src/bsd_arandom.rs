@@ -32,7 +32,7 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in FreeBSD 12.0 and NetBSD 10.0
-    #[cfg(target_os = "freebsd")]
+    #[cfg(any(target_os = "freebsd", target_os = "netbsd"))]
     {
         use crate::util_libc::Weak;
         static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
