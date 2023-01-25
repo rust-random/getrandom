@@ -18,7 +18,7 @@
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`SecRandomCopyBytes`]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
-//! | NetBSD            | `*‑netbsd`         | [`kern.arandom`][8]
+//! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9] if available, otherwise [`/dev/urandom`][10] (identical to `/dev/random`)
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom`][11] if available, otherwise [`/dev/random`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
@@ -164,6 +164,7 @@
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
 //! [14]: https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.utilities/topic/r/random.html
 //! [15]: https://www.ibm.com/docs/en/aix/7.3?topic=files-random-urandom-devices
+//! [16]: https://man.netbsd.org/getrandom.2
 //!
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
