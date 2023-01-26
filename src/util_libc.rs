@@ -8,6 +8,7 @@
 #![allow(dead_code)]
 use crate::Error;
 use core::{
+    cmp::min,
     mem::MaybeUninit,
     num::NonZeroU32,
     ptr::NonNull,
@@ -78,7 +79,8 @@ pub fn sys_fill_exact(
         } else {
             // We don't check for EOF (ret = 0) as the data we are reading
             // should be an infinite stream of random bytes.
-            buf = &mut buf[(res as usize)..];
+            let len = min(res as usize, buf.len());
+            buf = &mut buf[len..];
         }
     }
     Ok(())
