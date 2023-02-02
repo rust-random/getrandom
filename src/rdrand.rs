@@ -45,10 +45,10 @@ unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
     Err(Error::FAILED_RDRAND)
 }
 
-// "rdrand" target feature requires "+rdrnd" flag, see https://github.com/rust-lang/rust/issues/49653.
+// "rdrand" target feature requires "+rdrand" flag, see https://github.com/rust-lang/rust/issues/49653.
 #[cfg(all(target_env = "sgx", not(target_feature = "rdrand")))]
 compile_error!(
-    "SGX targets require 'rdrand' target feature. Enable by using -C target-feature=+rdrnd."
+    "SGX targets require 'rdrand' target feature. Enable by using -C target-feature=+rdrand."
 );
 
 #[cfg(target_feature = "rdrand")]
