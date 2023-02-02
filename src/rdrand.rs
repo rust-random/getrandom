@@ -45,26 +45,66 @@ compile_error!(
     "SGX targets require 'rdrand' target feature. Enable by using -C target-feature=+rdrand."
 );
 
-#[cfg(target_feature = "rdrand")]
-fn is_rdrand_supported() -> bool {
-    true
+// Run a small self-test to make sure we aren't repeating values
+// Adapted from Linux's test in arch/x86/kernel/cpu/rdrand.c
+// Fails with probability < 2^(-90) on 32-bit systems
+#[target_feature(enable = "rdrand")]
+unsafe fn self_test() -> bool {
+    // On AMD, RDRAND returns usize::MAX on failure, count it as a collision.
+    let mut prev = usize::MAX;
+    let mut fails = 0;
+    for _ in 0..8 {
+        match rdrand() {
+            Some(val) if val == prev => fails += 1,
+            Some(val) => prev = val,
+            None => return false,
+        };
+    }
+    fails <= 2
 }
 
-// TODO use is_x86_feature_detected!("rdrand") when that works in core. See:
-// https://github.com/rust-lang-nursery/stdsimd/issues/464
-#[cfg(not(target_feature = "rdrand"))]
-fn is_rdrand_supported() -> bool {
-    use crate::util::LazyBool;
+fn is_rdrand_good() -> bool {
+    #[cfg(not(target_feature = "rdrand"))]
+    {
+        // SAFETY: All Rust x86 targets are new enough to have CPUID, and we
+        // check that leaf 1 is supported before using it.
+        let cpuid0 = unsafe { arch::__cpuid(0) };
+        if cpuid0.eax < 1 {
+            return false;
+        }
+        let cpuid1 = unsafe { arch::__cpuid(1) };
 
-    // SAFETY: All Rust x86 targets are new enough to have CPUID, and if CPUID
-    // is supported, CPUID leaf 1 is always supported.
-    const FLAG: u32 = 1 << 30;
-    static HAS_RDRAND: LazyBool = LazyBool::new();
-    HAS_RDRAND.unsync_init(|| unsafe { (arch::__cpuid(1).ecx & FLAG) != 0 })
+        let vendor_id = [
+            cpuid0.ebx.to_le_bytes(),
+            cpuid0.edx.to_le_bytes(),
+            cpuid0.ecx.to_le_bytes(),
+        ];
+        if vendor_id == [*b"Auth", *b"enti", *b"cAMD"] {
+            let mut family = (cpuid1.eax >> 8) & 0xF;
+            if family == 0xF {
+                family += (cpuid1.eax >> 20) & 0xFF;
+            }
+            // AMD CPUs families before 17h (Zen) sometimes fail to set CF when
+            // RDRAND fails after suspend. Don't use RDRAND on those families.
+            // See https://bugzilla.redhat.com/show_bug.cgi?id=1150286
+            if family < 0x17 {
+                return false;
+            }
+        }
+
+        const RDRAND_FLAG: u32 = 1 << 30;
+        if cpuid1.ecx & RDRAND_FLAG == 0 {
+            return false;
+        }
+    }
+
+    // SAFETY: We have already checked that rdrand is available.
+    unsafe { self_test() }
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    if !is_rdrand_supported() {
+    static RDRAND_GOOD: LazyBool = LazyBool::new();
+    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }
     rdrand_exact(dest).ok_or(Error::FAILED_RDRAND)
