@@ -7,8 +7,11 @@
 // except according to those terms.
 
 //! Implementation for SGX using RDRAND instruction
-use crate::{util::slice_as_uninit, Error};
-use core::mem::{self, MaybeUninit};
+use crate::{
+    util::{slice_as_uninit, LazyBool},
+    Error,
+};
+use core::mem::{size_of, MaybeUninit};
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
@@ -24,25 +27,16 @@ cfg_if! {
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
 // Software Developer’s Manual" - Volume 1 - Section 7.3.17.1.
 const RETRY_LIMIT: usize = 10;
-const WORD_SIZE: usize = mem::size_of::<usize>();
 
 #[target_feature(enable = "rdrand")]
-unsafe fn rdrand() -> Result<[u8; WORD_SIZE], Error> {
+unsafe fn rdrand() -> Option<usize> {
     for _ in 0..RETRY_LIMIT {
-        let mut el = mem::zeroed();
-        if rdrand_step(&mut el) == 1 {
-            // AMD CPUs from families 14h to 16h (pre Ryzen) sometimes fail to
-            // set CF on bogus random data, so we check these values explicitly.
-            // See https://github.com/systemd/systemd/issues/11810#issuecomment-489727505
-            // We perform this check regardless of target to guard against
-            // any implementation that incorrectly fails to set CF.
-            if el != 0 && el != !0 {
-                return Ok(el.to_ne_bytes());
-            }
-            // Keep looping in case this was a false positive.
+        let mut val = 0;
+        if rdrand_step(&mut val) == 1 {
+            return Some(val as usize);
         }
     }
-    Err(Error::FAILED_RDRAND)
+    None
 }
 
 // "rdrand" target feature requires "+rdrand" flag, see https://github.com/rust-lang/rust/issues/49653.
@@ -73,25 +67,25 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !is_rdrand_supported() {
         return Err(Error::NO_RDRAND);
     }
-
-    // SAFETY: After this point, rdrand is supported, so calling the rdrand
-    // functions is not undefined behavior.
-    unsafe { rdrand_exact(dest) }
+    rdrand_exact(dest).ok_or(Error::FAILED_RDRAND)
 }
 
-#[target_feature(enable = "rdrand")]
-unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     // We use chunks_exact_mut instead of chunks_mut as it allows almost all
     // calls to memcpy to be elided by the compiler.
-    let mut chunks = dest.chunks_exact_mut(WORD_SIZE);
+    let mut chunks = dest.chunks_exact_mut(size_of::<usize>());
     for chunk in chunks.by_ref() {
-        chunk.copy_from_slice(slice_as_uninit(&rdrand()?));
+        // SAFETY: After this point, we know rdrand is supported, so calling
+        // rdrand is not undefined behavior.
+        let src = unsafe { rdrand() }?.to_ne_bytes();
+        chunk.copy_from_slice(slice_as_uninit(&src));
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        tail.copy_from_slice(slice_as_uninit(&rdrand()?[..n]));
+        let src = unsafe { rdrand() }?.to_ne_bytes();
+        tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
-    Ok(())
+    Some(())
 }
