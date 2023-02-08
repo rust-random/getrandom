@@ -5,8 +5,6 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-
-//! Implementation for SGX using RDRAND instruction
 use crate::{
     util::{slice_as_uninit, LazyBool},
     Error,
