@@ -105,24 +105,25 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }
-    rdrand_exact(dest).ok_or(Error::FAILED_RDRAND)
+    // SAFETY: After this point, we know rdrand is supported.
+    unsafe { rdrand_exact(dest) }.ok_or(Error::FAILED_RDRAND)
 }
 
-fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
+// TODO: make this function safe when we have feature(target_feature_11)
+#[target_feature(enable = "rdrand")]
+unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     // We use chunks_exact_mut instead of chunks_mut as it allows almost all
     // calls to memcpy to be elided by the compiler.
     let mut chunks = dest.chunks_exact_mut(size_of::<usize>());
     for chunk in chunks.by_ref() {
-        // SAFETY: After this point, we know rdrand is supported, so calling
-        // rdrand is not undefined behavior.
-        let src = unsafe { rdrand() }?.to_ne_bytes();
+        let src = rdrand()?.to_ne_bytes();
         chunk.copy_from_slice(slice_as_uninit(&src));
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        let src = unsafe { rdrand() }?.to_ne_bytes();
+        let src = rdrand()?.to_ne_bytes();
         tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
     Some(())
