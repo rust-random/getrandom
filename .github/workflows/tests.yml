@@ -193,8 +193,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Firefox isn't available on 22.04 yet, so we must use 20.04
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             host: x86_64-unknown-linux-musl
           - os: windows-2022
             host: x86_64-pc-windows-msvc
@@ -300,7 +299,7 @@ jobs:
           aarch64-apple-tvos,
         ]
         include:
-          # Supported tier 3 targets without libstd support
+          # Supported tier 3 targets with libstd support
           - target: x86_64-unknown-openbsd
             features: ["std"]
           - target: x86_64-unknown-dragonfly
