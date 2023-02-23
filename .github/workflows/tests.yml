@@ -195,9 +195,8 @@ jobs:
             host: x86_64-unknown-linux-musl
           - os: windows-2022
             host: x86_64-pc-windows-msvc
-          # Re-enable when Safari tests start working
-          # - os: macos-12
-          #   host: x86_64-apple-darwin
+          - os: macos-12
+            host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -220,11 +219,14 @@ jobs:
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
         if: runner.os == 'Windows'
+        # Edge has flaky failures: "driver failed to bind port during startup"
+        continue-on-error: true
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
-      # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
-      # - name: Test (Safari)
-      #   if: runner.os == 'macOS'
-      #   run: wasm-pack test --headless --safari --features=js,test-in-browser
+      - name: Test (Safari)
+        if: runner.os == 'macOS'
+        # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
+        continue-on-error: true
+        run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
 
