@@ -273,7 +273,14 @@ cfg_if! {
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
                         target_os = "unknown"))] {
+        #[cfg(not(js_unsupported))]
         #[path = "js.rs"] mod imp;
+        #[cfg(js_unsupported)]
+        mod imp {
+            pub(crate) fn getrandom_inner(_: &mut [u8]) -> Result<(), crate::Error> {
+                Err(crate::Error::UNSUPPORTED)
+            }
+        }
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),
