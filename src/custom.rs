@@ -78,9 +78,9 @@ macro_rules! register_custom_getrandom {
     ($path:path) => {
         // TODO(MSRV 1.37): change to unnamed block
         const __getrandom_internal: () = {
-            // We use an extern "C" function to get the guarantees of a stable ABI.
+            // We use Rust ABI to be safe against potential panics in the passed function.
             #[no_mangle]
-            unsafe extern "C" fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+            unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
                 // Make sure the passed function has the type of getrandom::getrandom
                 type F = fn(&mut [u8]) -> ::core::result::Result<(), $crate::Error>;
                 let _: F = $crate::getrandom;
@@ -97,7 +97,7 @@ macro_rules! register_custom_getrandom {
 
 #[allow(dead_code)]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    extern "C" {
+    extern "Rust" {
         fn __getrandom_custom(dest: *mut u8, len: usize) -> u32;
     }
     // Previously we always passed a valid, initialized slice to
