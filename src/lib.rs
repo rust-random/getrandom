@@ -193,7 +193,8 @@
 #[macro_use]
 extern crate cfg_if;
 
-use crate::util::slice_as_uninit_mut;
+use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
+use core::mem::MaybeUninit;
 
 mod error;
 mod util;
@@ -290,22 +291,84 @@ cfg_if! {
 /// Fill `dest` with random bytes from the system's preferred random number
 /// source.
 ///
-/// This function returns an error on any failure, including partial reads. We
-/// make no guarantees regarding the contents of `dest` on error. If `dest` is
-/// empty, `getrandom` immediately returns success, making no calls to the
-/// underlying operating system.
-///
-/// Blocking is possible, at least during early boot; see module documentation.
-///
-/// In general, `getrandom` will be fast enough for interactive usage, though
-/// significantly slower than a user-space CSPRNG; for the latter consider
-/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+/// Convinence alias for `Options::DEFAULT.fill(dest)`. For more info, see
+/// [`Options::DEFAULT`] and [`Options::fill`].
 #[inline]
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    if dest.is_empty() {
-        return Ok(());
+    Options::DEFAULT.fill(dest)
+}
+
+/// Options for specifying how random bytes should be generated.
+///
+/// Currently, [`Options::DEFAULT`] is the only allowed option, but we may add
+/// additional options in the future (hense why this enum is `non_exhaustive`).
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(getrandom_non_exhaustive, non_exhaustive)]
+pub enum Options {
+    /// Use the system's preferred random number source.
+    ///
+    /// This implementation is garunteed to produce cryptographically random
+    /// bytes on success. However, it may block in order to do so,
+    /// [especially during early boot](https://docs.rs/getrandom#early-boot).
+    ///
+    /// In general, this sources will be fast enough for
+    /// interactive usage, though significantly slower than a user-space CSPRNG.
+    /// For a user-space CSPRNG seeded from this source, consider
+    /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+    DEFAULT,
+}
+
+impl Options {
+    /// Fill `dest` with random bytes.
+    ///
+    /// This function returns an error on any failure, including partial reads.
+    /// We make no guarantees regarding the contents of `dest` on error. If
+    /// `dest` is empty, immediately return success, making no calls to the
+    /// underlying system RNG source.
+    #[inline]
+    pub fn fill(self, dest: &mut [u8]) -> Result<(), Error> {
+        if dest.is_empty() {
+            return Ok(());
+        }
+        // SAFETY: The &mut [MaybeUninit<u8>] reference doesn't escape, and
+        // `getrandom_inner` will never de-initialize any part of `dest`.
+        imp::getrandom_inner(unsafe { slice_as_uninit_mut(dest) })
     }
-    // SAFETY: The &mut [MaybeUninit<u8>] reference doesn't escape, and
-    // `getrandom_inner` will never de-initialize any part of `dest`.
-    imp::getrandom_inner(unsafe { slice_as_uninit_mut(dest) })
+
+    /// Initialize `dest` with random bytes.
+    ///
+    /// On success, this function is guaranteed to return a slice which points
+    /// to the same memory as `dest` and has the same length. In this case, it
+    /// is safe to assume that `dest` is initialized.
+    ///
+    /// On either success or failure, no part of `dest` will ever be
+    /// de-initialized at any point.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::mem::MaybeUninit;
+    /// # fn uninit_example() -> Result<(), getrandom::Error> {
+    /// use getrandom::Options;
+    ///
+    /// let mut buf = [MaybeUninit::<u8>::uninit(); 1024];
+    /// let buf: &mut [u8] = Options::DEFAULT.fill_uninit(&mut buf)?;
+    /// # Ok(()) }
+    /// # uninit_example().unwrap();
+    /// ```
+    #[inline]
+    pub fn fill_uninit(self, dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+        if !dest.is_empty() {
+            imp::getrandom_inner(dest)?;
+        }
+        // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
+        Ok(unsafe { slice_assume_init_mut(dest) })
+    }
+}
+
+// TODO(MSRV 1.62): Use #[derive(Default)]
+impl Default for Options {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }

@@ -3,11 +3,13 @@ extern crate test;
 
 use std::mem::MaybeUninit;
 
+use getrandom::Options;
+
 // Call getrandom on a zero-initialized stack buffer
 #[inline(always)]
 fn bench_getrandom<const N: usize>() {
     let mut buf = [0u8; N];
-    getrandom::getrandom(&mut buf).unwrap();
+    Options::DEFAULT.fill(&mut buf).unwrap();
     test::black_box(&buf as &[u8]);
 }
 
@@ -15,7 +17,7 @@ fn bench_getrandom<const N: usize>() {
 #[inline(always)]
 fn bench_getrandom_uninit<const N: usize>() {
     let mut uninit = [MaybeUninit::uninit(); N];
-    let buf: &[u8] = getrandom::getrandom_uninit(&mut uninit).unwrap();
+    let buf: &[u8] = Options::DEFAULT.fill_uninit(&mut uninit).unwrap();
     test::black_box(buf);
 }
 
