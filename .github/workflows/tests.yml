@@ -208,7 +208,7 @@ jobs:
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.10.3
+          VERSION=v0.11.0
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
