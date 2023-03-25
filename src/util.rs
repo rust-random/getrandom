@@ -99,3 +99,11 @@ pub unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     &mut *(slice as *mut [T] as *mut [MaybeUninit<T>])
 }
+
+/// Polyfill for `maybe_uninit_as_bytes` features's `MaybeUninit::as_bytes_mut`.
+#[inline(always)]
+pub fn uninit_as_bytes_mut<T>(t: &mut MaybeUninit<T>) -> &mut [MaybeUninit<u8>] {
+    use core::{mem::size_of, slice::from_raw_parts_mut};
+    // SAFETY: MaybeUninit<u8> is always valid for any type (including padding).
+    unsafe { from_raw_parts_mut(t.as_mut_ptr() as *mut MaybeUninit<u8>, size_of::<T>()) }
+}

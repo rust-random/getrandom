@@ -8,6 +8,10 @@ fn main() {
     if minor_ver >= 40 {
         println!("cargo:rustc-cfg=getrandom_non_exhaustive");
     }
+
+    if minor_ver >= 51 {
+        println!("cargo:rustc-cfg=getrandom_const_generics");
+    }
 }
 
 // Based on libc's implementation:

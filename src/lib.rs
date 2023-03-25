@@ -193,7 +193,7 @@
 #[macro_use]
 extern crate cfg_if;
 
-use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
+use crate::util::{slice_as_uninit_mut, slice_assume_init_mut, uninit_as_bytes_mut};
 use core::mem::MaybeUninit;
 
 mod error;
@@ -364,6 +364,57 @@ impl Options {
         // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
         Ok(unsafe { slice_assume_init_mut(dest) })
     }
+
+    /// Return an array of random bytes.
+    ///
+    /// Supports returning `u8` arrays and _arbitrary levels_ of nested byte
+    /// arrays. Requires Rust 1.51 or later (due to the use of const generics).
+    ///
+    /// # Examples
+    /// ```
+    /// use getrandom::{Error, Options};
+    /// fn tls_hello_random() -> Result<[u8; 32], Error> {
+    ///     Options::DEFAULT.array()
+    /// }
+    /// # tls_hello_random().unwrap();
+    /// ```
+    ///
+    /// The nested array support can be used to safely and efficiently construct
+    /// random values of types other than byte arrays:
+    /// ```
+    /// # use getrandom::{Error, Options};
+    /// # fn u32_array_example() -> Result<(), Error> {
+    /// let random_u32s: [u32; 4] = Options::DEFAULT.array()?.map(u32::from_ne_bytes);
+    /// # Ok(())
+    /// # }
+    /// # u32_array_example().unwrap();
+    /// ```
+    ///
+    /// Multiple levels of array nesting can be used to construct more
+    /// complicated types, though some type annotations are needed:
+    /// ```
+    /// # #![feature(portable_simd)]
+    /// use std::simd::Simd;
+    /// # use getrandom::{Error, Options};
+    /// # fn simd_array_example() -> Result<(), Error> {
+    /// let random_vectors: [Simd<u32, 8>; 16] = Options::DEFAULT
+    ///     .array()?
+    ///     .map(|bytes: [_; 8]| bytes.map(u32::from_ne_bytes))
+    ///     .map(Simd::from);
+    /// # Ok(())
+    /// # }
+    /// # simd_array_example().unwrap();
+    /// ```
+    #[cfg(getrandom_const_generics)]
+    #[inline]
+    pub fn array<T: ArrayElement, const N: usize>(self) -> Result<[T; N], Error> {
+        let mut uninit: MaybeUninit<[T; N]> = MaybeUninit::uninit();
+        imp::getrandom_inner(uninit_as_bytes_mut(&mut uninit))?;
+
+        // SAFETY: uninit was entirely initalized by imp::getrandom_inner, and
+        // any sequence of initialized bytes is valid for any ArrayElement type.
+        Ok(unsafe { uninit.assume_init() })
+    }
 }
 
 // TODO(MSRV 1.62): Use #[derive(Default)]
@@ -371,4 +422,25 @@ impl Default for Options {
     fn default() -> Self {
         Self::DEFAULT
     }
+}
+
+/// A type supported by [Options::array] that can be initialized with random data.
+///
+/// # Safety
+///
+/// Any type which implements ArrayElementmust ensure that any sequence of bytes
+/// is a valid representation for that type. For example, it is safe to have
+/// `[u8; 6]` implement this trait, but not `bool`.
+#[cfg(getrandom_const_generics)]
+pub unsafe trait ArrayElement: private::Sealed {}
+
+#[cfg(getrandom_const_generics)]
+mod private {
+    use super::ArrayElement;
+    pub trait Sealed {}
+
+    impl Sealed for u8 {}
+    unsafe impl ArrayElement for u8 {}
+    impl<A: ArrayElement, const N: usize> Sealed for [A; N] {}
+    unsafe impl<A: ArrayElement, const N: usize> ArrayElement for [A; N] {}
 }
