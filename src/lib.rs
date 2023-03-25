@@ -193,8 +193,7 @@
 #[macro_use]
 extern crate cfg_if;
 
-use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
-use core::mem::MaybeUninit;
+use crate::util::slice_as_uninit_mut;
 
 mod error;
 mod util;
@@ -303,40 +302,10 @@ cfg_if! {
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 #[inline]
 pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape, and
-    // `getrandom_uninit` guarantees it will never de-initialize any part of
-    // `dest`.
-    getrandom_uninit(unsafe { slice_as_uninit_mut(dest) })?;
-    Ok(())
-}
-
-/// Version of the `getrandom` function which fills `dest` with random bytes
-/// returns a mutable reference to those bytes.
-///
-/// On successful completion this function is guaranteed to return a slice
-/// which points to the same memory as `dest` and has the same length.
-/// In other words, it's safe to assume that `dest` is initialized after
-/// this function has returned `Ok`.
-///
-/// No part of `dest` will ever be de-initialized at any point, regardless
-/// of what is returned.
-///
-/// # Examples
-///
-/// ```ignore
-/// # // We ignore this test since `uninit_array` is unstable.
-/// #![feature(maybe_uninit_uninit_array)]
-/// # fn main() -> Result<(), getrandom::Error> {
-/// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
-/// let buf: &mut [u8] = getrandom::getrandom_uninit(&mut buf)?;
-/// # Ok(()) }
-/// ```
-#[inline]
-pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
-    if !dest.is_empty() {
-        imp::getrandom_inner(dest)?;
+    if dest.is_empty() {
+        return Ok(());
     }
-    // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
-    // since it returned `Ok`.
-    Ok(unsafe { slice_assume_init_mut(dest) })
+    // SAFETY: The &mut [MaybeUninit<u8>] reference doesn't escape, and
+    // `getrandom_inner` will never de-initialize any part of `dest`.
+    imp::getrandom_inner(unsafe { slice_as_uninit_mut(dest) })
 }
