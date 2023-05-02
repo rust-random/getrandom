@@ -297,6 +297,7 @@ jobs:
           x86_64-wrs-vxworks,
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
+          armv7-sony-vita-newlibeabihf,
           riscv32imc-esp-espidf,
           aarch64-unknown-nto-qnx710,
           # `std` support still in progress. Can be moved up with the other
