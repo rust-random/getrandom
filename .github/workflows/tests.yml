@@ -20,8 +20,9 @@ jobs:
     name: Docs, deadlinks, minimal dependencies
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      # Needed for -Z minimal-versions and doc_cfg
+      - uses: dtolnay/rust-toolchain@489be89ec1ce7705752be48473e9dff5f9109cbb # nightly
       - name: Install precompiled cargo-deadlinks
         run: |
           VERSION=0.8.1
@@ -29,7 +30,7 @@ jobs:
           wget -O ~/.cargo/bin/cargo-deadlinks $URL
           chmod +x ~/.cargo/bin/cargo-deadlinks
           cargo deadlinks --version
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
@@ -51,11 +52,11 @@ jobs:
           - os: macos-12
             toolchain: stable
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@1f5cdb56c8779e3efa22473ce181ff83143b172c # master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo test
       - run: cargo test --features=std
       - run: cargo test --features=custom # custom should do nothing here
@@ -73,21 +74,21 @@ jobs:
           i686-unknown-linux-musl,
         ]
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
         with:
           targets: ${{ matrix.target }}
       - name: Install multilib
         run: sudo apt-get update && sudo apt-get install gcc-multilib
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo test --target=${{ matrix.target }} --features=std
 
   ios-tests:
     name: iOS Simulator Test
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
         with:
           targets: x86_64-apple-ios
       - name: Install precompiled cargo-dinghy
@@ -108,7 +109,7 @@ jobs:
           echo "Created simulator:" $SIM_ID
           xcrun simctl boot $SIM_ID
           echo "device=$SIM_ID" >> $GITHUB_ENV
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: Run tests
         run: cargo dinghy -d ${{ env.device }} test
 
@@ -123,11 +124,11 @@ jobs:
           stable-i686-msvc,
         ]
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@1f5cdb56c8779e3efa22473ce181ff83143b172c # master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo test --features=std
 
   cross-tests:
@@ -144,7 +145,7 @@ jobs:
           wasm32-unknown-emscripten,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -158,12 +159,12 @@ jobs:
     name: macOS ARM64 Build/Link
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@489be89ec1ce7705752be48473e9dff5f9109cbb # nightly
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
           components: rust-src
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
       - run: cargo test --no-run --target=aarch64-apple-ios --features=std
       - run: cargo test --no-run --target=aarch64-apple-watchos-sim -Zbuild-std --features=std
@@ -180,7 +181,7 @@ jobs:
           x86_64-unknown-netbsd,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -204,8 +205,8 @@ jobs:
             host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
       - run: choco install wget
         if: runner.os == 'Windows'
       - name: Install precompiled wasm-pack
@@ -215,7 +216,7 @@ jobs:
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: Test (Node)
         run: wasm-pack test --node --features=js
       - name: Test (Firefox)
@@ -239,11 +240,11 @@ jobs:
     name: wasm64 Build/Link
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@489be89ec1ce7705752be48473e9dff5f9109cbb # nightly
         with:
           components: rust-src
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: Build and Link tests (build-std)
         # This target is Tier 3, so we have to build libstd ourselves.
         # We currently cannot run these tests because wasm-bindgen-test-runner
@@ -254,8 +255,8 @@ jobs:
     name: WASI Test
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
         with:
           targets: wasm32-wasi
       - name: Install precompiled wasmtime
@@ -264,7 +265,7 @@ jobs:
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo test --target wasm32-wasi
 
   build-tier2:
@@ -278,11 +279,11 @@ jobs:
           x86_64-fortanix-unknown-sgx,
         ]
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
         with:
           targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: Build
         run: cargo build --target=${{ matrix.target }} --features=std
 
@@ -318,22 +319,22 @@ jobs:
           - target: x86_64-unknown-l4re-uclibc
             features: ["rdrand"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: dtolnay/rust-toolchain@489be89ec1ce7705752be48473e9dff5f9109cbb # nightly
         with:
           components: rust-src
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
 
   clippy-fmt:
     name: Clippy + rustfmt
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1.2.0
+      - uses: dtolnay/rust-toolchain@0e41f80ddf3dd5376629cdf1e757c9224b1c1e5b # stable
         with:
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@2656b87321093db1cb55fbd73183d195214fdfd1 # v2.5.0
       - name: clippy
         run: cargo clippy --all --features=custom,std
       - name: fmt
