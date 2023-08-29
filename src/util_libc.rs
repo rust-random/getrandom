@@ -19,7 +19,7 @@ use libc::c_void;
 cfg_if! {
     if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
         use libc::__errno as errno_location;
-    } else if #[cfg(any(target_os = "linux", target_os = "emscripten", target_os = "redox"))] {
+    } else if #[cfg(any(target_os = "linux", target_os = "emscripten", target_os = "hurd", target_os = "redox"))] {
         use libc::__errno_location as errno_location;
     } else if #[cfg(any(target_os = "solaris", target_os = "illumos"))] {
         use libc::___errno as errno_location;
