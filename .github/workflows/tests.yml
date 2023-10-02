@@ -140,7 +140,7 @@ jobs:
           # TODO: add Android tests back when the cross cuts a new release.
           # See: https://github.com/cross-rs/cross/issues/1222
           # aarch64-linux-android,
-          mips-unknown-linux-gnu,
+          powerpc-unknown-linux-gnu,
           wasm32-unknown-emscripten,
         ]
     steps:
