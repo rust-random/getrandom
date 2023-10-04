@@ -180,7 +180,7 @@
 //! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
 //! [ES modules]: https://nodejs.org/api/esm.html
-//! [`sys_read_entropy`]: https://hermitcore.github.io/libhermit-rs/hermit/fn.sys_read_entropy.html
+//! [`sys_read_entropy`]: https://docs.rs/hermit-abi/0.3.3/hermit_abi/fn.read_entropy.html
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
