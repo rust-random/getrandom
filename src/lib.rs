@@ -191,7 +191,7 @@
 )]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[macro_use]
 extern crate cfg_if;
@@ -362,7 +362,6 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
 /// # Ok(()) }
 /// ```
 #[cfg(feature = "zerocopy")]
-#[cfg_attr(docsrs, doc(cfg(feature = "zerocopy")))]
 #[inline]
 pub fn value<T: zerocopy::FromBytes + Sized>() -> Result<T, Error> {
     let mut value = MaybeUninit::<T>::uninit();
