@@ -25,6 +25,7 @@
 //! | Redox             | `*‑redox`          | `/dev/urandom`
 //! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
 //! | Hermit            | `*-hermit`         | [`sys_read_entropy`]
+//! | Hurd              | `*-hurd-*`         | [`getrandom`][17]
 //! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
@@ -166,6 +167,7 @@
 //! [14]: https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.utilities/topic/r/random.html
 //! [15]: https://www.ibm.com/docs/en/aix/7.3?topic=files-random-urandom-devices
 //! [16]: https://man.netbsd.org/getrandom.2
+//! [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 //!
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
@@ -278,6 +280,9 @@ cfg_if! {
                         any(target_arch = "wasm32", target_arch = "wasm64"),
                         target_os = "unknown"))] {
         #[path = "js.rs"] mod imp;
+    } else if #[cfg(target_os = "hurd")] {
+        mod util_libc;
+        #[path = "hurd.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),

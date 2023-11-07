@@ -317,6 +317,8 @@ jobs:
             features: ["rdrand"]
           - target: x86_64-unknown-l4re-uclibc
             features: ["rdrand"]
+          - target: i686-unknown-hurd-gnu
+            features: ["std"]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
