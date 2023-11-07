@@ -349,3 +349,34 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     // since it returned `Ok`.
     Ok(unsafe { slice_assume_init_mut(dest) })
 }
+
+/// Generate a random value of type `T` implementing the [`zerocopy::FromBytes`] trait.
+///
+/// # Examples
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let key: [u8; 16] = getrandom::value()?;
+/// let keys: [[u8; 16]; 64] = getrandom::value()?;
+/// let random_u32: u32 = getrandom::value()?;
+/// let random_u64s: [u64; 100] = getrandom::getrandom_value()?;
+/// # Ok(()) }
+/// ```
+#[cfg(feature = "zerocopy")]
+#[inline]
+pub fn value<T: zerocopy::FromBytes + Sized>() -> Result<T, Error> {
+    let mut value = MaybeUninit::<T>::uninit();
+    // SAFETY: it's safe to cast `&mut MaybeUninit<T>` to `&mut [MaybeUninit<u8>]`
+    // with slice length equal to `size_of::<T>()`. The compiler will ensure that
+    // `T` isn't too large.
+    unsafe {
+        let as_bytes_mut = core::slice::from_raw_parts_mut(
+            &mut value as *mut MaybeUninit<T> as *mut MaybeUninit<u8>,
+            core::mem::size_of::<T>(),
+        );
+        getrandom_uninit(as_bytes_mut)?;
+    };
+    // SAFETY: when `getrandom_uninit` returns `Ok` all bytes in `as_bytes_mut`
+    // (and thus in `value`) are properly initialized. Any bit-sequence is valid
+    // for `T: FromBytes`, so we can safely execute `assume_init` on `value`.
+    Ok(unsafe { value.assume_init() })
+}
