@@ -12,6 +12,7 @@ exclude = [".*"]
 
 [dependencies]
 cfg-if = "1"
+# WARNING: Enabling this dependency bumps MSRV to 1.60
 zerocopy = { version = "0.7", optional = true, default-features = false }
 
 # When built as part of libstd
