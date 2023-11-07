@@ -196,6 +196,9 @@
 #[macro_use]
 extern crate cfg_if;
 
+#[cfg(feature = "zerocopy")]
+pub use zerocopy;
+
 use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 use core::mem::MaybeUninit;
 
