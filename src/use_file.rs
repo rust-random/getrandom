@@ -8,7 +8,6 @@
 
 //! Implementations that just need to read from a file
 use crate::{
-    util::LazyUsize,
     util_libc::{open_readonly, sys_fill_exact},
     Error,
 };
@@ -35,6 +34,7 @@ const FILE_PATH: &str = "/dev/random\0";
     target_os = "nto",
 ))]
 const FILE_PATH: &str = "/dev/urandom\0";
+const FD_UNINIT: usize = usize::max_value();
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
@@ -47,10 +47,10 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 // bytes. The file will be opened exactly once. All subsequent calls will
 // return the same file descriptor. This file descriptor is never closed.
 fn get_rng_fd() -> Result<libc::c_int, Error> {
-    static FD: AtomicUsize = AtomicUsize::new(LazyUsize::UNINIT);
+    static FD: AtomicUsize = AtomicUsize::new(FD_UNINIT);
     fn get_fd() -> Option<libc::c_int> {
         match FD.load(Relaxed) {
-            LazyUsize::UNINIT => None,
+            FD_UNINIT => None,
             val => Some(val as libc::c_int),
         }
     }
@@ -75,8 +75,8 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     wait_until_rng_ready()?;
 
     let fd = unsafe { open_readonly(FILE_PATH)? };
-    // The fd always fits in a usize without conflicting with UNINIT.
-    debug_assert!(fd >= 0 && (fd as usize) < LazyUsize::UNINIT);
+    // The fd always fits in a usize without conflicting with FD_UNINIT.
+    debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
     FD.store(fd as usize, Relaxed);
 
     Ok(fd)

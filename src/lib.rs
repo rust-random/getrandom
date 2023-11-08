@@ -224,6 +224,7 @@ cfg_if! {
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
         mod use_file;
+        mod lazy;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
         mod util_libc;
@@ -272,9 +273,11 @@ cfg_if! {
         mod util_libc;
         #[path = "emscripten.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
