@@ -5,10 +5,7 @@
 // <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use crate::{
-    util::{slice_as_uninit, LazyBool},
-    Error,
-};
+use crate::{lazy::LazyBool, util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
 
 cfg_if! {

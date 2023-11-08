@@ -8,7 +8,7 @@
 
 //! Implementation for Linux / Android
 use crate::{
-    util::LazyBool,
+    lazy::LazyBool,
     util_libc::{last_os_error, sys_fill_exact},
     {use_file, Error},
 };
