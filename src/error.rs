@@ -35,6 +35,8 @@ impl Error {
     pub const UNSUPPORTED: Error = internal_error(0);
     /// The platform-specific `errno` returned a non-positive value.
     pub const ERRNO_NOT_POSITIVE: Error = internal_error(1);
+    /// Encountered an unexpected situation which should not happen in practice.
+    pub const UNEXPECTED: Error = internal_error(2);
     /// Call to iOS [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
     pub const IOS_SEC_RANDOM: Error = internal_error(3);
     /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
@@ -164,6 +166,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
     match error {
         Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
         Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
+        Error::UNEXPECTED => Some("unexpected situation"),
         Error::IOS_SEC_RANDOM => Some("SecRandomCopyBytes: iOS Security framework failure"),
         Error::WINDOWS_RTL_GEN_RANDOM => Some("RtlGenRandom: Windows system function failure"),
         Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
