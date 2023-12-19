@@ -14,8 +14,8 @@
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 //! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`]
-//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3] if available, otherwise [`/dev/urandom`][4] (identical to `/dev/random`)
-//! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`SecRandomCopyBytes`]
+//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
+//! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
@@ -179,7 +179,7 @@
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [`RDRAND`]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
-//! [`SecRandomCopyBytes`]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
+//! [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 //! [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
 //! [`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 //! [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
@@ -250,7 +250,6 @@ cfg_if! {
         #[path = "apple-other.rs"] mod imp;
     } else if #[cfg(target_os = "macos")] {
         mod util_libc;
-        mod use_file;
         #[path = "macos.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
         mod util_libc;

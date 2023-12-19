@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Raise minimum supported Apple OS versions to macOS 10.12 and iOS 10.
+
 ## [0.2.11] - 2023-11-08
 ### Added
 - GNU/Hurd support [#370]

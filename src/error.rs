@@ -37,7 +37,9 @@ impl Error {
     pub const ERRNO_NOT_POSITIVE: Error = internal_error(1);
     /// Encountered an unexpected situation which should not happen in practice.
     pub const UNEXPECTED: Error = internal_error(2);
-    /// Call to iOS [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.
+    /// Call to [`CCRandomGenerateBytes`](https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html) failed
+    /// on iOS, tvOS, or waatchOS.
+    // TODO: Update this constant name in the next breaking release.
     pub const IOS_SEC_RANDOM: Error = internal_error(3);
     /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
     pub const WINDOWS_RTL_GEN_RANDOM: Error = internal_error(4);
