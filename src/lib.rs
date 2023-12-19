@@ -106,6 +106,13 @@
 //! ```
 //! This crate will then use the provided `webcrypto` implementation.
 //!
+//! ### Platform Support
+//! This crate generally supports the same operating system and platform versions that the Rust standard library does.
+//! Additional targets may be supported using plugable custom implementations.
+//!
+//! This means that as Rust drops support for old versions of operating systems (such as old Linux kernel versions, Android API levels, etc)
+//! in stable releases, `getrandom` may create new patch releases (`0.N.x`) that remove support for outdated platform versions.
+//!
 //! ### Custom implementations
 //!
 //! The [`register_custom_getrandom!`] macro allows a user to mark their own
