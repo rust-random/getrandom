@@ -1,4 +1,4 @@
-// Copyright 2018 Developers of the Rand project.
+// Copyright 2023 Developers of the Rand project.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -20,7 +20,7 @@ use core::{
 // We prefer using /dev/urandom and only use /dev/random if the OS
 // documentation indicates that /dev/urandom is insecure.
 // On Solaris/Illumos, see src/solaris_illumos.rs
-// On Dragonfly, Haiku, macOS, and QNX Neutrino the devices are identical.
+// On Dragonfly, Haiku, and QNX Neutrino the devices are identical.
 #[cfg(any(target_os = "solaris", target_os = "illumos"))]
 const FILE_PATH: &str = "/dev/random\0";
 #[cfg(any(
@@ -30,7 +30,6 @@ const FILE_PATH: &str = "/dev/random\0";
     target_os = "redox",
     target_os = "dragonfly",
     target_os = "haiku",
-    target_os = "macos",
     target_os = "nto",
 ))]
 const FILE_PATH: &str = "/dev/urandom\0";
