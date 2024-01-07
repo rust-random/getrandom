@@ -1,4 +1,4 @@
-// Copyright 2019 Developers of the Rand project.
+// Copyright 2019-2024 Developers of the Rand project.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
