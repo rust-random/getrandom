@@ -62,11 +62,20 @@ Additional targets may be supported using pluggable custom implementations.
 This means that as Rust drops support for old versions of operating systems (such as old Linux kernel versions, Android API levels, etc)
 in stable releases, `getrandom` may create new patch releases (`0.N.x`) that remove support for outdated platform versions.
 
-# License
+## License
 
 The `getrandom` library is distributed under either of
 
- * [Apache License, Version 2.0](LICENSE-APACHE)
- * [MIT license](LICENSE-MIT)
+ * [Apache License, Version 2.0][LICENSE-APACHE]
+ * [MIT license][LICENSE-MIT]
 
 at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+
+[LICENSE-APACHE]: https://github.com/rust-random/getrandom/blob/master/LICENSE-APACHE
+[LICENSE-MIT]: https://github.com/rust-random/getrandom/blob/master/LICENSE-MIT
