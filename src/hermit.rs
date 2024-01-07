@@ -1,3 +1,4 @@
+//! Implementation for Hermit
 use crate::Error;
 use core::{mem::MaybeUninit, num::NonZeroU32};
 
