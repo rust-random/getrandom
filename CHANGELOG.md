@@ -4,10 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.12] - 2024-01-09
+### Fixed
+- Custom backend for targets without atomics [#385]
 
 ### Changed
-- Raise minimum supported Apple OS versions to macOS 10.12 and iOS 10.
+- Improve robustness of the Hermit backend and `sys_fill_exact` [#386]
+- Raise minimum supported Apple OS versions to macOS 10.12 and iOS 10 [#388]
+
+### Added
+- Document platform support policy [#387]
+
+[#385]: https://github.com/rust-random/getrandom/pull/385
+[#386]: https://github.com/rust-random/getrandom/pull/386
+[#387]: https://github.com/rust-random/getrandom/pull/387
+[#388]: https://github.com/rust-random/getrandom/pull/388
 
 ## [0.2.11] - 2023-11-08
 ### Added
@@ -408,6 +419,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.2.12]: https://github.com/rust-random/getrandom/compare/v0.2.11...v0.2.12
 [0.2.11]: https://github.com/rust-random/getrandom/compare/v0.2.10...v0.2.11
 [0.2.10]: https://github.com/rust-random/getrandom/compare/v0.2.9...v0.2.10
 [0.2.9]: https://github.com/rust-random/getrandom/compare/v0.2.8...v0.2.9
