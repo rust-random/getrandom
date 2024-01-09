@@ -150,21 +150,6 @@
 //! on every call to `getrandom`, hence after the first successful call one
 //! can be reasonably confident that no errors will occur.
 //!
-//! # License
-//!
-//! The `getrandom` library is distributed under either of
-//!
-//! * [Apache License, Version 2.0][LICENSE-APACHE]
-//! * [MIT license][LICENSE-MIT]
-//!
-//! at your option.
-//!
-//! ## Contribution
-//!
-//! Unless you explicitly state otherwise, any contribution intentionally submitted
-//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-//! dual licensed as above, without any additional terms or conditions.
-//!
 //! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
 //! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
@@ -197,9 +182,6 @@
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
 //! [ES modules]: https://nodejs.org/api/esm.html
 //! [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
-//!
-//! [LICENSE-APACHE]: https://github.com/rust-random/getrandom/blob/master/LICENSE-APACHE
-//! [LICENSE-MIT]: https://github.com/rust-random/getrandom/blob/master/LICENSE-MIT
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
