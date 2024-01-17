@@ -1,11 +1,3 @@
-// Copyright 2019 Developers of the Rand project.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Interface to the operating system's random number generator.
 //!
 //! # Supported targets
@@ -14,8 +6,8 @@
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 //! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`]
-//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3] if available, otherwise [`/dev/urandom`][4] (identical to `/dev/random`)
-//! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`SecRandomCopyBytes`]
+//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
+//! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
@@ -106,6 +98,13 @@
 //! ```
 //! This crate will then use the provided `webcrypto` implementation.
 //!
+//! ### Platform Support
+//! This crate generally supports the same operating system and platform versions that the Rust standard library does.
+//! Additional targets may be supported using pluggable custom implementations.
+//!
+//! This means that as Rust drops support for old versions of operating systems (such as old Linux kernel versions, Android API levels, etc)
+//! in stable releases, `getrandom` may create new patch releases (`0.N.x`) that remove support for outdated platform versions.
+//!
 //! ### Custom implementations
 //!
 //! The [`register_custom_getrandom!`] macro allows a user to mark their own
@@ -172,7 +171,7 @@
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [`RDRAND`]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
-//! [`SecRandomCopyBytes`]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc
+//! [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 //! [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
 //! [`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 //! [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
@@ -187,7 +186,7 @@
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/getrandom/0.2.10"
+    html_root_url = "https://docs.rs/getrandom/0.2.12"
 )]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
@@ -227,6 +226,7 @@ cfg_if! {
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
         mod use_file;
+        mod lazy;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
         mod util_libc;
@@ -245,7 +245,6 @@ cfg_if! {
         #[path = "apple-other.rs"] mod imp;
     } else if #[cfg(target_os = "macos")] {
         mod util_libc;
-        mod use_file;
         #[path = "macos.rs"] mod imp;
     } else if #[cfg(target_os = "openbsd")] {
         mod util_libc;
@@ -275,9 +274,11 @@ cfg_if! {
         mod util_libc;
         #[path = "emscripten.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
