@@ -51,7 +51,7 @@ rustc-dep-of-std = [
 test-in-browser = []
 
 [package.metadata.docs.rs]
-features = ["std", "custom", "zeroize"]
+features = ["std", "custom", "zerocopy"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 # workaround for https://github.com/cross-rs/cross/issues/1345
