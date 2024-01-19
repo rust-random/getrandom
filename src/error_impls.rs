@@ -1,3 +1,4 @@
+#![cfg_attr(docsrs, doc(cfg(feature = "std")))]
 extern crate std;
 
 use crate::Error;
