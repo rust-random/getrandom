@@ -33,10 +33,10 @@ jobs:
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-        run: cargo deadlinks -- --features=custom,std
+        run: cargo deadlinks -- --features=custom,std,zerocopy
       - run: |
           cargo generate-lockfile -Z minimal-versions
-          cargo test --features=custom,std
+          cargo test --features=custom,std,zerocopy
 
   # TODO: add aarch64-based macOS runner when it's supported by Github Actions
   main-tests:
@@ -80,7 +80,7 @@ jobs:
       - name: Install multilib
         run: sudo apt-get update && sudo apt-get install gcc-multilib
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std,zerocopy
 
   ios-tests:
     name: iOS Simulator Test
@@ -128,7 +128,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --features=std
+      - run: cargo test --features=std,zerocopy
 
   cross-tests:
     name: Cross Test
@@ -152,7 +152,7 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Test
-        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std,zerocopy
 
   macos-link:
     name: macOS ARM64 Build/Link
@@ -164,9 +164,9 @@ jobs:
           targets: aarch64-apple-darwin, aarch64-apple-ios
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
-      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
-      - run: cargo test --no-run --target=aarch64-apple-watchos-sim -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std,zerocopy
+      - run: cargo test --no-run --target=aarch64-apple-ios --features=std,zerocopy
+      - run: cargo test --no-run --target=aarch64-apple-watchos-sim -Zbuild-std --features=std,zerocopy
 
   cross-link:
     name: Cross Build/Link
@@ -188,7 +188,7 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Build Tests
-        run: cross test --no-run --target=${{ matrix.target }} --features=std
+        run: cross test --no-run --target=${{ matrix.target }} --features=std,zerocopy
 
   web-tests:
     name: Web Test
@@ -284,7 +284,7 @@ jobs:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo build --target=${{ matrix.target }} --features=std,zerocopy
 
   build-tier3:
     name: Tier 3 Build
@@ -348,6 +348,6 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: clippy
-        run: cargo clippy --all --features=custom,std
+        run: cargo clippy --all --features=custom,std,zerocopy
       - name: fmt
         run: cargo fmt --all -- --check
