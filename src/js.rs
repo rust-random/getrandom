@@ -31,7 +31,7 @@ std::thread_local!(
 #[thread_local]
 static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 
- pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let mut getrandom_impl = |source: &RngSource| {
         match source {
             RngSource::Node(n) => {
@@ -85,9 +85,7 @@ static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
     }
 
     #[cfg(std)]
-    RNG_SOURCE.with(|result| {
-        getrandom_impl(result.as_ref().map_err(|&e| e)?)
-    })
+    RNG_SOURCE.with(|result| getrandom_impl(result.as_ref().map_err(|&e| e)?))
 }
 
 fn getrandom_init() -> Result<RngSource, Error> {
