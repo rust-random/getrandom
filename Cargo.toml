@@ -30,6 +30,7 @@ js-sys = { version = "0.3", optional = true }
 wasm-bindgen-test = "0.3.18"
 
 [features]
+default = ["std"]
 # Implement std-only traits for getrandom::Error
 std = []
 # Feature to enable fallback RDRAND-based implementation on x86/x86_64

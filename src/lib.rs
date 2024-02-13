@@ -188,9 +188,16 @@
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
     html_root_url = "https://docs.rs/getrandom/0.2.12"
 )]
-#![no_std]
+#![cfg_attr(not(std), no_std)]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(
+    all(not(std),
+        feature = "js",
+        any(target_arch = "wasm32", target_arch = "wasm64"),
+        target_os = "unknown"),
+    feature(thread_local)
+)]
 
 #[macro_use]
 extern crate cfg_if;

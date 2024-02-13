@@ -1,8 +1,10 @@
 //! Implementation for WASM based on Web and Node.js
 use crate::Error;
 
-extern crate std;
-use std::{mem::MaybeUninit, thread_local};
+use core::mem::MaybeUninit;
+
+#[cfg(not(std))]
+use core::cell::RefCell;
 
 use js_sys::{global, Function, Uint8Array};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
@@ -20,14 +22,17 @@ enum RngSource {
 
 // JsValues are always per-thread, so we initialize RngSource for each thread.
 //   See: https://github.com/rustwasm/wasm-bindgen/pull/955
-thread_local!(
+#[cfg(std)]
+std::thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    RNG_SOURCE.with(|result| {
-        let source = result.as_ref().map_err(|&e| e)?;
+#[cfg(not(std))]
+#[thread_local]
+static RNG_SOURCE: RefCell<Option<RngSource>> = RefCell::new(None);
 
+ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    let mut getrandom_impl = |source: &RngSource| {
         match source {
             RngSource::Node(n) => {
                 for chunk in dest.chunks_mut(NODE_MAX_BUFFER_SIZE) {
@@ -64,7 +69,24 @@ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>
                 }
             }
         };
+
         Ok(())
+    };
+
+    #[cfg(not(std))]
+    {
+        if RNG_SOURCE.borrow().is_none() {
+            let rng_source = getrandom_init()?;
+            *RNG_SOURCE.borrow_mut() = Some(rng_source);
+        }
+
+        let binding = RNG_SOURCE.borrow();
+        getrandom_impl(binding.as_ref().expect("initialized above"))
+    }
+
+    #[cfg(std)]
+    RNG_SOURCE.with(|result| {
+        getrandom_impl(result.as_ref().map_err(|&e| e)?)
     })
 }
 
