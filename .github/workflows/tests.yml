@@ -38,7 +38,6 @@ jobs:
           cargo generate-lockfile -Z minimal-versions
           cargo test --features=custom,std
 
-  # TODO: add aarch64-based macOS runner when it's supported by Github Actions
   main-tests:
     name: Tier 1 Test
     runs-on: ${{ matrix.os }}
@@ -48,7 +47,11 @@ jobs:
         toolchain: [nightly, beta, stable, 1.36]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
+          # x86_64-apple-darwin.
           - os: macos-12
+            toolchain: stable
+          # aarch64-apple-darwin.
+          - os: macos-14
             toolchain: stable
     steps:
       - uses: actions/checkout@v3
