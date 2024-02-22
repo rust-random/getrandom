@@ -99,11 +99,14 @@
 //! This crate will then use the provided `webcrypto` implementation.
 //!
 //! ### Platform Support
-//! This crate generally supports the same operating system and platform versions that the Rust standard library does.
-//! Additional targets may be supported using pluggable custom implementations.
+//! This crate generally supports the same operating system and platform versions
+//! that the Rust standard library does. Additional targets may be supported using
+//! pluggable custom implementations.
 //!
-//! This means that as Rust drops support for old versions of operating systems (such as old Linux kernel versions, Android API levels, etc)
-//! in stable releases, `getrandom` may create new patch releases (`0.N.x`) that remove support for outdated platform versions.
+//! This means that as Rust drops support for old versions of operating systems
+//! (such as old Linux kernel versions, Android API levels, etc) in stable releases,
+//! `getrandom` may create new patch releases (`0.N.x`) that remove support for
+//! outdated platform versions.
 //!
 //! ### Custom implementations
 //!
@@ -220,10 +223,48 @@ cfg_if! {
     if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
-    } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
+    } else if #[cfg(all(
+        not(feature = "disable_urandom_fallback"),
+        any(
+            // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
+            // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
+            // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
+            // RISC-V Android targets sufficiently new API level, same will apply for potential
+            // new Android `target_arch`es.
+            // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
+            // [1]: https://github.com/rust-lang/rust/pull/120593
+            all(
+                target_os = "android",
+                any(
+                    target_arch = "aarch64",
+                    target_arch = "arm",
+                    target_arch = "x86",
+                    target_arch = "x86_64",
+                ),
+            ),
+            // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
+            // that precede the version (3.17) in which `getrandom(2)` was added:
+            // https://doc.rust-lang.org/stable/rustc/platform-support.html
+            all(
+                target_os = "linux",
+                any(
+                    target_arch = "aarch64",
+                    target_arch = "arm",
+                    target_arch = "powerpc",
+                    target_arch = "powerpc64",
+                    target_arch = "s390x",
+                    target_arch = "x86",
+                    target_arch = "x86_64",
+                ),
+            )
+        ),
+    ))] {
         mod util_libc;
         mod use_file;
         mod lazy;
+        #[path = "linux_android_with_fallback.rs"] mod imp;
+    } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
+        mod util_libc;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
         mod util_libc;
