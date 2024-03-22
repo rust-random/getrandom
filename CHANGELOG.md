@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- `disable_urandom_fallback` crate feature to disable `/dev/urandom`-based fallback on Linux and
+- `linux_disable_fallback` crate feature to disable `/dev/urandom`-based fallback on Linux and
   Android targets. Enabling this feature bumps minimum supported Linux kernel version to 4.17 and
   Android API level to 23 (Marshmallow). [#396]
 

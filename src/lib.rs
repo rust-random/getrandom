@@ -224,7 +224,7 @@ cfg_if! {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(all(
-        not(feature = "disable_urandom_fallback"),
+        not(feature = "linux_disable_fallback"),
         any(
             // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
             // level 21 (Lollipop) [1], while `getrandom(2)` was added only in

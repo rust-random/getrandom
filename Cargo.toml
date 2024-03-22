@@ -34,7 +34,7 @@ wasm-bindgen-test = "0.3.18"
 std = []
 # Disable `/dev/urandom` fallback for Linux and Android targets.
 # Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-disable_urandom_fallback = []
+linux_disable_fallback = []
 # Feature to enable fallback RDRAND-based implementation on x86/x86_64
 rdrand = []
 # Feature to enable JavaScript bindings on wasm*-unknown-unknown

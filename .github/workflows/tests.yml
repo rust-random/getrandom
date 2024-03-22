@@ -61,7 +61,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
       - run: cargo test --features=std
-      - run: cargo test --features=disable_urandom_fallback
+      - run: cargo test --features=linux_disable_fallback
       - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
