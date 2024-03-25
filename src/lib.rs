@@ -150,8 +150,8 @@
 //! on every call to `getrandom`, hence after the first successful call one
 //! can be reasonably confident that no errors will occur.
 //!
-//! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html
-//! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html
+//! [1]: https://manned.org/getrandom.2
+//! [2]: https://manned.org/urandom.4
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [4]: https://www.unix.com/man-page/mojave/4/urandom/
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
