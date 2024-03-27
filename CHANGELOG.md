@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `linux_disable_fallback` crate feature to disable `/dev/urandom`-based fallback on Linux and
+  Android targets. Enabling this feature bumps minimum supported Linux kernel version to 4.17 and
+  Android API level to 23 (Marshmallow). [#396]
+
+### Changed
+- Disable `/dev/urandom` fallback for Linux targets outside of the following `target_arch`es:
+  `aarch64`, `arm`, `powerpc`, `powerpc64`, `s390x`, `x86`, `x86_64` [#396]
+- Do not catch `EPERM` error code on Android while checking availability of
+  the `getrandom` syscall [#396]
+
+[#396]: https://github.com/rust-random/getrandom/pull/396
+
 ## [0.2.12] - 2024-01-09
 ### Fixed
 - Custom backend for targets without atomics [#385]
