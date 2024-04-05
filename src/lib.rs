@@ -47,6 +47,21 @@
 //! This prevents a crate from overriding a secure source of randomness
 //! (either accidentally or intentionally).
 //!
+//! ## `/dev/urandom` fallback on Linux and Android
+//!
+//! On Linux targets the fallback is present only for the following `target_arch`es:
+//! `aarch64`, `arm`, `powerpc`, `powerpc64`, `s390x`, `x86`, `x86_64`. Other supported
+//! `target_arch`es [require](https://doc.rust-lang.org/stable/rustc/platform-support.html)
+//! kernel versions which support `getrandom` system call, so fallback is not needed.
+//!
+//! On Android targets the fallback is present only for the following `target_arch`es:
+//! `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
+//! sufficiently high API levels.
+//!
+//! The fallback can be disabled by enabling the `linux_disable_fallback` crate feature.
+//! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
+//! Android API level to 23 (Marshmallow).
+//!
 //! ### RDRAND on x86
 //!
 //! *If the `rdrand` Cargo feature is enabled*, `getrandom` will fallback to using
@@ -189,7 +204,7 @@
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/getrandom/0.2.12"
+    html_root_url = "https://docs.rs/getrandom/0.2.13"
 )]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
