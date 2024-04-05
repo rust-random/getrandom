@@ -255,6 +255,7 @@ jobs:
       - name: Test (Chrome)
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
+        if: runner.os == 'Windows'
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       - name: Test (Safari)
         if: runner.os == 'macOS'
