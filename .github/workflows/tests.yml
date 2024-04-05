@@ -250,6 +250,9 @@ jobs:
       - name: Test (Firefox)
         run: wasm-pack test --headless --firefox --features=js,test-in-browser
       - name: Test (Chrome)
+        # We get spurious failures, see:
+        # https://github.com/rust-random/getrandom/issues/400
+        continue-on-error: true
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
         if: runner.os == 'Windows'
@@ -258,8 +261,6 @@ jobs:
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       - name: Test (Safari)
         if: runner.os == 'macOS'
-        # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
-        continue-on-error: true
         run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
