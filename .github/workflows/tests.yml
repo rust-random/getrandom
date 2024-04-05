@@ -229,6 +229,9 @@ jobs:
             host: x86_64-unknown-linux-musl
           - os: windows-2022
             host: x86_64-pc-windows-msvc
+            # We get spurious failures on Windows, see:
+            # https://github.com/rust-random/getrandom/issues/400
+            continue-on-error: true
           - os: macos-12
             host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
@@ -250,14 +253,8 @@ jobs:
       - name: Test (Firefox)
         run: wasm-pack test --headless --firefox --features=js,test-in-browser
       - name: Test (Chrome)
-        # We get spurious failures, see:
-        # https://github.com/rust-random/getrandom/issues/400
-        continue-on-error: true
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
-        if: runner.os == 'Windows'
-        # Edge has flaky failures: "driver failed to bind port during startup"
-        continue-on-error: true
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       - name: Test (Safari)
         if: runner.os == 'macOS'
