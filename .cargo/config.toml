@@ -1,0 +1,9 @@
+# Allow normal use of "cargo run" and "cargo test" on these wasm32 platforms.
+[target.wasm32-unknown-unknown]
+runner = 'wasm-bindgen-test-runner'
+[target.wasm32-wasi]
+runner = 'wasmtime'
+
+# Just run on node by default (that's where emscripten is tested)
+[target.'cfg(target_os = "emscripten")']
+runner = 'node'

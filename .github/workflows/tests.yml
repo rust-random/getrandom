@@ -229,6 +229,9 @@ jobs:
             host: x86_64-unknown-linux-musl
           - os: windows-2022
             host: x86_64-pc-windows-msvc
+            # We get spurious failures on Windows, see:
+            # https://github.com/rust-random/getrandom/issues/400
+            continue-on-error: true
           - os: macos-12
             host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
@@ -240,7 +243,7 @@ jobs:
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.11.0
+          VERSION=v0.12.1
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
@@ -253,13 +256,9 @@ jobs:
         run: wasm-pack test --headless --chrome --features=js,test-in-browser
       - name: Test (Edge)
         if: runner.os == 'Windows'
-        # Edge has flaky failures: "driver failed to bind port during startup"
-        continue-on-error: true
         run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
       - name: Test (Safari)
         if: runner.os == 'macOS'
-        # Safari tests are broken: https://github.com/rustwasm/wasm-bindgen/issues/3004
-        continue-on-error: true
         run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
