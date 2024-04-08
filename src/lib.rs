@@ -49,9 +49,9 @@
 //!
 //! ## `/dev/urandom` fallback on Linux and Android
 //!
-//! On Linux targets the fallback is present only for the following `target_arch`es:
-//! `aarch64`, `arm`, `powerpc`, `powerpc64`, `s390x`, `x86`, `x86_64`. Other supported
-//! `target_arch`es [require](https://doc.rust-lang.org/stable/rustc/platform-support.html)
+//! On Linux targets the fallback is present only if either `target_env` is `musl`,
+//! or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
+//! `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
 //! kernel versions which support `getrandom` system call, so fallback is not needed.
 //!
 //! On Android targets the fallback is present only for the following `target_arch`es:
@@ -200,11 +200,12 @@
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
 //! [ES modules]: https://nodejs.org/api/esm.html
 //! [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
+//! [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/getrandom/0.2.13"
+    html_root_url = "https://docs.rs/getrandom/0.2.14"
 )]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
@@ -270,6 +271,10 @@ cfg_if! {
                     target_arch = "s390x",
                     target_arch = "x86",
                     target_arch = "x86_64",
+                    // Minimum supported Linux kernel version for MUSL targets
+                    // is not specified explicitly (as of Rust 1.77) and they
+                    // are used in practice to target pre-3.17 kernels.
+                    target_env = "musl",
                 ),
             )
         ),
