@@ -299,7 +299,7 @@ cfg_if! {
         #[path = "dragonfly.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
-    } else if #[cfg(any(target_os = "ios", target_os = "watchos", target_os = "tvos"))] {
+    } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
         #[path = "apple-other.rs"] mod imp;
     } else if #[cfg(target_os = "macos")] {
         mod util_libc;
