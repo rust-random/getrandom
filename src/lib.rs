@@ -11,7 +11,7 @@
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9] if available, otherwise [`/dev/urandom`][10] (identical to `/dev/random`)
+//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
 //! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom`][11] if available, otherwise [`/dev/random`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
@@ -177,7 +177,6 @@
 //! [7]: https://man.openbsd.org/getentropy.2
 //! [8]: https://man.netbsd.org/sysctl.7
 //! [9]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
-//! [10]: https://leaf.dragonflybsd.org/cgi/web-man?command=random&section=4
 //! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [12]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
@@ -239,6 +238,15 @@ cfg_if! {
     if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
+    } else if #[cfg(any(
+        target_os = "dragonfly",
+        target_os = "hurd",
+        // Check for target_arch = "arm" to only include the 3DS. Does not
+        // include the Nintendo Switch (which is target_arch = "aarch64").
+        all(target_os = "horizon", target_arch = "arm"),
+    ))] {
+        mod util_libc;
+        #[path = "getrandom.rs"] mod imp;
     } else if #[cfg(all(
         not(feature = "linux_disable_fallback"),
         any(
@@ -293,10 +301,6 @@ cfg_if! {
     } else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
         mod util_libc;
         #[path = "bsd_arandom.rs"] mod imp;
-    } else if #[cfg(target_os = "dragonfly")] {
-        mod util_libc;
-        mod use_file;
-        #[path = "dragonfly.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
@@ -320,11 +324,6 @@ cfg_if! {
         #[path = "espidf.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(all(target_os = "horizon", target_arch = "arm"))] {
-        // We check for target_arch = "arm" because the Nintendo Switch also
-        // uses Horizon OS (it is aarch64).
-        mod util_libc;
-        #[path = "3ds.rs"] mod imp;
     } else if #[cfg(target_os = "vita")] {
         mod util_libc;
         #[path = "vita.rs"] mod imp;
@@ -342,9 +341,6 @@ cfg_if! {
                         any(target_arch = "wasm32", target_arch = "wasm64"),
                         target_os = "unknown"))] {
         #[path = "js.rs"] mod imp;
-    } else if #[cfg(target_os = "hurd")] {
-        mod util_libc;
-        #[path = "hurd.rs"] mod imp;
     } else if #[cfg(feature = "custom")] {
         use custom as imp;
     } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),
