@@ -1,6 +1,5 @@
-//! Implementation for GNU/Hurd
-use crate::util_libc::sys_fill_exact;
-use crate::Error;
+//! Implementation using libc::getrandom
+use crate::{util_libc::sys_fill_exact, Error};
 use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
