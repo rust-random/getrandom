@@ -300,7 +300,7 @@ cfg_if! {
         #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
-        #[path = "bsd_arandom.rs"] mod imp;
+        #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
