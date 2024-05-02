@@ -8,7 +8,7 @@
 //! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`]
 //! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
-//! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5] if available, otherwise [`kern.arandom`][6]
+//! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
@@ -173,7 +173,6 @@
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
 //! [4]: https://www.unix.com/man-page/mojave/4/urandom/
 //! [5]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
-//! [6]: https://www.freebsd.org/cgi/man.cgi?query=random&sektion=4
 //! [7]: https://man.openbsd.org/getentropy.2
 //! [8]: https://man.netbsd.org/sysctl.7
 //! [9]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
@@ -240,6 +239,7 @@ cfg_if! {
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "dragonfly",
+        target_os = "freebsd",
         target_os = "hurd",
         // Check for target_arch = "arm" to only include the 3DS. Does not
         // include the Nintendo Switch (which is target_arch = "aarch64").
@@ -298,7 +298,7 @@ cfg_if! {
         mod util_libc;
         mod use_file;
         #[path = "solaris_illumos.rs"] mod imp;
-    } else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
+    } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
         #[path = "bsd_arandom.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
