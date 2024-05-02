@@ -26,8 +26,8 @@
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
-//! | PS Vita           | `armv7-sony-vita-newlibeabihf` | [`getentropy`][13]
-//! | QNX Neutrino      | `*‑nto-qnx*`          | [`/dev/urandom`][14] (identical to `/dev/random`)
+//! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
+//! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 //! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
 //!
 //! There is no blanket implementation on `unix` targets that reads from
@@ -238,6 +238,14 @@ cfg_if! {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
+        target_os = "macos",
+        target_os = "openbsd",
+        target_os = "vita",
+        target_os = "emscripten",
+    ))] {
+        mod util_libc;
+        #[path = "getentropy.rs"] mod imp;
+    } else if #[cfg(any(
         target_os = "dragonfly",
         target_os = "freebsd",
         target_os = "hurd",
@@ -305,12 +313,6 @@ cfg_if! {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
         #[path = "apple-other.rs"] mod imp;
-    } else if #[cfg(target_os = "macos")] {
-        mod util_libc;
-        #[path = "macos.rs"] mod imp;
-    } else if #[cfg(target_os = "openbsd")] {
-        mod util_libc;
-        #[path = "openbsd.rs"] mod imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(target_os = "hermit")] {
@@ -324,12 +326,6 @@ cfg_if! {
         #[path = "espidf.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(target_os = "vita")] {
-        mod util_libc;
-        #[path = "vita.rs"] mod imp;
-    } else if #[cfg(target_os = "emscripten")] {
-        mod util_libc;
-        #[path = "emscripten.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod lazy;
         #[path = "rdrand.rs"] mod imp;
