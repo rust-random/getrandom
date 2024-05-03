@@ -9,7 +9,12 @@ use core::{
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
 
-// We always use /dev/urandom, see the comment in getrandom.rs.
+/// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
+/// For more information see the linked man pages in lib.rs.
+///   - On Linux, "/dev/urandom is preferred and sufficient in all use cases".
+///   - On Redox, only /dev/urandom is provided.
+///   - On AIX, /dev/urandom will "provide cryptographically secure output".
+///   - On Haiku and QNX Neutrino they are identical.
 const FILE_PATH: &str = "/dev/urandom\0";
 const FD_UNINIT: usize = usize::max_value();
 

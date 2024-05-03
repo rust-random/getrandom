@@ -12,7 +12,7 @@
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris           | `*‑solaris`        | [`getrandom`][11]
+//! | Solaris           | `*‑solaris`        | [`getentropy`][11]
 //! | Illumos           | `*‑illumos`        | [`getrandom`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
@@ -30,10 +30,6 @@
 //! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
 //! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 //! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
-//!
-//! There is no blanket implementation on `unix` targets that reads from
-//! `/dev/urandom`. This ensures all supported targets are using the recommended
-//! interface and respect maximum buffer sizes.
 //!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
@@ -177,7 +173,7 @@
 //! [7]: https://man.openbsd.org/getentropy.2
 //! [8]: https://man.netbsd.org/sysctl.7
 //! [9]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
-//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
+//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getentropy-2.html
 //! [12]: https://illumos.org/man/2/getrandom
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
 //! [14]: https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.utilities/topic/r/random.html
@@ -242,6 +238,7 @@ cfg_if! {
     } else if #[cfg(any(
         target_os = "macos",
         target_os = "openbsd",
+        target_os = "solaris",
         target_os = "vita",
         target_os = "emscripten",
     ))] {
@@ -252,7 +249,6 @@ cfg_if! {
         target_os = "freebsd",
         target_os = "hurd",
         target_os = "illumos",
-        target_os = "solaris",
         // Check for target_arch = "arm" to only include the 3DS. Does not
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
