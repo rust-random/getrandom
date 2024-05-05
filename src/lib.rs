@@ -12,7 +12,8 @@
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom`][11] if available, otherwise [`/dev/random`][12]
+//! | Solaris           | `*‑solaris`        | [`getentropy`][11]
+//! | Illumos           | `*‑illumos`        | [`getrandom`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
 //! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
@@ -25,14 +26,10 @@
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
-//! | Nintendo 3DS      | `armv6k-nintendo-3ds` | [`getrandom`][1]
+//! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
 //! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
 //! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 //! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
-//!
-//! There is no blanket implementation on `unix` targets that reads from
-//! `/dev/urandom`. This ensures all supported targets are using the recommended
-//! interface and respect maximum buffer sizes.
 //!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
@@ -176,13 +173,14 @@
 //! [7]: https://man.openbsd.org/getentropy.2
 //! [8]: https://man.netbsd.org/sysctl.7
 //! [9]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
-//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
-//! [12]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html
+//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getentropy-2.html
+//! [12]: https://illumos.org/man/2/getrandom
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
 //! [14]: https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.utilities/topic/r/random.html
 //! [15]: https://www.ibm.com/docs/en/aix/7.3?topic=files-random-urandom-devices
 //! [16]: https://man.netbsd.org/getrandom.2
 //! [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
+//! [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
 //!
 //! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
@@ -240,6 +238,7 @@ cfg_if! {
     } else if #[cfg(any(
         target_os = "macos",
         target_os = "openbsd",
+        target_os = "solaris",
         target_os = "vita",
         target_os = "emscripten",
     ))] {
@@ -249,6 +248,7 @@ cfg_if! {
         target_os = "dragonfly",
         target_os = "freebsd",
         target_os = "hurd",
+        target_os = "illumos",
         // Check for target_arch = "arm" to only include the 3DS. Does not
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
@@ -302,10 +302,6 @@ cfg_if! {
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
         #[path = "linux_android.rs"] mod imp;
-    } else if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
-        mod util_libc;
-        mod use_file;
-        #[path = "solaris_illumos.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
         #[path = "netbsd.rs"] mod imp;
