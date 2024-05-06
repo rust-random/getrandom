@@ -9,10 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple visionOS support [#410]
 
 ### Changed
-- Use `libc::getrandom` on DragonflyBSD [#411]
-- Use `libc::getrandom` on FreeBSD [#416]
-- Use `libc::getrandom` on Illumos [#417]
-- Use `libc::getentropy` on Solaris [#417]
+- Use `libc::getrandom` on DragonflyBSD, FreeBSD, illumos, and Solaris [#411] [#416] [#417] [#420]
 - Unify `libc::getentropy`-based implementations [#418]
 
 [#410]: https://github.com/rust-random/getrandom/pull/410
@@ -20,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#416]: https://github.com/rust-random/getrandom/pull/416
 [#417]: https://github.com/rust-random/getrandom/pull/417
 [#418]: https://github.com/rust-random/getrandom/pull/418
+[#420]: https://github.com/rust-random/getrandom/pull/420
 
 ## [0.2.14] - 2024-04-08
 ### Fixed
