@@ -12,8 +12,8 @@
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris           | `*‑solaris`        | [`getentropy`][11]
-//! | Illumos           | `*‑illumos`        | [`getrandom`][12]
+//! | Solaris           | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
+//! | illumos           | `*‑illumos`        | [`getrandom`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
 //! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
@@ -173,7 +173,7 @@
 //! [7]: https://man.openbsd.org/getentropy.2
 //! [8]: https://man.netbsd.org/sysctl.7
 //! [9]: https://leaf.dragonflybsd.org/cgi/web-man?command=getrandom
-//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getentropy-2.html
+//! [11]: https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html
 //! [12]: https://illumos.org/man/2/getrandom
 //! [13]: https://github.com/emscripten-core/emscripten/pull/12240
 //! [14]: https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.utilities/topic/r/random.html
@@ -238,7 +238,6 @@ cfg_if! {
     } else if #[cfg(any(
         target_os = "macos",
         target_os = "openbsd",
-        target_os = "solaris",
         target_os = "vita",
         target_os = "emscripten",
     ))] {
@@ -302,6 +301,9 @@ cfg_if! {
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
         #[path = "linux_android.rs"] mod imp;
+    } else if #[cfg(target_os = "solaris")] {
+        mod util_libc;
+        #[path = "solaris.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
         #[path = "netbsd.rs"] mod imp;
