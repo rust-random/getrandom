@@ -29,7 +29,7 @@ static GETRANDOM: LazyPtr = LazyPtr::new();
 
 fn dlsym_getrandom() -> *mut c_void {
     static NAME: &[u8] = b"getrandom\0";
-    let name_ptr = NAME.as_ptr() as *const libc::c_char;
+    let name_ptr = NAME.as_ptr().cast::<libc::c_char>();
     unsafe { libc::dlsym(libc::RTLD_DEFAULT, name_ptr) }
 }
 

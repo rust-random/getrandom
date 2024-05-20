@@ -74,7 +74,10 @@ pub fn sys_fill_exact(
 pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
     debug_assert_eq!(path.as_bytes().last(), Some(&0));
     loop {
-        let fd = libc::open(path.as_ptr() as *const _, libc::O_RDONLY | libc::O_CLOEXEC);
+        let fd = libc::open(
+            path.as_ptr().cast::<libc::c_char>(),
+            libc::O_RDONLY | libc::O_CLOEXEC,
+        );
         if fd >= 0 {
             return Ok(fd);
         }
