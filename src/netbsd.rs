@@ -9,7 +9,7 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
         libc::sysctl(
             MIB.as_ptr(),
             MIB.len() as libc::c_uint,
-            buf.as_mut_ptr() as *mut _,
+            buf.as_mut_ptr().cast::<c_void>(),
             &mut len,
             ptr::null(),
             0,
@@ -38,7 +38,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !fptr.is_null() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
-            func(buf.as_mut_ptr() as *mut u8, buf.len(), 0)
+            func(buf.as_mut_ptr().cast::<u8>(), buf.len(), 0)
         });
     }
 

@@ -8,6 +8,6 @@ extern "C" {
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    unsafe { zx_cprng_draw(dest.as_mut_ptr() as *mut u8, dest.len()) }
+    unsafe { zx_cprng_draw(dest.as_mut_ptr().cast::<u8>(), dest.len()) }
     Ok(())
 }
