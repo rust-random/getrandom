@@ -85,7 +85,7 @@ pub fn sys_fill_exact(
 // https://github.com/rust-lang/rust/blob/1.61.0/library/std/src/sys/unix/weak.rs#L84
 // except that the caller must manually cast self.ptr() to a function pointer.
 pub struct Weak {
-    name: &'static str,
+    name: cstr::Ref,
     addr: AtomicPtr<c_void>,
 }
 
@@ -98,9 +98,8 @@ impl Weak {
     // TODO: Replace with core::ptr::invalid_mut(1) when that is stable.
     const UNINIT: *mut c_void = 1 as *mut c_void;
 
-    // Construct a binding to a C function with a given name. This function is
-    // unsafe because `name` _must_ be null terminated.
-    pub const unsafe fn new(name: &'static str) -> Self {
+    // Construct a binding to a C function with a given name.
+    pub const fn new(name: cstr::Ref) -> Self {
         Self {
             name,
             addr: AtomicPtr::new(Self::UNINIT),
@@ -120,8 +119,7 @@ impl Weak {
         // the use of non-Relaxed operations is probably unnecessary.
         match self.addr.load(Ordering::Relaxed) {
             Self::UNINIT => {
-                // XXX/FIXME: Unchecked UTF-8-to-c_char cast.
-                let symbol = self.name.as_ptr().cast::<libc::c_char>();
+                let symbol = self.name.as_ptr();
                 let addr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, symbol) };
                 // Synchronizes with the Acquire fence below
                 self.addr.store(addr, Ordering::Release);

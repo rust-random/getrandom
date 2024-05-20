@@ -1,6 +1,6 @@
 //! Implementation for NetBSD
 use crate::{
-    util_libc::{sys_fill_exact, Weak},
+    util_libc::{cstr, sys_fill_exact, Weak},
     Error,
 };
 use core::{ffi::c_void, mem::MaybeUninit, ptr};
@@ -29,7 +29,7 @@ type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> 
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in NetBSD 10.0
-    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+    static GETRANDOM: Weak = Weak::new(cstr::unwrap_const_from_bytes_with_nul(b"getrandom\0"));
     if let Some(fptr) = GETRANDOM.ptr() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
