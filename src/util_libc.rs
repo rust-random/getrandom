@@ -8,6 +8,9 @@ use core::{
 };
 use libc::c_void;
 
+#[path = "util_cstr.rs"]
+pub(crate) mod cstr;
+
 cfg_if! {
     if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
         use libc::__errno as errno_location;
@@ -133,15 +136,11 @@ impl Weak {
     }
 }
 
-// SAFETY: path must be null terminated, FD must be manually closed.
-pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
-    debug_assert_eq!(path.as_bytes().last(), Some(&0));
+// Memory leak hazard: The returned file descriptor must be manually closed to
+// avoid a file descriptor leak.
+pub fn open_readonly(path: cstr::Ref) -> Result<libc::c_int, Error> {
     loop {
-        // XXX/FIXME: Unchecked UTF-8-to-c_char cast.
-        let fd = libc::open(
-            path.as_ptr().cast::<libc::c_char>(),
-            libc::O_RDONLY | libc::O_CLOEXEC,
-        );
+        let fd = unsafe { libc::open(path.as_ptr(), libc::O_RDONLY | libc::O_CLOEXEC) };
         if fd >= 0 {
             return Ok(fd);
         }
