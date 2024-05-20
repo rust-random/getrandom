@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Breaking Changes
-- Update MSRV to 1.46 [#425], [#426]
+- Update MSRV to 1.57 [#425], [#426]
 
 [#425]: https://github.com/rust-random/getrandom/pull/425
 [#426]: https://github.com/rust-random/getrandom/pull/426
