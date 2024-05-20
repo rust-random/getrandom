@@ -117,7 +117,8 @@ impl Weak {
         // the use of non-Relaxed operations is probably unnecessary.
         match self.addr.load(Ordering::Relaxed) {
             Self::UNINIT => {
-                let symbol = self.name.as_ptr() as *const _;
+                // XXX/FIXME: Unchecked UTF-8-to-c_char cast.
+                let symbol = self.name.as_ptr().cast::<libc::c_char>();
                 let addr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, symbol) };
                 // Synchronizes with the Acquire fence below
                 self.addr.store(addr, Ordering::Release);
@@ -136,7 +137,11 @@ impl Weak {
 pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
     debug_assert_eq!(path.as_bytes().last(), Some(&0));
     loop {
-        let fd = libc::open(path.as_ptr() as *const _, libc::O_RDONLY | libc::O_CLOEXEC);
+        // XXX/FIXME: Unchecked UTF-8-to-c_char cast.
+        let fd = libc::open(
+            path.as_ptr().cast::<libc::c_char>(),
+            libc::O_RDONLY | libc::O_CLOEXEC,
+        );
         if fd >= 0 {
             return Ok(fd);
         }
