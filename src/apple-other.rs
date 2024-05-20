@@ -14,7 +14,7 @@ extern "C" {
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let ret = unsafe { CCRandomGenerateBytes(dest.as_mut_ptr() as *mut c_void, dest.len()) };
+    let ret = unsafe { CCRandomGenerateBytes(dest.as_mut_ptr().cast::<c_void>(), dest.len()) };
     // kCCSuccess (from CommonCryptoError.h) is always zero.
     if ret != 0 {
         Err(Error::IOS_SEC_RANDOM)

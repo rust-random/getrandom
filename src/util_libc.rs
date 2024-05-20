@@ -154,7 +154,7 @@ pub fn getrandom_syscall(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
     unsafe {
         libc::syscall(
             libc::SYS_getrandom,
-            buf.as_mut_ptr() as *mut libc::c_void,
+            buf.as_mut_ptr().cast::<c_void>(),
             buf.len(),
             0,
         ) as libc::ssize_t

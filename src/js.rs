@@ -40,7 +40,7 @@ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>
                     // have a notion of "uninitialized memory", this is purely
                     // a Rust/C/C++ concept.
                     let res = n.random_fill_sync(unsafe {
-                        Uint8Array::view_mut_raw(chunk.as_mut_ptr() as *mut u8, chunk.len())
+                        Uint8Array::view_mut_raw(chunk.as_mut_ptr().cast::<u8>(), chunk.len())
                     });
                     if res.is_err() {
                         return Err(Error::NODE_RANDOM_FILL_SYNC);
@@ -60,7 +60,7 @@ pub(crate) fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>
                     }
 
                     // SAFETY: `sub_buf`'s length is the same length as `chunk`
-                    unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr() as *mut u8) };
+                    unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
                 }
             }
         };

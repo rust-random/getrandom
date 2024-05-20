@@ -13,7 +13,7 @@ extern "C" {
 
 pub fn getrandom_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     while !dest.is_empty() {
-        let res = unsafe { sys_read_entropy(dest.as_mut_ptr() as *mut u8, dest.len(), 0) };
+        let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };
         // Positive `isize`s can be safely casted to `usize`
         if res > 0 && (res as usize) <= dest.len() {
             dest = &mut dest[res as usize..];
