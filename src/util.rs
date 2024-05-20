@@ -17,11 +17,14 @@ pub fn uninit_slice_fill_zero(slice: &mut [MaybeUninit<u8>]) -> &mut [u8] {
 }
 
 #[inline(always)]
-pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
-    // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
-    // There is no risk of writing a `MaybeUninit<T>` into the result since
+pub fn slice_as_uninit(slice: &[u8]) -> &[MaybeUninit<u8>] {
+    // TODO: MSRV(1.76): Use `core::ptr::from_ref`.
+    let ptr: *const [u8] = slice;
+    // SAFETY: `MaybeUninit<u8>` is guaranteed to be layout-compatible with `u8`.
+    // There is no risk of writing a `MaybeUninit<u8>` into the result since
     // the result isn't mutable.
-    unsafe { &*(slice as *const [T] as *const [MaybeUninit<T>]) }
+    // FIXME: Avoid relying on this assumption and eliminate this cast.
+    unsafe { &*(ptr as *const [MaybeUninit<u8>]) }
 }
 
 /// View an mutable initialized array as potentially-uninitialized.
@@ -29,7 +32,10 @@ pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
 /// This is unsafe because it allows assigning uninitialized values into
 /// `slice`, which would be undefined behavior.
 #[inline(always)]
-pub unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
-    // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
-    &mut *(slice as *mut [T] as *mut [MaybeUninit<T>])
+pub unsafe fn slice_as_uninit_mut(slice: &mut [u8]) -> &mut [MaybeUninit<u8>] {
+    // TODO: MSRV(1.76): Use `core::ptr::from_mut`.
+    let ptr: *mut [u8] = slice;
+    // SAFETY: `MaybeUninit<u8>` is guaranteed to be layout-compatible with `u8`.
+    // FIXME: Avoid relying on this assumption and eliminate this cast.
+    &mut *(ptr as *mut [MaybeUninit<u8>])
 }
