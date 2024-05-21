@@ -23,6 +23,9 @@ libc = { version = "0.2.154", default-features = false }
 [target.'cfg(target_os = "wasi")'.dependencies]
 wasi = { version = "0.11", default-features = false }
 
+[target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
+windows-targets = "0.52"
+
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
 js-sys = { version = "0.3", optional = true }

@@ -53,6 +53,8 @@ impl Error {
     /// Called from an ES module on Node.js. This is unsupported, see:
     /// <https://docs.rs/getrandom#nodejs-es-module-support>.
     pub const NODE_ES_MODULE: Error = internal_error(14);
+    /// Calling Windows ProcessPrng failed.
+    pub const WINDOWS_PROCESS_PRNG: Error = internal_error(15);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -172,6 +174,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::NODE_CRYPTO => Some("Node.js crypto CommonJS module is unavailable"),
         Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
         Error::NODE_ES_MODULE => Some("Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support"),
+        Error::WINDOWS_PROCESS_PRNG => Some("ProcessPrng: Windows system function failure"),
         _ => None,
     }
 }
