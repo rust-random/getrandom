@@ -1,9 +1,6 @@
 //! Implementation for NetBSD
-use crate::{
-    util_libc::{sys_fill_exact, Weak},
-    Error,
-};
-use core::{mem::MaybeUninit, ptr};
+use crate::{util_libc::sys_fill_exact, weak::Weak, Error};
+use core::{ffi::c_void, mem::MaybeUninit, ptr};
 
 fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
@@ -28,8 +25,14 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    fn link_getrandom() -> *mut c_void {
+        static NAME: &[u8] = b"getrandom\0";
+        unsafe { libc::dlsym(libc::RTLD_DEFAULT, NAME.as_ptr() as *const _) }
+    }
+
     // getrandom(2) was introduced in NetBSD 10.0
-    static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
+    static GETRANDOM: Weak = Weak::new(link_getrandom);
+
     if let Some(fptr) = GETRANDOM.ptr() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
