@@ -1,5 +1,5 @@
 //! Implementation for NetBSD
-use crate::{util_libc::sys_fill_exact, weak::Weak, Error};
+use crate::{cached_ptr::CachedPtr, util_libc::sys_fill_exact, Error};
 use core::{ffi::c_void, mem::MaybeUninit, ptr};
 
 fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
@@ -24,16 +24,17 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
 
 type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
+// getrandom(2) was introduced in NetBSD 10.0
+static GETRANDOM: CachedPtr = CachedPtr::new();
+
+fn dlsym_getrandom() -> *mut c_void {
+    static NAME: &[u8] = b"getrandom\0";
+    let name_ptr = NAME.as_ptr() as *const libc::c_char;
+    unsafe { libc::dlsym(libc::RTLD_DEFAULT, name_ptr) }
+}
+
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    fn link_getrandom() -> *mut c_void {
-        static NAME: &[u8] = b"getrandom\0";
-        unsafe { libc::dlsym(libc::RTLD_DEFAULT, NAME.as_ptr() as *const _) }
-    }
-
-    // getrandom(2) was introduced in NetBSD 10.0
-    static GETRANDOM: Weak = Weak::new(link_getrandom);
-
-    if let Some(fptr) = GETRANDOM.ptr() {
+    if let Some(fptr) = GETRANDOM.get(dlsym_getrandom) {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
             func(buf.as_mut_ptr() as *mut u8, buf.len(), 0)
