@@ -159,6 +159,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --features=std
 
+  windows7:
+    name: Test Windows 7 impl on Windows 10
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
+      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
+
   cross-tests:
     name: Cross Test
     runs-on: ubuntu-22.04
