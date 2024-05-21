@@ -1,5 +1,8 @@
 #![allow(dead_code)]
-use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+use core::{
+    ffi::c_void,
+    sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering},
+};
 
 // This structure represents a lazily initialized static usize value. Useful
 // when it is preferable to just rerun initialization instead of locking.
@@ -34,10 +37,10 @@ impl LazyUsize {
     // init() should always return the same value, if it succeeds.
     pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
         // Relaxed ordering is fine, as we only have a single atomic variable.
-        let mut val = self.0.load(Relaxed);
+        let mut val = self.0.load(Ordering::Relaxed);
         if val == Self::UNINIT {
             val = init();
-            self.0.store(val, Relaxed);
+            self.0.store(val, Ordering::Relaxed);
         }
         val
     }
@@ -55,11 +58,6 @@ impl LazyBool {
         self.0.unsync_init(|| init() as usize) != 0
     }
 }
-
-use core::{
-    ffi::c_void,
-    sync::atomic::{fence, AtomicPtr, Ordering},
-};
 
 // This structure represents a lazily initialized static pointer value.
 ///
