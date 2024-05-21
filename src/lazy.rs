@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use core::{
     ffi::c_void,
-    sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering},
+    sync::atomic::{AtomicPtr, AtomicUsize, Ordering},
 };
 
 // This structure represents a lazily initialized static usize value. Useful
@@ -98,17 +98,13 @@ impl LazyPtr {
         // the returned pointer (which occurs when the function is called).
         // Our implementation mirrors that of the one in libstd, meaning that
         // the use of non-Relaxed operations is probably unnecessary.
-        match self.addr.load(Ordering::Relaxed) {
+        match self.addr.load(Ordering::Acquire) {
             Self::UNINIT => {
                 let addr = f();
-                // Synchronizes with the Acquire fence below
                 self.addr.store(addr, Ordering::Release);
                 addr
             }
-            addr => {
-                fence(Ordering::Acquire);
-                addr
-            }
+            addr => addr,
         }
     }
 }
