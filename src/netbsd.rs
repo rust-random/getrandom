@@ -3,7 +3,11 @@ use crate::{
     util_libc::{sys_fill_exact, Weak},
     Error,
 };
-use core::{mem::MaybeUninit, ptr};
+use core::{
+    mem::{self, MaybeUninit},
+    ptr,
+};
+use libc::c_void;
 
 fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
@@ -31,7 +35,18 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in NetBSD 10.0
     static GETRANDOM: Weak = unsafe { Weak::new("getrandom\0") };
     if let Some(fptr) = GETRANDOM.ptr() {
-        let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
+        let fptr = ptr::NonNull::as_ptr(fptr);
+        // SAFETY:
+        // * We know `fptr` is non-null because it was `NonNull`.
+        // * We assume that any symbol found by `Weak` has
+        //   signature `GetRandomRn`, though that isn't guaranteed.
+        // * We assume that the pointer remains valid for the lifetime of the
+        //   process; i.e. we assume nothing unloads the library providing
+        //   `getrandom` or otherwise causes it to become uncallable.
+        //
+        // Cryptographic security: We assume any implementation of `getrandom`
+        // we find is libc's `getrandom` though this isn't guaranteed.
+        let func = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
             func(buf.as_mut_ptr() as *mut u8, buf.len(), 0)
         });
