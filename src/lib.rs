@@ -306,7 +306,7 @@ cfg_if! {
         #[path = "solaris.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
-        mod cached_ptr;
+        mod lazy;
         #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
