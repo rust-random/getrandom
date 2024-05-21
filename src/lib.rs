@@ -5,7 +5,8 @@
 //! | Target            | Target Triple      | Implementation
 //! | ----------------- | ------------------ | --------------
 //! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-//! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`]
+//! | Windows 10+       | `*‑windows‑*`      | [`ProcessPrng`]
+//! | Windows 7 and 8   | `*-win7‑windows‑*` | [`RtlGenRandom`]
 //! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
 //! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5]
@@ -182,7 +183,8 @@
 //! [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 //! [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
 //!
-//! [`BCryptGenRandom`]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+//! [`ProcessPrng`]: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
+//! [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [`RDRAND`]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
 //! [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html

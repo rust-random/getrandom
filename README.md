@@ -52,7 +52,7 @@ crate features, WASM support and Custom RNGs see the
 
 ## Minimum Supported Rust Version
 
-This crate requires Rust 1.38.0 or later.
+This crate requires Rust 1.56.0 or later.
 
 ## Platform Support
 
