@@ -74,8 +74,8 @@ pub struct LazyPtr {
 impl LazyPtr {
     /// A non-null pointer value which indicates we are uninitialized.
     ///
-    /// This constant should ideally not be a valid pointer.
-    /// However, if by chance initialization function passed to the `get`
+    /// This constant should ideally not be a valid pointer. However,
+    /// if by chance initialization function passed to the `unsync_init`
     /// method does return UNINIT, there will not be undefined behavior.
     /// The initialization function will just be called each time `get()`
     /// is called. This would be inefficient, but correct.
@@ -91,16 +91,16 @@ impl LazyPtr {
     // Runs the init() function at most once, returning the value of some run of
     // init(). Multiple callers can run their init() functions in parallel.
     // init() should always return the same value, if it succeeds.
-    pub fn unsync_init(&self, f: impl Fn() -> *mut c_void) -> *mut c_void {
+    pub fn unsync_init(&self, init: impl Fn() -> *mut c_void) -> *mut c_void {
         // Despite having only a single atomic variable (self.addr), we still
         // cannot always use Ordering::Relaxed, as we need to make sure a
-        // successful call to `f` is "ordered before" any data read through
+        // successful call to `init` is "ordered before" any data read through
         // the returned pointer (which occurs when the function is called).
         // Our implementation mirrors that of the one in libstd, meaning that
         // the use of non-Relaxed operations is probably unnecessary.
         match self.addr.load(Ordering::Acquire) {
             Self::UNINIT => {
-                let addr = f();
+                let addr = init();
                 self.addr.store(addr, Ordering::Release);
                 addr
             }
