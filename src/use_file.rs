@@ -5,6 +5,7 @@ use crate::{
 };
 use core::{
     cell::UnsafeCell,
+    ffi::c_void,
     mem::MaybeUninit,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
@@ -21,7 +22,7 @@ const FD_UNINIT: usize = usize::max_value();
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len())
+        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
     })
 }
 

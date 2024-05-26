@@ -29,7 +29,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         let ret = unsafe {
             BCryptGenRandom(
                 ptr::null_mut(),
-                chunk.as_mut_ptr() as *mut u8,
+                chunk.as_mut_ptr().cast::<u8>(),
                 chunk.len() as u32,
                 BCRYPT_USE_SYSTEM_PREFERRED_RNG,
             )
@@ -39,8 +39,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             // Failed. Try RtlGenRandom as a fallback.
             #[cfg(not(target_vendor = "uwp"))]
             {
-                let ret =
-                    unsafe { RtlGenRandom(chunk.as_mut_ptr() as *mut c_void, chunk.len() as u32) };
+                let ret = unsafe {
+                    RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk.len() as u32)
+                };
                 if ret != 0 {
                     continue;
                 }

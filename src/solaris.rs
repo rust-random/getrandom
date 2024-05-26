@@ -13,13 +13,13 @@
 //! https://blogs.oracle.com/solaris/post/solaris-new-system-calls-getentropy2-and-getrandom2
 //! which also explains why this crate should not use getentropy(2).
 use crate::{util_libc::last_os_error, Error};
-use core::mem::MaybeUninit;
+use core::{ffi::c_void, mem::MaybeUninit};
 
 const MAX_BYTES: usize = 1024;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(MAX_BYTES) {
-        let ptr = chunk.as_mut_ptr() as *mut libc::c_void;
+        let ptr = chunk.as_mut_ptr().cast::<c_void>();
         let ret = unsafe { libc::getrandom(ptr, chunk.len(), libc::GRND_RANDOM) };
         // In case the man page has a typo, we also check for negative ret.
         if ret <= 0 {

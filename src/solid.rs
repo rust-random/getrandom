@@ -7,7 +7,7 @@ extern "C" {
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let ret = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr() as *mut u8, dest.len()) };
+    let ret = unsafe { SOLID_RNG_SampleRandomBytes(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
     if ret >= 0 {
         Ok(())
     } else {
