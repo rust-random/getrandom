@@ -70,14 +70,20 @@ pub fn sys_fill_exact(
     Ok(())
 }
 
-// SAFETY: path must be null terminated, FD must be manually closed.
-pub unsafe fn open_readonly(path: &str) -> Result<libc::c_int, Error> {
-    debug_assert_eq!(path.as_bytes().last(), Some(&0));
+/// Open a file in read-only mode.
+///
+/// # Panics
+/// If `path` does not contain any zeros.
+#[inline(always)]
+pub fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
+    assert!(path.iter().any(|&b| b == 0));
     loop {
-        let fd = libc::open(
-            path.as_ptr().cast::<libc::c_char>(),
-            libc::O_RDONLY | libc::O_CLOEXEC,
-        );
+        let fd = unsafe {
+            libc::open(
+                path.as_ptr().cast::<libc::c_char>(),
+                libc::O_RDONLY | libc::O_CLOEXEC,
+            )
+        };
         if fd >= 0 {
             return Ok(fd);
         }
