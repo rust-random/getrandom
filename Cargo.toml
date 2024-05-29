@@ -2,6 +2,7 @@
 name = "getrandom"
 version = "0.2.15" # Also update html_root_url in lib.rs when bumping this
 edition = "2018"
+rust-version = "1.56"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
 description = "A small cross-platform library for retrieving random data from system source"
@@ -22,6 +23,9 @@ libc = { version = "0.2.154", default-features = false }
 
 [target.'cfg(target_os = "wasi")'.dependencies]
 wasi = { version = "0.11", default-features = false }
+
+[target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
+windows-targets = "0.52"
 
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }

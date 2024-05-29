@@ -1,60 +1,38 @@
-//! Implementation for Windows
+//! Implementation for Windows 10 and later
+//!
+//! On Windows 10 and later, ProcessPrng "is the primary interface to the
+//! user-mode per-processer PRNGs" and only requires bcryptprimitives.dll,
+//! making it a better option than the other Windows RNG APIs:
+//!   - BCryptGenRandom: https://learn.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+//!     - Requires bcrypt.dll (which loads bcryptprimitives.dll anyway)
+//!     - Can cause crashes/hangs as BCrypt accesses the Windows Registry:
+//!       https://github.com/rust-lang/rust/issues/99341
+//!     - Causes issues inside sandboxed code:
+//!       https://issues.chromium.org/issues/40277768
+//!   - CryptGenRandom: https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptgenrandom
+//!     - Deprecated and not available on UWP targets
+//!     - Requires advapi32.lib/advapi32.dll (in addition to bcryptprimitives.dll)
+//!     - Thin wrapper around ProcessPrng
+//!   - RtlGenRandom: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
+//!     - Deprecated and not available on UWP targets
+//!     - Requires advapi32.dll (in addition to bcryptprimitives.dll)
+//!     - Requires using name "SystemFunction036"
+//!     - Thin wrapper around ProcessPrng
+//! For more information see the Windows RNG Whitepaper: https://aka.ms/win10rng
 use crate::Error;
-use core::{ffi::c_void, mem::MaybeUninit, num::NonZeroU32, ptr};
+use core::mem::MaybeUninit;
 
-const BCRYPT_USE_SYSTEM_PREFERRED_RNG: u32 = 0x00000002;
-
-#[link(name = "bcrypt")]
-extern "system" {
-    fn BCryptGenRandom(
-        hAlgorithm: *mut c_void,
-        pBuffer: *mut u8,
-        cbBuffer: u32,
-        dwFlags: u32,
-    ) -> u32;
-}
-
-// Forbidden when targetting UWP
-#[cfg(not(target_vendor = "uwp"))]
-#[link(name = "advapi32")]
-extern "system" {
-    #[link_name = "SystemFunction036"]
-    fn RtlGenRandom(RandomBuffer: *mut c_void, RandomBufferLength: u32) -> u8;
-}
+// Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
+// bcryptprimitives.dll lacks an import library, we use the windows-targets
+// crate to link to it.
+windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL);
+pub type BOOL = i32;
+pub const TRUE: BOOL = 1i32;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // Prevent overflow of u32
-    for chunk in dest.chunks_mut(u32::max_value() as usize) {
-        // BCryptGenRandom was introduced in Windows Vista
-        let ret = unsafe {
-            BCryptGenRandom(
-                ptr::null_mut(),
-                chunk.as_mut_ptr().cast::<u8>(),
-                chunk.len() as u32,
-                BCRYPT_USE_SYSTEM_PREFERRED_RNG,
-            )
-        };
-        // NTSTATUS codes use the two highest bits for severity status.
-        if ret >> 30 == 0b11 {
-            // Failed. Try RtlGenRandom as a fallback.
-            #[cfg(not(target_vendor = "uwp"))]
-            {
-                let ret = unsafe {
-                    RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk.len() as u32)
-                };
-                if ret != 0 {
-                    continue;
-                }
-            }
-            // We zeroize the highest bit, so the error code will reside
-            // inside the range designated for OS codes.
-            let code = ret ^ (1 << 31);
-            // SAFETY: the second highest bit is always equal to one,
-            // so it's impossible to get zero. Unfortunately the type
-            // system does not have a way to express this yet.
-            let code = unsafe { NonZeroU32::new_unchecked(code) };
-            return Err(Error::from(code));
-        }
+    // ProcessPrng should always return TRUE, but we check just in case.
+    match unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) } {
+        TRUE => Ok(()),
+        _ => Err(Error::WINDOWS_PROCESS_PRNG),
     }
-    Ok(())
 }
