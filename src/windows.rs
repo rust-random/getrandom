@@ -26,6 +26,7 @@ use core::mem::MaybeUninit;
 // bcryptprimitives.dll lacks an import library, we use the windows-targets
 // crate to link to it.
 windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL);
+#[allow(clippy::upper_case_acronyms)]
 pub type BOOL = i32;
 pub const TRUE: BOOL = 1i32;
 

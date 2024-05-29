@@ -19,6 +19,7 @@ extern "system" {
     #[link_name = "SystemFunction036"]
     fn RtlGenRandom(randombuffer: *mut c_void, randombufferlength: u32) -> BOOLEAN;
 }
+#[allow(clippy::upper_case_acronyms)]
 type BOOLEAN = u8;
 const TRUE: BOOLEAN = 1u8;
 
