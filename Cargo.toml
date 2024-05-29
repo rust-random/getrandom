@@ -1,7 +1,7 @@
 [package]
 name = "getrandom"
 version = "0.2.15" # Also update html_root_url in lib.rs when bumping this
-edition = "2018"
+edition = "2021"
 rust-version = "1.56"
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
