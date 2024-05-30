@@ -98,35 +98,11 @@ impl Error {
     }
 }
 
-cfg_if! {
-    if #[cfg(unix)] {
-        fn os_err(errno: i32, buf: &mut [u8]) -> Option<&str> {
-            let buf_ptr = buf.as_mut_ptr().cast::<libc::c_char>();
-            if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {
-                return None;
-            }
-
-            // Take up to trailing null byte
-            let n = buf.len();
-            let idx = buf.iter().position(|&b| b == 0).unwrap_or(n);
-            core::str::from_utf8(&buf[..idx]).ok()
-        }
-    } else {
-        fn os_err(_errno: i32, _buf: &mut [u8]) -> Option<&str> {
-            None
-        }
-    }
-}
-
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut dbg = f.debug_struct("Error");
         if let Some(errno) = self.raw_os_error() {
             dbg.field("os_error", &errno);
-            let mut buf = [0u8; 128];
-            if let Some(err) = os_err(errno, &mut buf) {
-                dbg.field("description", &err);
-            }
         } else if let Some(desc) = internal_desc(*self) {
             dbg.field("internal_code", &self.0.get());
             dbg.field("description", &desc);
@@ -140,11 +116,7 @@ impl fmt::Debug for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(errno) = self.raw_os_error() {
-            let mut buf = [0u8; 128];
-            match os_err(errno, &mut buf) {
-                Some(err) => err.fmt(f),
-                None => write!(f, "OS Error: {}", errno),
-            }
+            write!(f, "OS Error: {}", errno)
         } else if let Some(desc) = internal_desc(*self) {
             f.write_str(desc)
         } else {
