@@ -36,11 +36,17 @@ impl LazyUsize {
     // init(). Multiple callers can run their init() functions in parallel.
     // init() should always return the same value, if it succeeds.
     pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
+        #[cold]
+        fn do_init(this: &LazyUsize, init: impl FnOnce() -> usize) -> usize {
+            let val = init();
+            this.0.store(val, Ordering::Relaxed);
+            val
+        }
+
         // Relaxed ordering is fine, as we only have a single atomic variable.
         let mut val = self.0.load(Ordering::Relaxed);
         if val == Self::UNINIT {
-            val = init();
-            self.0.store(val, Ordering::Relaxed);
+            val = do_init(self, init);
         }
         val
     }
@@ -92,19 +98,23 @@ impl LazyPtr {
     // init(). Multiple callers can run their init() functions in parallel.
     // init() should always return the same value, if it succeeds.
     pub fn unsync_init(&self, init: impl Fn() -> *mut c_void) -> *mut c_void {
+        #[cold]
+        fn do_init(this: &LazyPtr, init: impl Fn() -> *mut c_void) -> *mut c_void {
+            let addr = init();
+            this.addr.store(addr, Ordering::Release);
+            addr
+        }
+
         // Despite having only a single atomic variable (self.addr), we still
         // cannot always use Ordering::Relaxed, as we need to make sure a
         // successful call to `init` is "ordered before" any data read through
         // the returned pointer (which occurs when the function is called).
         // Our implementation mirrors that of the one in libstd, meaning that
         // the use of non-Relaxed operations is probably unnecessary.
-        match self.addr.load(Ordering::Acquire) {
-            Self::UNINIT => {
-                let addr = init();
-                self.addr.store(addr, Ordering::Release);
-                addr
-            }
-            addr => addr,
+        let mut val = self.addr.load(Ordering::Acquire);
+        if val == Self::UNINIT {
+            val = do_init(self, init);
         }
+        val
     }
 }
