@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::Error;
-use core::{mem::MaybeUninit, num::NonZeroU32};
+use core::mem::MaybeUninit;
 
 cfg_if! {
     if #[cfg(any(target_os = "netbsd", target_os = "openbsd", target_os = "android"))] {
@@ -40,10 +40,10 @@ pub fn last_os_error() -> Error {
     // c_int-to-u32 conversion is lossless for nonnegative values if they are the same size.
     const _: () = assert!(core::mem::size_of::<libc::c_int>() == core::mem::size_of::<u32>());
 
-    u32::try_from(errno)
-        .ok()
-        .and_then(NonZeroU32::new)
-        .map_or(Error::ERRNO_NOT_POSITIVE, Error::from)
+    match u32::try_from(errno) {
+        Ok(code) if code != 0 => Error::from_os_error(code),
+        _ => Error::ERRNO_NOT_POSITIVE,
+    }
 }
 
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
