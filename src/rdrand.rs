@@ -14,20 +14,30 @@ cfg_if! {
     }
 }
 
-// Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
-// Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
-// Software Developer’s Manual" - Volume 1 - Section 7.3.17.1.
-const RETRY_LIMIT: usize = 10;
-
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand() -> Option<Word> {
-    for _ in 0..RETRY_LIMIT {
-        let mut val = 0;
-        if rdrand_step(&mut val) == 1 {
-            return Some(val);
+    #[cold]
+    unsafe fn retry() -> Option<Word> {
+        // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
+        // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
+        // Software Developer’s Manual" - Volume 1 - Section 7.3.17.1.
+
+        // Start at 1 because the caller already tried once.
+        for _ in 1..10 {
+            let mut val = 0;
+            if rdrand_step(&mut val) == 1 {
+                return Some(val);
+            }
         }
+        None
     }
-    None
+
+    let mut val = 0;
+    if rdrand_step(&mut val) == 1 {
+        Some(val)
+    } else {
+        retry()
+    }
 }
 
 // "rdrand" target feature requires "+rdrand" flag, see https://github.com/rust-lang/rust/issues/49653.
