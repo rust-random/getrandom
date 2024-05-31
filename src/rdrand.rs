@@ -6,9 +6,11 @@ cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
         use core::arch::x86_64 as arch;
         use arch::_rdrand64_step as rdrand_step;
+        type Word = u64;
     } else if #[cfg(target_arch = "x86")] {
         use core::arch::x86 as arch;
         use arch::_rdrand32_step as rdrand_step;
+        type Word = u32;
     }
 }
 
@@ -18,11 +20,11 @@ cfg_if! {
 const RETRY_LIMIT: usize = 10;
 
 #[target_feature(enable = "rdrand")]
-unsafe fn rdrand() -> Option<usize> {
+unsafe fn rdrand() -> Option<Word> {
     for _ in 0..RETRY_LIMIT {
         let mut val = 0;
         if rdrand_step(&mut val) == 1 {
-            return Some(val as usize);
+            return Some(val);
         }
     }
     None
@@ -105,7 +107,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     // We use chunks_exact_mut instead of chunks_mut as it allows almost all
     // calls to memcpy to be elided by the compiler.
-    let mut chunks = dest.chunks_exact_mut(size_of::<usize>());
+    let mut chunks = dest.chunks_exact_mut(size_of::<Word>());
     for chunk in chunks.by_ref() {
         let src = rdrand()?.to_ne_bytes();
         chunk.copy_from_slice(slice_as_uninit(&src));
