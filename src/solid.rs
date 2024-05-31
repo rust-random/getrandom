@@ -13,6 +13,6 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     } else {
         // ITRON error numbers are always negative, so we negate it so that it
         // falls in the dedicated OS error range (1..INTERNAL_START).
-        Err(NonZeroU32::new((-ret) as u32).unwrap().into())
+        Err(NonZeroU32::new(ret.unsigned_abs()).map_or(Error::UNEXPECTED, Error::from))
     }
 }

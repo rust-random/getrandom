@@ -55,7 +55,7 @@ impl LazyBool {
     }
 
     pub fn unsync_init(&self, init: impl FnOnce() -> bool) -> bool {
-        self.0.unsync_init(|| init() as usize) != 0
+        self.0.unsync_init(|| usize::from(init())) != 0
     }
 }
 

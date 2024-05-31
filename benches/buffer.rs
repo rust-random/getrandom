@@ -8,7 +8,7 @@ use std::mem::MaybeUninit;
 fn bench_getrandom<const N: usize>() {
     let mut buf = [0u8; N];
     getrandom::getrandom(&mut buf).unwrap();
-    test::black_box(&buf as &[u8]);
+    test::black_box(&buf[..]);
 }
 
 // Call getrandom_uninit on an uninitialized stack buffer

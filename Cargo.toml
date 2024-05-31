@@ -1,8 +1,8 @@
 [package]
 name = "getrandom"
 version = "0.2.15" # Also update html_root_url in lib.rs when bumping this
-edition = "2018"
-rust-version = "1.56"
+edition = "2021"
+rust-version = "1.57" # Sync .clippy.toml, tests.yml, and README.md.
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
 description = "A small cross-platform library for retrieving random data from system source"
