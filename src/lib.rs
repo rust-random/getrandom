@@ -208,6 +208,24 @@
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![deny(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_ptr_alignment,
+    clippy::cast_sign_loss,
+    clippy::char_lit_as_u8,
+    clippy::checked_conversions,
+    clippy::fn_to_numeric_cast,
+    clippy::fn_to_numeric_cast_with_truncation,
+    clippy::ptr_as_ptr,
+    clippy::unnecessary_cast,
+    clippy::useless_conversion
+)]
+// `clippy::cast_ref_to_mut` was replaced by `invalid_reference_casting` in 1.73.
+#![allow(renamed_and_removed_lints)]
+#![deny(clippy::cast_ref_to_mut)]
 
 #[macro_use]
 extern crate cfg_if;
