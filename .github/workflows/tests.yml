@@ -57,6 +57,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
+          components: clippy
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
@@ -65,6 +66,14 @@ jobs:
       - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
+      - if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo clippy --all
+      - if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo clippy --all --features=std
+      - if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo clippy --all --features=linux_disable_fallback
+      - if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo clippy --all --features=custom
 
   linux-tests:
     name: Linux Test
@@ -80,11 +89,15 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
+          components: clippy
           targets: ${{ matrix.target }}
       - name: Install multilib
         run: sudo apt-get update && sudo apt-get install gcc-multilib
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=${{ matrix.target }} --features=std
+      - name: Run Tests
+        run: cargo test --target=${{ matrix.target }} --features=std
+      - name: Clippy
+        run: cargo clippy --target=${{ matrix.target }} --features=std
 
   ios-tests:
     name: iOS Simulator Test
@@ -108,6 +121,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
+          components: clippy
           targets: ${{ matrix.target }}
       # There is no precompiled cargo-dinghy for Aarch64. The precompiled
       # x86_64 binary runs on ARM64 macOS via Rosetta 2, but it fails to
@@ -140,6 +154,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo dinghy -p ${{ matrix.ios_platform }} -d ${{ env.device }} test
+      - name: Clippy
+        run: cargo clippy --all --target=${{ matrix.target }} --features=std
 
   windows-tests:
     name: Windows Test
@@ -168,10 +184,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2024-05-20
-          components: rust-src
+          components: clippy, rust-src
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
+      - run: cargo clippy --all --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
+      - run: cargo clippy --all --target=i686-win7-windows-msvc -Z build-std --features=std
 
   cross-tests:
     name: Cross Test
@@ -196,6 +214,8 @@ jobs:
           cross --version
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
+      - name: Clippy
+        run: cross clippy --all --target=${{ matrix.target }} --features=std
 
   macos-link:
     name: macOS ARM64 Build/Link
@@ -232,6 +252,8 @@ jobs:
           cross --version
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
+      - name: Clippy
+        run: cross clippy --all --target=${{ matrix.target }} --features=std
 
   web-tests:
     name: Web Test
@@ -251,7 +273,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
         if: runner.os == 'Windows'
       - name: Install precompiled wasm-pack
@@ -276,6 +297,12 @@ jobs:
         run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - name: Clippy
+        run: cargo clippy --all --target=wasm32-unknown-unknown --features=js
 
   wasm64-tests:
     name: wasm64 Build/Link
@@ -284,13 +311,15 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
         with:
-          components: rust-src
+          components: clippy, rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build and Link tests (build-std)
         # This target is Tier 3, so we have to build libstd ourselves.
         # We currently cannot run these tests because wasm-bindgen-test-runner
         # does not yet support memory64.
         run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
+      - name: Clippy
+        run: cargo clippy --all -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
 
   wasi-tests:
     name: WASI Test
@@ -299,6 +328,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
+          components: clippy
           targets: wasm32-wasi
       - name: Install precompiled wasmtime
         run: |
@@ -307,7 +337,10 @@ jobs:
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target wasm32-wasi
+      - name: Run Tests
+        run: cargo test --target wasm32-wasi
+      - name: Clippy
+        run: cargo clippy --all --target wasm32-wasi
 
   build-tier2:
     name: Tier 2 Build
@@ -376,20 +409,22 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
+          components: clippy
           targets: riscv32i-unknown-none-elf
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --features custom --target riscv32i-unknown-none-elf
+      - name: Build
+        run: cargo build --features custom --target riscv32i-unknown-none-elf
+      - name: Clippy
+        run: cargo clippy --all --features custom --target riscv32i-unknown-none-elf
 
-  clippy-fmt:
-    name: Clippy + rustfmt
+  fmt:
+    name: rustfmt
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt
       - uses: Swatinem/rust-cache@v2
-      - name: clippy
-        run: cargo clippy --all --features=custom,std
       - name: fmt
         run: cargo fmt --all -- --check
