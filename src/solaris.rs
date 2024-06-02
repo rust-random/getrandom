@@ -22,12 +22,11 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         let ptr = chunk.as_mut_ptr().cast::<c_void>();
         let ret = unsafe { libc::getrandom(ptr, chunk.len(), libc::GRND_RANDOM) };
         // In case the man page has a typo, we also check for negative ret.
-        if ret <= 0 {
-            return Err(last_os_error());
-        }
         // If getrandom(2) succeeds, it should have completely filled chunk.
-        if (ret as usize) != chunk.len() {
-            return Err(Error::UNEXPECTED);
+        match usize::try_from(ret) {
+            Ok(ret) if ret == chunk.len() => {}   // Good. Keep going.
+            Ok(0) => return Err(last_os_error()), // The syscall failed.
+            _ => return Err(Error::UNEXPECTED),
         }
     }
     Ok(())
