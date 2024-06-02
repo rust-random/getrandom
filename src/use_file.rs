@@ -68,30 +68,34 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 // Succeeds once /dev/urandom is safe to read from
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    // Poll /dev/random to make sure it is ok to read from /dev/urandom.
+    // Read a byte from /dev/random to make sure it is ok to read from
+    // /dev/urandom. reading a byte instead of polling is more compatible with
+    // sandboxes that disallow `poll()` but which allow reading /dev/random,
+    // e.g. sandboxes that assume that `poll()` is for network I/O. This way,
+    // fewer applications will have to insert pre-sandbox-initialization logic.
+    // Often (blocking) file I/O is not allowed in such early phases of an
+    // application for performance and/or security reasons.
+    //
+    // It is hard to write a sandbox policy to support `libc::poll()` because
+    // it may be invoked as `SYS_POLL`, `SYS_PPOLL`, or even `SYS_SELECT`,
+    // depending on the libc implementation (e.g. glibc vs musl), libc version,
+    // potentially the kernel version at runtime, and/or the target
+    // architecture.
+    //
+    // BoringSSL and libstd don't try to protect against insecure output from
+    // `/dev/urandom'; they don't open `/dev/random` at all.
+    //
+    // OpenSSL uses `libc::select()` unless the `dev/random` file descriptor
+    // is too large; if it is too large then it does what we do here.
+
     let fd = open_readonly(b"/dev/random\0")?;
-    let mut pfd = libc::pollfd {
-        fd,
-        events: libc::POLLIN,
-        revents: 0,
-    };
     let _guard = DropGuard(|| unsafe {
         libc::close(fd);
     });
-
-    loop {
-        // A negative timeout means an infinite timeout.
-        let res = unsafe { libc::poll(&mut pfd, 1, -1) };
-        if res >= 0 {
-            debug_assert_eq!(res, 1); // We only used one fd, and cannot timeout.
-            return Ok(());
-        }
-        let err = crate::util_libc::last_os_error();
-        match err.raw_os_error() {
-            Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
-            _ => return Err(err),
-        }
-    }
+    let mut dummy: [MaybeUninit<u8>; 1] = [MaybeUninit::uninit()];
+    sys_fill_exact(&mut dummy, |buf| unsafe {
+        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
+    })
 }
 
 struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
