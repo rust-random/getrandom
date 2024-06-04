@@ -19,6 +19,9 @@ use core::{
 const FILE_PATH: &[u8] = b"/dev/urandom\0";
 const FD_UNINIT: usize = usize::max_value();
 
+// Do not inline this when it is the fallback implementation, but don't mark it
+// `#[cold]` because it is hot when it is actually used.
+#[cfg_attr(any(target_os = "android", target_os = "linux"), inline(never))]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
@@ -31,6 +34,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 // return the same file descriptor. This file descriptor is never closed.
 fn get_rng_fd() -> Result<libc::c_int, Error> {
     static FD: AtomicUsize = AtomicUsize::new(FD_UNINIT);
+
     fn get_fd() -> Option<libc::c_int> {
         match FD.load(Relaxed) {
             FD_UNINIT => None,
@@ -38,31 +42,36 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         }
     }
 
+    #[cold]
+    fn get_fd_locked() -> Result<libc::c_int, Error> {
+        // SAFETY: We use the mutex only in this method, and we always unlock it
+        // before returning, making sure we don't violate the pthread_mutex_t API.
+        static MUTEX: Mutex = Mutex::new();
+        unsafe { MUTEX.lock() };
+        let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
+
+        if let Some(fd) = get_fd() {
+            return Ok(fd);
+        }
+
+        // On Linux, /dev/urandom might return insecure values.
+        #[cfg(any(target_os = "android", target_os = "linux"))]
+        wait_until_rng_ready()?;
+
+        let fd = open_readonly(FILE_PATH)?;
+        // The fd always fits in a usize without conflicting with FD_UNINIT.
+        debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
+        FD.store(fd as usize, Relaxed);
+
+        Ok(fd)
+    }
+
     // Use double-checked locking to avoid acquiring the lock if possible.
     if let Some(fd) = get_fd() {
-        return Ok(fd);
+        Ok(fd)
+    } else {
+        get_fd_locked()
     }
-
-    // SAFETY: We use the mutex only in this method, and we always unlock it
-    // before returning, making sure we don't violate the pthread_mutex_t API.
-    static MUTEX: Mutex = Mutex::new();
-    unsafe { MUTEX.lock() };
-    let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
-
-    if let Some(fd) = get_fd() {
-        return Ok(fd);
-    }
-
-    // On Linux, /dev/urandom might return insecure values.
-    #[cfg(any(target_os = "android", target_os = "linux"))]
-    wait_until_rng_ready()?;
-
-    let fd = open_readonly(FILE_PATH)?;
-    // The fd always fits in a usize without conflicting with FD_UNINIT.
-    debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
-    FD.store(fd as usize, Relaxed);
-
-    Ok(fd)
 }
 
 // Polls /dev/random to make sure it is ok to read from /dev/urandom.
