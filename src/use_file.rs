@@ -65,10 +65,36 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     Ok(fd)
 }
 
-// Succeeds once /dev/urandom is safe to read from
+// Polls /dev/random to make sure it is ok to read from /dev/urandom.
+//
+// Polling avoids draining the estimated entropy from /dev/random;
+// short-lived processes reading even a single byte from /dev/random could
+// be problematic if they are being executed faster than entropy is being
+// collected.
+//
+// OTOH, reading a byte instead of polling is more compatible with
+// sandboxes that disallow `poll()` but which allow reading /dev/random,
+// e.g. sandboxes that assume that `poll()` is for network I/O. This way,
+// fewer applications will have to insert pre-sandbox-initialization logic.
+// Often (blocking) file I/O is not allowed in such early phases of an
+// application for performance and/or security reasons.
+//
+// It is hard to write a sandbox policy to support `libc::poll()` because
+// it may invoke the `poll`, `ppoll`, `ppoll_time64` (since Linux 5.1, with
+// newer versions of glibc), and/or (rarely, and probably only on ancient
+// systems) `select`. depending on the libc implementation (e.g. glibc vs
+// musl), libc version, potentially the kernel version at runtime, and/or
+// the target architecture.
+//
+// BoringSSL and libstd don't try to protect against insecure output from
+// `/dev/urandom'; they don't open `/dev/random` at all.
+//
+// OpenSSL uses `libc::select()` unless the `dev/random` file descriptor
+// is too large; if it is too large then it does what we do here.
+//
+// libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    // Poll /dev/random to make sure it is ok to read from /dev/urandom.
     let fd = open_readonly(b"/dev/random\0")?;
     let mut pfd = libc::pollfd {
         fd,
