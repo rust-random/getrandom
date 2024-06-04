@@ -44,11 +44,12 @@ impl LazyUsize {
         }
 
         // Relaxed ordering is fine, as we only have a single atomic variable.
-        let mut val = self.0.load(Ordering::Relaxed);
-        if val == Self::UNINIT {
-            val = do_init(self, init);
+        let val = self.0.load(Ordering::Relaxed);
+        if val != Self::UNINIT {
+            val
+        } else {
+            do_init(self, init)
         }
-        val
     }
 }
 
@@ -111,10 +112,11 @@ impl LazyPtr {
         // the returned pointer (which occurs when the function is called).
         // Our implementation mirrors that of the one in libstd, meaning that
         // the use of non-Relaxed operations is probably unnecessary.
-        let mut val = self.addr.load(Ordering::Acquire);
-        if val == Self::UNINIT {
-            val = do_init(self, init);
+        let val = self.addr.load(Ordering::Acquire);
+        if val != Self::UNINIT {
+            val
+        } else {
+            do_init(self, init)
         }
-        val
     }
 }

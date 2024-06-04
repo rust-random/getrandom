@@ -68,10 +68,10 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 
     // Use double-checked locking to avoid acquiring the lock if possible.
     if let Some(fd) = get_fd() {
-        return Ok(fd);
+        Ok(fd)
+    } else {
+        get_fd_locked()
     }
-
-    get_fd_locked()
 }
 
 // Succeeds once /dev/urandom is safe to read from
