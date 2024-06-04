@@ -19,6 +19,9 @@ use core::{
 const FILE_PATH: &[u8] = b"/dev/urandom\0";
 const FD_UNINIT: usize = usize::max_value();
 
+// Do not inline this when it is the fallback implementation, but don't mark it
+// `#[cold]` because it is hot when it is actually used.
+#[cfg_attr(any(target_os = "android", target_os = "linux"), inline(never))]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
