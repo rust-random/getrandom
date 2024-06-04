@@ -68,6 +68,23 @@ impl Error {
     /// custom errors.
     pub const CUSTOM_START: u32 = (1 << 31) + (1 << 30);
 
+    /// Creates a new instance of an `Error` from a particular OS error code.
+    ///
+    /// This method is analogous to [`std::io::Error::from_raw_os_error()`][1],
+    /// except that it works in `no_std` contexts and `code` will be
+    /// replaced with `Error::UNEXPECTED` if it isn't in the range
+    /// `1..Error::INTERNAL_START`. Thus, for the result `r`,
+    /// `r == Self::UNEXPECTED || r.raw_os_error().unsigned_abs() == code`.
+    ///
+    /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
+    #[allow(dead_code)]
+    pub(super) fn from_os_error(code: u32) -> Self {
+        match NonZeroU32::new(code) {
+            Some(code) if code.get() < Self::INTERNAL_START => Self(code),
+            _ => Self::UNEXPECTED,
+        }
+    }
+
     /// Extract the raw OS error code (if this error came from the OS)
     ///
     /// This method is identical to [`std::io::Error::raw_os_error()`][1], except
