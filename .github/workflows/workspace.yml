@@ -56,7 +56,7 @@ jobs:
     - name: SOLID (solid.rs)
       run: cargo clippy -Zbuild-std=core --target aarch64-kmc-solid_asp3
     - name: Redox (use_file.rs)
-      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-redox
+      run: cargo clippy -Zbuild-std=std --target x86_64-unknown-redox
     - name: VxWorks (vxworks.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-wrs-vxworks
     - name: WASI (wasi.rs)
