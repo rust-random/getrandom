@@ -56,7 +56,7 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 
         // On Linux, /dev/urandom might return insecure values.
         #[cfg(any(target_os = "android", target_os = "linux"))]
-        wait_until_rng_ready()?;
+        crate::imp::wait_until_rng_ready()?;
 
         let fd = open_readonly(FILE_PATH)?;
         // The fd always fits in a usize without conflicting with FD_UNINIT.
@@ -71,61 +71,6 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         Ok(fd)
     } else {
         get_fd_locked()
-    }
-}
-
-// Polls /dev/random to make sure it is ok to read from /dev/urandom.
-//
-// Polling avoids draining the estimated entropy from /dev/random;
-// short-lived processes reading even a single byte from /dev/random could
-// be problematic if they are being executed faster than entropy is being
-// collected.
-//
-// OTOH, reading a byte instead of polling is more compatible with
-// sandboxes that disallow `poll()` but which allow reading /dev/random,
-// e.g. sandboxes that assume that `poll()` is for network I/O. This way,
-// fewer applications will have to insert pre-sandbox-initialization logic.
-// Often (blocking) file I/O is not allowed in such early phases of an
-// application for performance and/or security reasons.
-//
-// It is hard to write a sandbox policy to support `libc::poll()` because
-// it may invoke the `poll`, `ppoll`, `ppoll_time64` (since Linux 5.1, with
-// newer versions of glibc), and/or (rarely, and probably only on ancient
-// systems) `select`. depending on the libc implementation (e.g. glibc vs
-// musl), libc version, potentially the kernel version at runtime, and/or
-// the target architecture.
-//
-// BoringSSL and libstd don't try to protect against insecure output from
-// `/dev/urandom'; they don't open `/dev/random` at all.
-//
-// OpenSSL uses `libc::select()` unless the `dev/random` file descriptor
-// is too large; if it is too large then it does what we do here.
-//
-// libsodium uses `libc::poll` similarly to this.
-#[cfg(any(target_os = "android", target_os = "linux"))]
-fn wait_until_rng_ready() -> Result<(), Error> {
-    let fd = open_readonly(b"/dev/random\0")?;
-    let mut pfd = libc::pollfd {
-        fd,
-        events: libc::POLLIN,
-        revents: 0,
-    };
-    let _guard = DropGuard(|| unsafe {
-        libc::close(fd);
-    });
-
-    loop {
-        // A negative timeout means an infinite timeout.
-        let res = unsafe { libc::poll(&mut pfd, 1, -1) };
-        if res >= 0 {
-            debug_assert_eq!(res, 1); // We only used one fd, and cannot timeout.
-            return Ok(());
-        }
-        let err = crate::util_libc::last_os_error();
-        match err.raw_os_error() {
-            Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
-            _ => return Err(err),
-        }
     }
 }
 
