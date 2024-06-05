@@ -4,11 +4,12 @@ use crate::{
     Error,
 };
 use core::{
-    cell::UnsafeCell,
     ffi::c_void,
     mem::MaybeUninit,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
+extern crate std;
+use std::sync::{Mutex, PoisonError};
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -44,11 +45,10 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 
     #[cold]
     fn get_fd_locked() -> Result<libc::c_int, Error> {
-        // SAFETY: We use the mutex only in this method, and we always unlock it
-        // before returning, making sure we don't violate the pthread_mutex_t API.
-        static MUTEX: Mutex = Mutex::new();
-        unsafe { MUTEX.lock() };
-        let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
+        static MUTEX: Mutex<()> = Mutex::new(());
+        let _guard = MUTEX
+            .lock()
+            .map_err(|_: PoisonError<_>| Error::UNEXPECTED_FILE_MUTEX_POISONED)?;
 
         if let Some(fd) = get_fd() {
             return Ok(fd);
@@ -71,31 +71,5 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         Ok(fd)
     } else {
         get_fd_locked()
-    }
-}
-
-struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
-
-impl Mutex {
-    const fn new() -> Self {
-        Self(UnsafeCell::new(libc::PTHREAD_MUTEX_INITIALIZER))
-    }
-    unsafe fn lock(&self) {
-        let r = libc::pthread_mutex_lock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-    unsafe fn unlock(&self) {
-        let r = libc::pthread_mutex_unlock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-}
-
-unsafe impl Sync for Mutex {}
-
-struct DropGuard<F: FnMut()>(F);
-
-impl<F: FnMut()> Drop for DropGuard<F> {
-    fn drop(&mut self) {
-        self.0()
     }
 }

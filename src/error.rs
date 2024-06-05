@@ -58,6 +58,8 @@ impl Error {
     pub const NODE_ES_MODULE: Error = internal_error(14);
     /// Calling Windows ProcessPrng failed.
     pub const WINDOWS_PROCESS_PRNG: Error = internal_error(15);
+    /// The mutex used when opening the random file was poisoned.
+    pub const UNEXPECTED_FILE_MUTEX_POISONED: Error = internal_error(16);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -175,6 +177,7 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
         Error::NODE_ES_MODULE => Some("Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support"),
         Error::WINDOWS_PROCESS_PRNG => Some("ProcessPrng: Windows system function failure"),
+        Error::UNEXPECTED_FILE_MUTEX_POISONED => Some("File: Initialization panicked, poisoning the mutex"),
         _ => None,
     }
 }

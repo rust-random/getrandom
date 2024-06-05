@@ -44,7 +44,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        toolchain: [nightly, beta, stable, 1.57]
+        toolchain: [nightly, beta, stable, 1.63]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
           # x86_64-apple-darwin.
@@ -348,6 +348,8 @@ jobs:
         ]
         include:
           # Supported tier 3 targets with libstd support
+          - target: aarch64-unknown-nto-qnx710
+            features: ["std"]
           - target: x86_64-unknown-openbsd
             features: ["std"]
           - target: x86_64-unknown-dragonfly
