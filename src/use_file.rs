@@ -1,13 +1,17 @@
 //! Implementations that just need to read from a file
-use crate::{
-    util_libc::{open_readonly, sys_fill_exact},
-    Error,
-};
+
+extern crate std;
+
+use crate::{util_libc::sys_fill_exact, Error};
 use core::{
     cell::UnsafeCell,
     ffi::c_void,
     mem::MaybeUninit,
     sync::atomic::{AtomicI32, Ordering},
+};
+use std::{
+    fs, io,
+    os::fd::{IntoRawFd as _, RawFd},
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -16,7 +20,7 @@ use core::{
 ///   - On Redox, only /dev/urandom is provided.
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
-const FILE_PATH: &[u8] = b"/dev/urandom\0";
+const FILE_PATH: &str = "/dev/urandom";
 
 // Do not inline this when it is the fallback implementation, but don't mark it
 // `#[cold]` because it is hot when it is actually used.
@@ -31,11 +35,11 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 // Returns the file descriptor for the device file used to retrieve random
 // bytes. The file will be opened exactly once. All subsequent calls will
 // return the same file descriptor. This file descriptor is never closed.
-fn get_rng_fd() -> Result<libc::c_int, Error> {
+fn get_rng_fd() -> Result<RawFd, Error> {
     // std::os::fd::{BorrowedFd, OwnedFd} guarantee that -1 is not a valid file descriptor.
-    const FD_UNINIT: libc::c_int = -1;
+    const FD_UNINIT: RawFd = -1;
 
-    // In theory `libc::c_int` could be something other than `i32`, but for the
+    // In theory `RawFd` could be something other than `i32`, but for the
     // targets we currently support that use `use_file`, it is always `i32`.
     // If/when we add support for a target where that isn't the case, we may
     // need to use a different atomic type or make other accomodations. The
@@ -51,7 +55,7 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     // `Ordering::Acquire` to synchronize with it.
     static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
-    fn get_fd() -> Option<libc::c_int> {
+    fn get_fd() -> Option<RawFd> {
         match FD.load(Ordering::Acquire) {
             FD_UNINIT => None,
             val => Some(val),
@@ -59,7 +63,7 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     }
 
     #[cold]
-    fn get_fd_locked() -> Result<libc::c_int, Error> {
+    fn get_fd_locked() -> Result<RawFd, Error> {
         // This mutex is used to prevent multiple threads from opening file
         // descriptors concurrently, which could run into the limit on the
         // number of open file descriptors. Our goal is to have no more than one
@@ -79,7 +83,9 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         #[cfg(any(target_os = "android", target_os = "linux"))]
         wait_until_rng_ready()?;
 
-        let fd = open_readonly(FILE_PATH)?;
+        let file = fs::File::open(FILE_PATH).map_err(map_io_error)?;
+
+        let fd = file.into_raw_fd();
         debug_assert!(fd != FD_UNINIT);
         FD.store(fd, Ordering::Release);
 
@@ -124,15 +130,14 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    let fd = open_readonly(b"/dev/random\0")?;
+    use std::os::unix::io::AsRawFd as _;
+
+    let file = fs::File::open("/dev/random").map_err(map_io_error)?;
     let mut pfd = libc::pollfd {
-        fd,
+        fd: file.as_raw_fd(),
         events: libc::POLLIN,
         revents: 0,
     };
-    let _guard = DropGuard(|| unsafe {
-        libc::close(fd);
-    });
 
     loop {
         // A negative timeout means an infinite timeout.
@@ -147,6 +152,24 @@ fn wait_until_rng_ready() -> Result<(), Error> {
             _ => return Err(err),
         }
     }
+}
+
+fn map_io_error(err: io::Error) -> Error {
+    // TODO(MSRV feature(raw_os_error_ty)): Use `std::io::RawOsError`.
+    type RawOsError = i32;
+
+    err.raw_os_error()
+        .map_or(Error::UNEXPECTED, |errno: RawOsError| {
+            // RawOsError-to-u32 conversion is lossless for nonnegative values
+            // if they are the same size.
+            const _: () =
+                assert!(core::mem::size_of::<RawOsError>() == core::mem::size_of::<u32>());
+
+            match u32::try_from(errno) {
+                Ok(code) if code != 0 => Error::from_os_error(code),
+                _ => Error::ERRNO_NOT_POSITIVE,
+            }
+        })
 }
 
 struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
