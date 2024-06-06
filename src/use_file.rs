@@ -1,5 +1,9 @@
 //! Implementations that just need to read from a file
-use crate::{util_libc::open_readonly, util_unix::sys_fill_exact, Error};
+use crate::{
+    util_libc::{last_os_error, open_readonly},
+    util_unix::sys_fill_exact,
+    Error,
+};
 use core::{
     cell::UnsafeCell,
     ffi::c_void,
@@ -22,7 +26,8 @@ const FD_UNINIT: usize = usize::max_value();
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
+        let ret: isize = libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len());
+        usize::try_from(ret).map_err(|_| last_os_error())
     })
 }
 

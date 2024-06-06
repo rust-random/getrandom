@@ -1,20 +1,18 @@
 #![allow(dead_code)]
-use crate::{util_libc::last_os_error, Error};
+use crate::Error;
 use core::mem::MaybeUninit;
 
-// Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
-//   - should return -1 and set errno on failure
-//   - should return the number of bytes written on success
+// Fill a buffer by repeatedly invoking a system call. The `sys_fill` function
+// must return `Ok(written)` where `written` is the number of bytes written,
+// or otherwise an error.
 pub fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
-    sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> libc::ssize_t,
+    sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> Result<usize, Error>,
 ) -> Result<(), Error> {
     while !buf.is_empty() {
-        let res = sys_fill(buf);
-        match res {
-            res if res > 0 => buf = buf.get_mut(res as usize..).ok_or(Error::UNEXPECTED)?,
-            -1 => {
-                let err = last_os_error();
+        match sys_fill(buf) {
+            Ok(res) if res > 0 => buf = buf.get_mut(res..).ok_or(Error::UNEXPECTED)?,
+            Err(err) => {
                 // We should try again if the call was interrupted.
                 if err.raw_os_error() != Some(libc::EINTR) {
                     return Err(err);

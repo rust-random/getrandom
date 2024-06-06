@@ -1,5 +1,5 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use crate::{lazy::LazyBool, linux_android, use_file, util_libc::last_os_error, Error};
+use crate::{lazy::LazyBool, linux_android, use_file, Error};
 use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
@@ -13,17 +13,13 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    if linux_android::getrandom_syscall(&mut []) < 0 {
-        match last_os_error().raw_os_error() {
-            Some(libc::ENOSYS) => false, // No kernel support
-            // The fallback on EPERM is intentionally not done on Android since this workaround
-            // seems to be needed only for specific Linux-based products that aren't based
-            // on Android. See https://github.com/rust-random/getrandom/issues/229.
-            #[cfg(target_os = "linux")]
-            Some(libc::EPERM) => false, // Blocked by seccomp
-            _ => true,
-        }
-    } else {
-        true
+    match linux_android::getrandom_syscall(&mut []) {
+        Err(err) if err.raw_os_error() == Some(libc::ENOSYS) => false, // No kernel support
+        // The fallback on EPERM is intentionally not done on Android since this workaround
+        // seems to be needed only for specific Linux-based products that aren't based
+        // on Android. See https://github.com/rust-random/getrandom/issues/229.
+        #[cfg(target_os = "linux")]
+        Err(err) if err.raw_os_error() == Some(libc::EPERM) => false, // Blocked by seccomp
+        _ => true,
     }
 }

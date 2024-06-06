@@ -1,8 +1,8 @@
 //! Implementation for NetBSD
-use crate::{lazy::LazyPtr, util_unix::sys_fill_exact, Error};
+use crate::{lazy::LazyPtr, util_libc::last_os_error, util_unix::sys_fill_exact, Error};
 use core::{ffi::c_void, mem::MaybeUninit, ptr};
 
-fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
+fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> Result<usize, Error> {
     static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
     let mut len = buf.len();
     let ret = unsafe {
@@ -16,9 +16,9 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
         )
     };
     if ret == -1 {
-        -1
+        Err(last_os_error())
     } else {
-        len as libc::ssize_t
+        Ok(len)
     }
 }
 
@@ -38,7 +38,8 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !fptr.is_null() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
-            func(buf.as_mut_ptr().cast::<u8>(), buf.len(), 0)
+            let ret: isize = func(buf.as_mut_ptr().cast::<u8>(), buf.len(), 0);
+            usize::try_from(ret as isize).map_err(|_| last_os_error())
         });
     }
 
