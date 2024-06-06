@@ -217,6 +217,8 @@ use core::mem::MaybeUninit;
 
 mod error;
 mod util;
+#[cfg(unix)]
+mod util_unix;
 // To prevent a breaking change when targets are added, we always export the
 // register_custom_getrandom macro, so old Custom RNG crates continue to build.
 #[cfg(feature = "custom")]

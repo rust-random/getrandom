@@ -15,7 +15,7 @@
 //! GRND_RANDOM is not recommended. On NetBSD/FreeBSD/Dragonfly/3ds, it does
 //! nothing. On illumos, the default pool is used to implement getentropy(2),
 //! so we assume it is acceptable here.
-use crate::{util_libc::sys_fill_exact, Error};
+use crate::{util_unix::sys_fill_exact, Error};
 use core::{ffi::c_void, mem::MaybeUninit};
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {

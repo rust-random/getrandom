@@ -1,9 +1,9 @@
 //! Implementation for Linux / Android without `/dev/urandom` fallback
-use crate::{util_libc, Error};
+use crate::{util_unix::sys_fill_exact, Error};
 use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    util_libc::sys_fill_exact(dest, getrandom_syscall)
+    sys_fill_exact(dest, getrandom_syscall)
 }
 
 // Also used by linux_android_with_fallback to check if the syscall is available.

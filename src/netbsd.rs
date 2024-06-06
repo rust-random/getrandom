@@ -1,5 +1,5 @@
 //! Implementation for NetBSD
-use crate::{lazy::LazyPtr, util_libc::sys_fill_exact, Error};
+use crate::{lazy::LazyPtr, util_unix::sys_fill_exact, Error};
 use core::{ffi::c_void, mem::MaybeUninit, ptr};
 
 fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {

@@ -1,8 +1,5 @@
 //! Implementations that just need to read from a file
-use crate::{
-    util_libc::{open_readonly, sys_fill_exact},
-    Error,
-};
+use crate::{util_libc::open_readonly, util_unix::sys_fill_exact, Error};
 use core::{
     cell::UnsafeCell,
     ffi::c_void,
