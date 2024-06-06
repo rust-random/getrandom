@@ -1,23 +1,19 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use crate::{
-    lazy::LazyBool,
-    util_libc::{getrandom_syscall, last_os_error, sys_fill_exact},
-    {use_file, Error},
-};
+use crate::{lazy::LazyBool, linux_android, use_file, util_libc::last_os_error, Error};
 use core::mem::MaybeUninit;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
-        sys_fill_exact(dest, getrandom_syscall)
+        linux_android::getrandom_inner(dest)
     } else {
         use_file::getrandom_inner(dest)
     }
 }
 
 fn is_getrandom_available() -> bool {
-    if getrandom_syscall(&mut []) < 0 {
+    if linux_android::getrandom_syscall(&mut []) < 0 {
         match last_os_error().raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
             // The fallback on EPERM is intentionally not done on Android since this workaround
