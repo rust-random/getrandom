@@ -1,8 +1,9 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
 use crate::{
     lazy::LazyBool,
-    util_libc::{getrandom_syscall, last_os_error, sys_fill_exact},
-    {use_file, Error},
+    linux_android, use_file,
+    util_libc::{getrandom_syscall, last_os_error},
+    Error,
 };
 use core::mem::MaybeUninit;
 
@@ -10,7 +11,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
     static HAS_GETRANDOM: LazyBool = LazyBool::new();
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
-        sys_fill_exact(dest, getrandom_syscall)
+        linux_android::getrandom_inner(dest)
     } else {
         use_file::getrandom_inner(dest)
     }
