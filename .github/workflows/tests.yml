@@ -367,7 +367,7 @@ jobs:
         with:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
+      - run: cargo ${{ contains(matrix.features, 'std') && 'test --no-run -Z build-std' || 'build -Z build-std=core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
 
   build-no-atomics:
     name: No Atomics Build
