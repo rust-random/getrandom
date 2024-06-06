@@ -5,6 +5,7 @@
     feature = "custom",
     not(feature = "js")
 ))]
+#![cfg_attr(feature = "unstable-sanitize", feature(cfg_sanitize))]
 
 use wasm_bindgen_test::wasm_bindgen_test as test;
 

@@ -52,6 +52,8 @@ rustc-dep-of-std = [
   "libc/rustc-dep-of-std",
   "wasi/rustc-dep-of-std",
 ]
+# Enable support for sanitizers; Requires Rust feature `cfg_sanitize`.
+unstable-sanitize = []
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
 

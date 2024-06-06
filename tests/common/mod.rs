@@ -109,6 +109,25 @@ fn test_huge() {
 fn test_huge_uninit() {
     let mut huge = [MaybeUninit::uninit(); 100_000];
     getrandom_uninit_impl(&mut huge).unwrap();
+    check_initialized(&huge);
+}
+
+#[allow(unused_variables)]
+fn check_initialized(buf: &[MaybeUninit<u8>]) {
+    #[cfg(feature = "unstable-sanitize")]
+    {
+        #[cfg(sanitize = "memory")]
+        {
+            use core::ffi::c_void;
+            extern "C" {
+                // void __msan_check_mem_is_initialized(const volatile void *x, size_t size);
+                fn __msan_check_mem_is_initialized(x: *const c_void, size: usize);
+            }
+            unsafe {
+                __msan_check_mem_is_initialized(buf.as_ptr().cast::<c_void>(), buf.len());
+            }
+        }
+    }
 }
 
 // On WASM, the thread API always fails/panics

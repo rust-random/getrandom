@@ -1,5 +1,6 @@
 // We only test the RDRAND-based RNG source on supported architectures.
 #![cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+#![cfg_attr(feature = "unstable-sanitize", feature(cfg_sanitize))]
 
 // rdrand.rs expects to be part of the getrandom main crate, so we need these
 // additional imports to get rdrand.rs to compile.

@@ -34,6 +34,19 @@
 //!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
+//! ## Memory Sanitizer (msan) support
+//!
+//! The `unstable-sanitize` feature adds Memory Sanitizer support. You must use
+//! Rust Nightly, e.g.
+//! ```sh
+//! RUSTFLAGS="-Zsanitizer=memory" \
+//!   cargo +nightly test \
+//!   -Zbuild-std --target=x86_64-unknown-linux-gnu --features=unstable-sanitize
+//! ```
+//! It is assumed that libstd/libc have had their APis instrumented to support
+//! sanitizers, so we only provide special support on Linux when using the
+//! `getrandom` syscall.
+//!
 //! ## Unsupported targets
 //!
 //! By default, `getrandom` will not compile on unsupported targets, but certain
@@ -208,6 +221,7 @@
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(feature = "unstable-sanitize", feature(cfg_sanitize))]
 
 #[macro_use]
 extern crate cfg_if;
@@ -300,9 +314,11 @@ cfg_if! {
         mod use_file;
         mod lazy;
         mod linux_android;
+        mod util_syscall_linux;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
+        mod util_syscall_linux;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(target_os = "solaris")] {
         mod util_libc;
