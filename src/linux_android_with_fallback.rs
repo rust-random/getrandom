@@ -2,6 +2,9 @@
 use crate::{lazy::LazyBool, linux_android, use_file, Error};
 use core::mem::MaybeUninit;
 
+const _: () = assert!(linux_android::EINTR == libc::EINTR);
+const _: () = assert!(linux_android::SYS_getrandom == libc::SYS_getrandom);
+
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
     static HAS_GETRANDOM: LazyBool = LazyBool::new();

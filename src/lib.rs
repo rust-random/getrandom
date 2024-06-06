@@ -259,7 +259,12 @@ cfg_if! {
         mod util_libc;
         #[path = "getrandom.rs"] mod imp;
     } else if #[cfg(all(
-        not(feature = "linux_disable_fallback"),
+        // Always treat feature="linux_disable_fallback" identically to
+        // all(target_os = "linux", target_env="") to ensure the code paths are
+        // the same. This is important because we can't run tests for
+        // *-*-linux-none (yet). Note that target_env="" for common Android
+        // targets.
+        not(any(feature = "linux_disable_fallback", all(target_os = "linux", target_env=""))),
         any(
             // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
             // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
@@ -304,8 +309,8 @@ cfg_if! {
         mod linux_android;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
-        mod util_libc;
-        #[path = "linux_android.rs"] mod imp;
+        mod linux_android;
+        use linux_android as imp;
     } else if #[cfg(target_os = "solaris")] {
         mod util_libc;
         #[path = "solaris.rs"] mod imp;

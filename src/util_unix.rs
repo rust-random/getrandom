@@ -9,12 +9,18 @@ pub fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
     sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> Result<usize, Error>,
 ) -> Result<(), Error> {
+    // Avoid depending on libc for Linux/Android.
+    #[cfg(any(target_os = "android", target_os = "linux"))]
+    use crate::linux_android::EINTR;
+    #[cfg(not(any(target_os = "android", target_os = "linux")))]
+    use libc::EINTR;
+
     while !buf.is_empty() {
         match sys_fill(buf) {
             Ok(res) if res > 0 => buf = buf.get_mut(res..).ok_or(Error::UNEXPECTED)?,
             Err(err) => {
                 // We should try again if the call was interrupted.
-                if err.raw_os_error() != Some(libc::EINTR) {
+                if err.raw_os_error() != Some(EINTR) {
                     return Err(err);
                 }
             }

@@ -44,7 +44,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        toolchain: [nightly, beta, stable, 1.57]
+        toolchain: [nightly, beta, stable, 1.59]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
           # x86_64-apple-darwin.
@@ -61,6 +61,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
       - run: cargo test --features=std
+      # This is assumed to be the same code path as x86_64-*-linux-none, since
+      # we don't/can't run tests for that target yet.
       - run: cargo test --features=linux_disable_fallback
       - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
@@ -361,6 +363,8 @@ jobs:
             features: ["rdrand"]
           - target: i686-unknown-hurd-gnu
             features: ["std"]
+          - target: x86_64-unknown-linux-none
+            features: ["rdrand"]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore

@@ -2,7 +2,7 @@
 name = "getrandom"
 version = "0.2.15" # Also update html_root_url in lib.rs when bumping this
 edition = "2021"
-rust-version = "1.57" # Sync .clippy.toml, tests.yml, and README.md.
+rust-version = "1.59" # Sync .clippy.toml, tests.yml, and README.md.
 authors = ["The Rand Project Developers"]
 license = "MIT OR Apache-2.0"
 description = "A small cross-platform library for retrieving random data from system source"
@@ -18,7 +18,11 @@ cfg-if = "1"
 compiler_builtins = { version = "0.1", optional = true }
 core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
-[target.'cfg(unix)'.dependencies]
+# XXX: Additionally, we don't use libc when feature `linux_disable_fallback` is
+# enabled on `x86_64-{*-linux-*,linux-android}`, but we can't express this. In
+# that case, we require libc to be built, and we force it to be linked, but we
+# don't actually use anything from it.
+[target.'cfg(all(unix, not(all(target_arch = "x86_64", target_os = "linux", target_env = ""))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
 [target.'cfg(target_os = "wasi")'.dependencies]
