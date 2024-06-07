@@ -316,6 +316,7 @@ jobs:
       matrix:
         target: [
           x86_64-unknown-fuchsia,
+          x86_64-unknown-linux-gnux32,
           x86_64-unknown-redox,
           x86_64-fortanix-unknown-sgx,
         ]
