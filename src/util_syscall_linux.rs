@@ -93,12 +93,6 @@ pub unsafe fn post_write_range(ptr: *mut MaybeUninit<u8>, size: usize) {
     {
         #[cfg(sanitize = "memory")]
         {
-            use core::ffi::c_void;
-            extern "C" {
-                // void __msan_unpoison(const volatile void *a, size_t size);
-                fn __msan_unpoison(a: *mut c_void, size: usize);
-            }
-            __msan_unpoison(ptr.cast::<c_void>(), size)
         }
     }
 }
