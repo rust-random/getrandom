@@ -1,13 +1,15 @@
 //! Implementations that just need to read from a file
-use crate::{
-    util_libc::{open_readonly, sys_fill_exact},
-    Error,
-};
+use crate::Error;
 use core::{
     cell::UnsafeCell,
     mem::MaybeUninit,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
+
+#[cfg(not(all(any(target_os = "linux", target_os = "android"), feature = "rustix")))]
+use crate::util_libc::{open_readonly, sys_fill_exact};
+#[cfg(all(any(target_os = "linux", target_os = "android"), feature = "rustix"))]
+use crate::util_rustix::{open_readonly, sys_fill_exact};
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -15,14 +17,28 @@ use core::{
 ///   - On Redox, only /dev/urandom is provided.
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
+#[cfg(not(feature = "rustix"))]
 const FILE_PATH: &str = "/dev/urandom\0";
+#[cfg(feature = "rustix")]
+const FILE_PATH: &str = "/dev/urandom";
 const FD_UNINIT: usize = usize::max_value();
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
-    sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len())
-    })
+    sys_fill_exact(dest, |buf| read_from_fd(fd, buf))
+}
+
+#[cfg(not(feature = "rustix"))]
+fn read_from_fd(fd: libc::c_int, buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
+    unsafe { libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) }
+}
+
+#[cfg(feature = "rustix")]
+fn read_from_fd(
+    fd: libc::c_int,
+    buf: &mut [MaybeUninit<u8>],
+) -> Result<(&mut [u8], &mut [MaybeUninit<u8>]), rustix::io::Errno> {
+    rustix::io::read_uninit(unsafe { rustix::fd::BorrowedFd::borrow_raw(fd) }, buf)
 }
 
 // Returns the file descriptor for the device file used to retrieve random
@@ -56,7 +72,10 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     #[cfg(any(target_os = "android", target_os = "linux"))]
     wait_until_rng_ready()?;
 
+    #[allow(unused_unsafe)]
     let fd = unsafe { open_readonly(FILE_PATH)? };
+    #[cfg(feature = "rustix")]
+    let fd = rustix::fd::IntoRawFd::into_raw_fd(fd);
     // The fd always fits in a usize without conflicting with FD_UNINIT.
     debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
     FD.store(fd as usize, Relaxed);
@@ -65,7 +84,10 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 }
 
 // Succeeds once /dev/urandom is safe to read from
-#[cfg(any(target_os = "android", target_os = "linux"))]
+#[cfg(all(
+    any(target_os = "android", target_os = "linux"),
+    not(feature = "rustix")
+))]
 fn wait_until_rng_ready() -> Result<(), Error> {
     // Poll /dev/random to make sure it is ok to read from /dev/urandom.
     let fd = unsafe { open_readonly("/dev/random\0")? };
@@ -89,6 +111,25 @@ fn wait_until_rng_ready() -> Result<(), Error> {
         match err.raw_os_error() {
             Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
             _ => return Err(err),
+        }
+    }
+}
+
+// Succeeds once /dev/urandom is safe to read from
+#[cfg(all(any(target_os = "android", target_os = "linux"), feature = "rustix"))]
+fn wait_until_rng_ready() -> Result<(), Error> {
+    use rustix::event;
+
+    // Open the file.
+    let fd = crate::util_rustix::open_readonly("/dev/random")?;
+
+    // Poll it until it is ready.
+    let mut pfd = [event::PollFd::new(&fd, event::PollFlags::IN)];
+    loop {
+        match event::poll(&mut pfd, -1) {
+            Ok(_) => return Ok(()),
+            Err(rustix::io::Errno::INTR) => continue,
+            Err(err) => return Err(crate::util_rustix::cvt(err)),
         }
     }
 }

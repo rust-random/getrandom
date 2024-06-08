@@ -294,11 +294,15 @@ cfg_if! {
             )
         ),
     ))] {
+        #[cfg(feature = "rustix")]
+        mod util_rustix;
         mod util_libc;
         mod use_file;
         mod lazy;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
+        #[cfg(feature = "rustix")]
+        mod util_rustix;
         mod util_libc;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(target_os = "solaris")] {

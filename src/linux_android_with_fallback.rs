@@ -1,10 +1,18 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
 use crate::{
     lazy::LazyBool,
-    util_libc::{getrandom_syscall, last_os_error, sys_fill_exact},
     {use_file, Error},
 };
 use core::mem::MaybeUninit;
+
+#[cfg(not(feature = "rustix"))]
+use crate::util_libc::{getrandom_syscall, last_os_error, sys_fill_exact};
+
+#[cfg(feature = "rustix")]
+use {
+    crate::util_rustix::{getrandom_syscall, sys_fill_exact},
+    rustix::{io::Errno, rand},
+};
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
@@ -16,6 +24,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     }
 }
 
+#[cfg(not(feature = "rustix"))]
 fn is_getrandom_available() -> bool {
     if getrandom_syscall(&mut []) < 0 {
         match last_os_error().raw_os_error() {
@@ -29,5 +38,15 @@ fn is_getrandom_available() -> bool {
         }
     } else {
         true
+    }
+}
+
+#[cfg(feature = "rustix")]
+fn is_getrandom_available() -> bool {
+    match rand::getrandom(&mut [], rand::GetRandomFlags::empty()) {
+        Err(Errno::NOSYS) => false,
+        #[cfg(target_os = "linux")]
+        Err(Errno::PERM) => false,
+        _ => true,
     }
 }
