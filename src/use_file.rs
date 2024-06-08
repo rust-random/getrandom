@@ -7,7 +7,7 @@ use core::{
     cell::UnsafeCell,
     ffi::c_void,
     mem::MaybeUninit,
-    sync::atomic::{AtomicI32, Ordering::Relaxed},
+    sync::atomic::{AtomicI32, Ordering},
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -41,10 +41,18 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
     // need to use a different atomic type or make other accomodations. The
     // compiler will let us know if/when that is the case, because the
     // `FD.store(fd)` would fail to compile.
+    //
+    // The opening of the file, by libc/libstd/etc. may write some unknown
+    // state into in-process memory. (Such state may include some sanitizer
+    // bookkeeping, or we might be operating in a unikernal-like environment
+    // where all the "kernel" file descriptor bookkeeping is done in our
+    // process.) `get_fd_locked` stores into FD using `Ordering::Release` to
+    // ensure any such state is synchronized. `get_fd` loads from `FD` with
+    // `Ordering::Acquire` to synchronize with it.
     static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
     fn get_fd() -> Option<libc::c_int> {
-        match FD.load(Relaxed) {
+        match FD.load(Ordering::Acquire) {
             FD_UNINIT => None,
             val => Some(val),
         }
@@ -52,6 +60,11 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 
     #[cold]
     fn get_fd_locked() -> Result<libc::c_int, Error> {
+        // This mutex is used to prevent multiple threads from opening file
+        // descriptors concurrently, which could run into the limit on the
+        // number of open file descriptors. Our goal is to have no more than one
+        // file descriptor open, ever.
+        //
         // SAFETY: We use the mutex only in this method, and we always unlock it
         // before returning, making sure we don't violate the pthread_mutex_t API.
         static MUTEX: Mutex = Mutex::new();
@@ -68,7 +81,7 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 
         let fd = open_readonly(FILE_PATH)?;
         debug_assert!(fd != FD_UNINIT);
-        FD.store(fd, Relaxed);
+        FD.store(fd, Ordering::Release);
 
         Ok(fd)
     }
