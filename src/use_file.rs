@@ -1,15 +1,14 @@
 //! Implementations that just need to read from a file
 use crate::Error;
 use core::{
-    cell::UnsafeCell,
     mem::MaybeUninit,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
 
 #[cfg(not(all(any(target_os = "linux", target_os = "android"), feature = "rustix")))]
-use crate::util_libc::{open_readonly, sys_fill_exact};
+use crate::util_libc::{open_readonly, sys_fill_exact, Mutex};
 #[cfg(all(any(target_os = "linux", target_os = "android"), feature = "rustix"))]
-use crate::util_rustix::{open_readonly, sys_fill_exact};
+use crate::util_rustix::{open_readonly, sys_fill_exact, Mutex};
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -133,24 +132,6 @@ fn wait_until_rng_ready() -> Result<(), Error> {
         }
     }
 }
-
-struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
-
-impl Mutex {
-    const fn new() -> Self {
-        Self(UnsafeCell::new(libc::PTHREAD_MUTEX_INITIALIZER))
-    }
-    unsafe fn lock(&self) {
-        let r = libc::pthread_mutex_lock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-    unsafe fn unlock(&self) {
-        let r = libc::pthread_mutex_unlock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-}
-
-unsafe impl Sync for Mutex {}
 
 struct DropGuard<F: FnMut()>(F);
 

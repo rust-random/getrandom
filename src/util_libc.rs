@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::Error;
 use core::{
+    cell::UnsafeCell,
     mem::MaybeUninit,
     num::NonZeroU32,
     ptr::NonNull,
@@ -160,3 +161,23 @@ pub fn getrandom_syscall(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
         ) as libc::ssize_t
     }
 }
+
+#[allow(dead_code)]
+pub(crate) struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
+
+#[allow(dead_code)]
+impl Mutex {
+    pub(crate) const fn new() -> Self {
+        Self(UnsafeCell::new(libc::PTHREAD_MUTEX_INITIALIZER))
+    }
+    pub(crate) unsafe fn lock(&self) {
+        let r = libc::pthread_mutex_lock(self.0.get());
+        debug_assert_eq!(r, 0);
+    }
+    pub(crate) unsafe fn unlock(&self) {
+        let r = libc::pthread_mutex_unlock(self.0.get());
+        debug_assert_eq!(r, 0);
+    }
+}
+
+unsafe impl Sync for Mutex {}
