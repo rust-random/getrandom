@@ -97,7 +97,42 @@ impl Error {
 }
 
 cfg_if! {
-    if #[cfg(unix)] {
+    if #[cfg(target_os = "linux")] {
+        fn os_err(errno: i32, buf: &mut [u8]) -> Option<&str> {
+            use core::mem;
+            use fmt::Write;
+
+            // Convert Rustix errno to string.
+            struct Writer<'a> {
+                slot: &'a mut [u8],
+                start: *const u8,
+                len: usize,
+            }
+
+            impl fmt::Write for Writer<'_> {
+                fn write_str(&mut self, s: &str) -> fmt::Result {
+                    let (slot, rest) = mem::take(&mut self.slot).split_at_mut(s.len());
+                    self.slot = rest;
+                    slot.copy_from_slice(s.as_bytes());
+                    self.len += s.len();
+                    Ok(())
+                }
+            }
+
+            let mut writer = Writer {
+                start: buf.as_ptr(),
+                slot: buf,
+                len: 0
+            };
+            core::write!(&mut writer, "{:?}", rustix::io::Errno::from_raw_os_error(errno)).ok()?;
+            Some(unsafe {
+                core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                    writer.start,
+                    writer.len,
+                ))
+            })
+        }
+    } else if #[cfg(unix)] {
         fn os_err(errno: i32, buf: &mut [u8]) -> Option<&str> {
             let buf_ptr = buf.as_mut_ptr() as *mut libc::c_char;
             if unsafe { libc::strerror_r(errno, buf_ptr, buf.len()) } != 0 {

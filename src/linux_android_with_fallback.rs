@@ -5,10 +5,10 @@ use crate::{
 };
 use core::mem::MaybeUninit;
 
-#[cfg(not(feature = "rustix"))]
+#[cfg(not(target_os = "linux"))]
 use crate::util_libc::{getrandom_syscall, last_os_error, sys_fill_exact};
 
-#[cfg(feature = "rustix")]
+#[cfg(target_os = "linux")]
 use {
     crate::util_rustix::{getrandom_syscall, sys_fill_exact},
     rustix::{io::Errno, rand},
@@ -24,7 +24,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     }
 }
 
-#[cfg(not(feature = "rustix"))]
+#[cfg(not(target_os = "linux"))]
 fn is_getrandom_available() -> bool {
     if getrandom_syscall(&mut []) < 0 {
         match last_os_error().raw_os_error() {
@@ -41,7 +41,7 @@ fn is_getrandom_available() -> bool {
     }
 }
 
-#[cfg(feature = "rustix")]
+#[cfg(target_os = "linux")]
 fn is_getrandom_available() -> bool {
     match rand::getrandom(&mut [], rand::GetRandomFlags::empty()) {
         Err(Errno::NOSYS) => false,
