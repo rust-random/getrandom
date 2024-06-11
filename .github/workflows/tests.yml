@@ -38,9 +38,9 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
-      - run: cargo test --features=std
+      # Make sure enabling the std and custom features don't break anything
+      - run: cargo test --features=std,custom
       - run: cargo test --features=linux_disable_fallback
-      - run: cargo test --features=custom # custom should do nothing here
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
@@ -260,6 +260,8 @@ jobs:
         run: wasm-pack test --headless --safari --features=js,test-in-browser
       - name: Test (custom getrandom)
         run: wasm-pack test --node --features=custom
+      - name: Test (JS overrides custom)
+        run: wasm-pack test --node --features=custom,js
 
   wasm64-tests:
     name: wasm64 Build/Link

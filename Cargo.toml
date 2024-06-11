@@ -53,6 +53,10 @@ rustc-dep-of-std = [
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
 
+[[test]]
+name = "custom"
+required-features = ["custom"]
+
 [package.metadata.docs.rs]
 features = ["std", "custom"]
 rustdoc-args = ["--cfg", "docsrs"]
