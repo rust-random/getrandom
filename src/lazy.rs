@@ -1,3 +1,5 @@
+//! Helpers built around pointer-sized atomics.
+#![cfg(target_has_atomic = "ptr")]
 #![allow(dead_code)]
 use core::{
     ffi::c_void,
