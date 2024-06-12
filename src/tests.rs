@@ -115,3 +115,16 @@ macro_rules! define_tests {
 pub(crate) use define_tests;
 
 define_tests!(crate::getrandom);
+mod uninit {
+    use super::*;
+
+    fn wrapper(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        let dest_ptr = dest.as_ptr().cast::<u8>();
+        let res = crate::getrandom_uninit(dest)?;
+        // Ensure that the output points to the same bytes as the input.
+        assert_eq!(res.as_ptr(), dest_ptr);
+        assert_eq!(res.len(), dest.len());
+        Ok(())
+    }
+    super::define_tests!(wrapper);
+}
