@@ -411,3 +411,6 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     not(all(target_family = "wasm", target_os = "unknown", feature = "custom"))
 ))]
 pub(crate) mod tests;
+// TODO: Remove this hack when rdrand is part of the public API
+#[cfg(all(test, any(target_arch = "x86_64", target_arch = "x86")))]
+mod rdrand;

@@ -121,3 +121,8 @@ unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     }
     Some(())
 }
+
+#[cfg(test)]
+mod tests {
+    crate::tests::define_tests!(super::getrandom_inner);
+}
