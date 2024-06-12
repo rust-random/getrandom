@@ -404,3 +404,10 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     // since it returned `Ok`.
     Ok(unsafe { slice_assume_init_mut(dest) })
 }
+
+// Don't run normal unit tests when testing custom getrandom
+#[cfg(all(
+    test,
+    not(all(target_family = "wasm", target_os = "unknown", feature = "custom"))
+))]
+pub(crate) mod tests;
