@@ -216,6 +216,7 @@ use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 use core::mem::MaybeUninit;
 
 mod error;
+mod lazy;
 mod util;
 // To prevent a breaking change when targets are added, we always export the
 // register_custom_getrandom macro, so old Custom RNG crates continue to build.
@@ -298,7 +299,6 @@ cfg_if! {
     ))] {
         mod util_libc;
         mod use_file;
-        mod lazy;
         mod linux_android;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
@@ -309,7 +309,6 @@ cfg_if! {
         #[path = "solaris.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
         mod util_libc;
-        mod lazy;
         #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
@@ -331,11 +330,9 @@ cfg_if! {
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
-        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
