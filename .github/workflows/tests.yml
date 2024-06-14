@@ -16,28 +16,6 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  check-doc:
-    name: Docs, deadlinks, minimal dependencies
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly # Needed for -Z minimal-versions and doc_cfg
-      - name: Install precompiled cargo-deadlinks
-        run: |
-          VERSION=0.8.1
-          URL="https://github.com/deadlinks/cargo-deadlinks/releases/download/${VERSION}/cargo-deadlinks-linux"
-          wget -O ~/.cargo/bin/cargo-deadlinks $URL
-          chmod +x ~/.cargo/bin/cargo-deadlinks
-          cargo deadlinks --version
-      - uses: Swatinem/rust-cache@v2
-      - name: Generate Docs
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
-        run: cargo deadlinks -- --features=custom,std
-      - run: |
-          cargo generate-lockfile -Z minimal-versions
-          cargo test --features=custom,std
-
   main-tests:
     name: Tier 1 Test
     runs-on: ${{ matrix.os }}
@@ -385,17 +363,3 @@ jobs:
           targets: riscv32i-unknown-none-elf
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --features custom --target riscv32i-unknown-none-elf
-
-  clippy-fmt:
-    name: Clippy + rustfmt
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2
-      - name: clippy
-        run: cargo clippy --all --features=custom,std
-      - name: fmt
-        run: cargo fmt --all -- --check

@@ -17,7 +17,7 @@ use core::{
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
 const FILE_PATH: &[u8] = b"/dev/urandom\0";
-const FD_UNINIT: usize = usize::max_value();
+const FD_UNINIT: usize = usize::MAX;
 
 // Do not inline this when it is the fallback implementation, but don't mark it
 // `#[cold]` because it is hot when it is actually used.

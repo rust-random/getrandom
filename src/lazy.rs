@@ -26,7 +26,7 @@ pub(crate) struct LazyUsize(AtomicUsize);
 
 impl LazyUsize {
     // The initialization is not completed.
-    const UNINIT: usize = usize::max_value();
+    const UNINIT: usize = usize::MAX;
 
     pub const fn new() -> Self {
         Self(AtomicUsize::new(Self::UNINIT))
