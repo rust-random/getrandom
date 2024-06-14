@@ -32,7 +32,7 @@ jobs:
           - os: macos-14
             toolchain: stable
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -58,7 +58,7 @@ jobs:
             # TODO: Find a Linux image/runner with CONFIG_X86_X32_ABI set
             cargo_test_opts: --no-run
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -89,7 +89,7 @@ jobs:
             target: aarch64-apple-ios-sim
             ios_platform: auto-ios-aarch64-sim
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -136,7 +136,7 @@ jobs:
           stable-i686-msvc,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -147,7 +147,7 @@ jobs:
     name: Test Windows 7 impl on Windows 10
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Win7 targets are Tier3, so pin a nightly where libstd builds.
       - uses: dtolnay/rust-toolchain@master
         with:
@@ -171,7 +171,7 @@ jobs:
           wasm32-unknown-emscripten,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -185,7 +185,7 @@ jobs:
     name: macOS ARM64 Build/Link
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
@@ -207,7 +207,7 @@ jobs:
           x86_64-unknown-netbsd,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -234,7 +234,7 @@ jobs:
             host: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: choco install wget
         if: runner.os == 'Windows'
@@ -265,7 +265,7 @@ jobs:
     name: wasm64 Build/Link
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
         with:
           components: rust-src
@@ -280,7 +280,7 @@ jobs:
     name: WASI Test
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasi
@@ -304,7 +304,7 @@ jobs:
           x86_64-fortanix-unknown-sgx,
         ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -346,7 +346,7 @@ jobs:
           - target: i686-unknown-hurd-gnu
             features: ["std"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
@@ -357,7 +357,7 @@ jobs:
     name: No Atomics Build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: riscv32i-unknown-none-elf
