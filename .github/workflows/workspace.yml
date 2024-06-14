@@ -1,0 +1,94 @@
+name: Workspace
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+permissions:
+  contents: read
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        # We need Nightly for -Zbuild-std.
+        # Fixed Nigthly version is used to prevent
+        # CI failures which are not relevant to PR changes
+        # on introduction of new Clippy lints.
+        toolchain: nightly-2024-06-11
+        components: clippy,rust-src
+    - name: std feature
+      run: cargo clippy --features std
+    - name: custom feature
+      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf --features custom
+    - name: iOS (apple-other.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
+    - name: ESP-IDF (espidf.rs)
+      run: cargo clippy -Zbuild-std=core --target riscv32imc-esp-espidf
+    - name: Fuchsia (fuchsia.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
+    - name: OpenBSD (getentropy.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-openbsd
+    - name: FreeBSD (getrandom.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-freebsd
+    - name: Hermit (hermit.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-hermit
+    - name: Web WASM (js.rs)
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features js
+    - name: Linux (linux_android.rs)
+      run: cargo clippy --target x86_64-unknown-linux-gnu --features linux_disable_fallback
+    - name: Linux (linux_android_with_fallback.rs)
+      run: cargo clippy --target x86_64-unknown-linux-gnu
+    - name: NetBSD (netbsd.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-netbsd
+    - name: Fortranix SGX (rdrand.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-fortanix-unknown-sgx
+    - name: Solaris (solaris.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-pc-solaris
+    - name: SOLID (solid.rs)
+      run: cargo clippy -Zbuild-std=core --target aarch64-kmc-solid_asp3
+    - name: Redox (use_file.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-redox
+    - name: VxWorks (vxworks.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-wrs-vxworks
+    - name: WASI (wasi.rs)
+      run: cargo clippy -Zbuild-std=core --target wasm32-wasip2
+    - name: Windows 7 (windows7.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-win7-windows-msvc
+    - name: Windows (windows.rs)
+      run: cargo clippy -Zbuild-std=core --target x86_64-pc-windows-msvc
+
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: fmt
+        run: cargo fmt --all -- --check
+
+  check-doc:
+    name: rustdoc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          # We need Nightly for doc_auto_cfg
+          toolchain: nightly-2024-06-11
+      - uses: Swatinem/rust-cache@v2
+      - name: Generate Docs
+        env:
+          RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
+        run: cargo doc --no-deps --features custom

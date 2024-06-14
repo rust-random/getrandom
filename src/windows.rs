@@ -18,6 +18,7 @@
 //!     - Requires advapi32.dll (in addition to bcryptprimitives.dll)
 //!     - Requires using name "SystemFunction036"
 //!     - Thin wrapper around ProcessPrng
+//!
 //! For more information see the Windows RNG Whitepaper: https://aka.ms/win10rng
 use crate::Error;
 use core::mem::MaybeUninit;
