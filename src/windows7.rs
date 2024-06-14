@@ -25,7 +25,8 @@ const TRUE: BOOLEAN = 1u8;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Prevent overflow of u32
-    for chunk in dest.chunks_mut(u32::MAX as usize) {
+    let chunk_size = usize::try_from(i32::MAX).expect("Windows does not support 16-bit targets");
+    for chunk in dest.chunks_mut(chunk_size) {
         let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk.len() as u32) };
         if ret != TRUE {
             return Err(Error::WINDOWS_RTL_GEN_RANDOM);
