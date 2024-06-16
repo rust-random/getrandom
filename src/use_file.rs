@@ -131,35 +131,29 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    struct DropGuard<F: FnMut()>(F);
-
-    impl<F: FnMut()> Drop for DropGuard<F> {
-        fn drop(&mut self) {
-            self.0()
-        }
-    }
-
     let fd = open_readonly(b"/dev/random\0")?;
     let mut pfd = libc::pollfd {
         fd,
         events: libc::POLLIN,
         revents: 0,
     };
-    let _guard = DropGuard(|| unsafe {
-        libc::close(fd);
-    });
 
-    loop {
+    let res = loop {
         // A negative timeout means an infinite timeout.
         let res = unsafe { libc::poll(&mut pfd, 1, -1) };
         if res >= 0 {
             debug_assert_eq!(res, 1); // We only used one fd, and cannot timeout.
-            return Ok(());
+            break Ok(());
         }
         let err = crate::util_libc::last_os_error();
         match err.raw_os_error() {
             Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
-            _ => return Err(err),
+            _ => break Err(err),
         }
+    };
+
+    unsafe {
+        libc::close(fd);
     }
+    res
 }
