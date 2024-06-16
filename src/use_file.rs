@@ -6,7 +6,10 @@ use crate::{
 use core::{
     ffi::c_void,
     mem::MaybeUninit,
-    sync::atomic::{AtomicUsize, Ordering},
+    sync::atomic::{
+        AtomicUsize,
+        Ordering::{AcqRel, Acquire, Relaxed, Release},
+    },
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -41,9 +44,15 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         let max_sleep_ns = 1 << 28;
         // Starting sleep time (~4 microseconds)
         let mut timeout_ns = 1 << 12;
+
         loop {
-            match FD.load(Ordering::Acquire) {
-                FD_UNINIT => {}
+            match FD.load(Acquire) {
+                FD_UNINIT => {
+                    let res = FD.compare_exchange_weak(FD_UNINIT, FD_ONGOING_INIT, AcqRel, Relaxed);
+                    if res.is_ok() {
+                        break;
+                    }
+                }
                 FD_ONGOING_INIT => {
                     let rqtp = libc::timespec {
                         tv_sec: 0,
@@ -53,35 +62,25 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
                         tv_sec: 0,
                         tv_nsec: 0,
                     };
-                    unsafe {
-                        libc::nanosleep(&rqtp, &mut rmtp);
-                    }
                     if timeout_ns < max_sleep_ns {
                         timeout_ns *= 2;
+                    }
+                    unsafe {
+                        libc::nanosleep(&rqtp, &mut rmtp);
                     }
                     continue;
                 }
                 val => return Ok(val as libc::c_int),
             }
-
-            let xch_res = FD.compare_exchange_weak(
-                FD_UNINIT,
-                FD_ONGOING_INIT,
-                Ordering::AcqRel,
-                Ordering::Relaxed,
-            );
-            if xch_res.is_err() {
-                continue;
-            }
-
-            let res = open_fd();
-            let val = match res {
-                Ok(fd) => fd as usize,
-                Err(_) => FD_UNINIT,
-            };
-            FD.store(val, Ordering::Release);
-            return res;
         }
+
+        let res = open_fd();
+        let val = match res {
+            Ok(fd) => fd as usize,
+            Err(_) => FD_UNINIT,
+        };
+        FD.store(val, Release);
+        res
     }
 
     fn open_fd() -> Result<libc::c_int, Error> {
@@ -96,7 +95,7 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         Ok(fd)
     }
 
-    match FD.load(Ordering::Relaxed) {
+    match FD.load(Relaxed) {
         FD_UNINIT | FD_ONGOING_INIT => init_or_wait_fd(),
         val => Ok(val as libc::c_int),
     }
