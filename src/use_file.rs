@@ -4,10 +4,9 @@ use crate::{
     Error,
 };
 use core::{
-    cell::UnsafeCell,
     ffi::c_void,
     mem::MaybeUninit,
-    sync::atomic::{AtomicUsize, Ordering::Relaxed},
+    sync::atomic::{AtomicUsize, Ordering},
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -18,6 +17,7 @@ use core::{
 ///   - On Haiku and QNX Neutrino they are identical.
 const FILE_PATH: &[u8] = b"/dev/urandom\0";
 const FD_UNINIT: usize = usize::MAX;
+const FD_ONGOING_INIT: usize = usize::MAX - 1;
 
 // Do not inline this when it is the fallback implementation, but don't mark it
 // `#[cold]` because it is hot when it is actually used.
@@ -35,42 +35,70 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 fn get_rng_fd() -> Result<libc::c_int, Error> {
     static FD: AtomicUsize = AtomicUsize::new(FD_UNINIT);
 
-    fn get_fd() -> Option<libc::c_int> {
-        match FD.load(Relaxed) {
-            FD_UNINIT => None,
-            val => Some(val as libc::c_int),
+    #[cold]
+    fn init_or_wait_fd() -> Result<libc::c_int, Error> {
+        // Maximum sleep time (~268 milliseconds)
+        let max_sleep_ns = 1 << 28;
+        // Starting sleep time (~4 microseconds)
+        let mut timeout_ns = 1 << 12;
+        loop {
+            match FD.load(Ordering::Acquire) {
+                FD_UNINIT => {}
+                FD_ONGOING_INIT => {
+                    let rqtp = libc::timespec {
+                        tv_sec: 0,
+                        tv_nsec: timeout_ns,
+                    };
+                    let mut rmtp = libc::timespec {
+                        tv_sec: 0,
+                        tv_nsec: 0,
+                    };
+                    unsafe {
+                        libc::nanosleep(&rqtp, &mut rmtp);
+                    }
+                    if timeout_ns < max_sleep_ns {
+                        timeout_ns *= 2;
+                    }
+                    continue;
+                }
+                val => return Ok(val as libc::c_int),
+            }
+
+            let xch_res = FD.compare_exchange_weak(
+                FD_UNINIT,
+                FD_ONGOING_INIT,
+                Ordering::AcqRel,
+                Ordering::Relaxed,
+            );
+            if xch_res.is_err() {
+                continue;
+            }
+
+            let res = open_fd();
+            let val = match res {
+                Ok(fd) => fd as usize,
+                Err(_) => FD_UNINIT,
+            };
+            FD.store(val, Ordering::Release);
+            return res;
         }
     }
 
-    #[cold]
-    fn get_fd_locked() -> Result<libc::c_int, Error> {
-        // SAFETY: We use the mutex only in this method, and we always unlock it
-        // before returning, making sure we don't violate the pthread_mutex_t API.
-        static MUTEX: Mutex = Mutex::new();
-        unsafe { MUTEX.lock() };
-        let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
-
-        if let Some(fd) = get_fd() {
-            return Ok(fd);
-        }
-
+    fn open_fd() -> Result<libc::c_int, Error> {
         // On Linux, /dev/urandom might return insecure values.
         #[cfg(any(target_os = "android", target_os = "linux"))]
         wait_until_rng_ready()?;
 
         let fd = open_readonly(FILE_PATH)?;
         // The fd always fits in a usize without conflicting with FD_UNINIT.
-        debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
-        FD.store(fd as usize, Relaxed);
+        debug_assert!(fd >= 0 && (fd as usize) < FD_ONGOING_INIT);
 
         Ok(fd)
     }
 
-    // Use double-checked locking to avoid acquiring the lock if possible.
-    if let Some(fd) = get_fd() {
-        Ok(fd)
-    } else {
-        get_fd_locked()
+    match FD.load(Ordering::Relaxed) {
+        FD_UNINIT | FD_ONGOING_INIT => init_or_wait_fd(),
+        val => Ok(val as libc::c_int),
     }
 }
 
@@ -104,6 +132,14 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
+    struct DropGuard<F: FnMut()>(F);
+
+    impl<F: FnMut()> Drop for DropGuard<F> {
+        fn drop(&mut self) {
+            self.0()
+        }
+    }
+
     let fd = open_readonly(b"/dev/random\0")?;
     let mut pfd = libc::pollfd {
         fd,
@@ -126,31 +162,5 @@ fn wait_until_rng_ready() -> Result<(), Error> {
             Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
             _ => return Err(err),
         }
-    }
-}
-
-struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
-
-impl Mutex {
-    const fn new() -> Self {
-        Self(UnsafeCell::new(libc::PTHREAD_MUTEX_INITIALIZER))
-    }
-    unsafe fn lock(&self) {
-        let r = libc::pthread_mutex_lock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-    unsafe fn unlock(&self) {
-        let r = libc::pthread_mutex_unlock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-}
-
-unsafe impl Sync for Mutex {}
-
-struct DropGuard<F: FnMut()>(F);
-
-impl<F: FnMut()> Drop for DropGuard<F> {
-    fn drop(&mut self) {
-        self.0()
     }
 }
