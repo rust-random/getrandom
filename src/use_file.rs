@@ -10,8 +10,10 @@ use core::{
     sync::atomic::{AtomicI32, Ordering},
 };
 use std::{
-    fs, io,
-    os::fd::{IntoRawFd as _, RawFd},
+    fs,
+    io,
+    // TODO(MSRV 1.66): use `std::os::fd` instead of `std::unix::io`.
+    os::unix::io::{AsRawFd as _, BorrowedFd, IntoRawFd as _, RawFd},
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -28,14 +30,14 @@ const FILE_PATH: &str = "/dev/urandom";
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
+        libc::read(fd.as_raw_fd(), buf.as_mut_ptr().cast::<c_void>(), buf.len())
     })
 }
 
 // Returns the file descriptor for the device file used to retrieve random
 // bytes. The file will be opened exactly once. All subsequent calls will
 // return the same file descriptor. This file descriptor is never closed.
-fn get_rng_fd() -> Result<RawFd, Error> {
+fn get_rng_fd() -> Result<BorrowedFd<'static>, Error> {
     // std::os::fd::{BorrowedFd, OwnedFd} guarantee that -1 is not a valid file descriptor.
     const FD_UNINIT: RawFd = -1;
 
@@ -55,22 +57,19 @@ fn get_rng_fd() -> Result<RawFd, Error> {
     // `Ordering::Acquire` to synchronize with it.
     static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
-    fn get_fd() -> Option<RawFd> {
+    fn get_fd() -> Option<BorrowedFd<'static>> {
         match FD.load(Ordering::Acquire) {
             FD_UNINIT => None,
-            val => Some(val),
+            val => Some(unsafe { BorrowedFd::borrow_raw(val) }),
         }
     }
 
     #[cold]
-    fn get_fd_locked() -> Result<RawFd, Error> {
+    fn get_fd_locked() -> Result<BorrowedFd<'static>, Error> {
         // This mutex is used to prevent multiple threads from opening file
         // descriptors concurrently, which could run into the limit on the
         // number of open file descriptors. Our goal is to have no more than one
         // file descriptor open, ever.
-        //
-        // SAFETY: We use the mutex only in this method, and we always unlock it
-        // before returning, making sure we don't violate the pthread_mutex_t API.
         static MUTEX: Mutex = Mutex::new();
         unsafe { MUTEX.lock() };
         let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
@@ -89,7 +88,7 @@ fn get_rng_fd() -> Result<RawFd, Error> {
         debug_assert!(fd != FD_UNINIT);
         FD.store(fd, Ordering::Release);
 
-        Ok(fd)
+        Ok(unsafe { BorrowedFd::borrow_raw(fd) })
     }
 
     // Use double-checked locking to avoid acquiring the lock if possible.
@@ -130,8 +129,6 @@ fn get_rng_fd() -> Result<RawFd, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    use std::os::unix::io::AsRawFd as _;
-
     let file = fs::File::open("/dev/random").map_err(map_io_error)?;
     let mut pfd = libc::pollfd {
         fd: file.as_raw_fd(),

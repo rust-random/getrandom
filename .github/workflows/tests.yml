@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        toolchain: [nightly, beta, stable, "1.60"]
+        toolchain: [nightly, beta, stable, "1.63"]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
           # x86_64-apple-darwin.
