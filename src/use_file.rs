@@ -7,7 +7,7 @@ use core::{
     cell::UnsafeCell,
     ffi::c_void,
     mem::MaybeUninit,
-    sync::atomic::{AtomicUsize, Ordering::Relaxed},
+    sync::atomic::{AtomicI32, Ordering::Relaxed},
 };
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
@@ -17,7 +17,6 @@ use core::{
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
 const FILE_PATH: &[u8] = b"/dev/urandom\0";
-const FD_UNINIT: usize = usize::MAX;
 
 // Do not inline this when it is the fallback implementation, but don't mark it
 // `#[cold]` because it is hot when it is actually used.
@@ -33,12 +32,21 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 // bytes. The file will be opened exactly once. All subsequent calls will
 // return the same file descriptor. This file descriptor is never closed.
 fn get_rng_fd() -> Result<libc::c_int, Error> {
-    static FD: AtomicUsize = AtomicUsize::new(FD_UNINIT);
+    // std::os::fd::{BorrowedFd, OwnedFd} guarantee that -1 is not a valid file descriptor.
+    const FD_UNINIT: libc::c_int = -1;
+
+    // In theory `libc::c_int` could be something other than `i32`, but for the
+    // targets we currently support that use `use_file`, it is always `i32`.
+    // If/when we add support for a target where that isn't the case, we may
+    // need to use a different atomic type or make other accomodations. The
+    // compiler will let us know if/when that is the case, because the
+    // `FD.store(fd)` would fail to compile.
+    static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
     fn get_fd() -> Option<libc::c_int> {
         match FD.load(Relaxed) {
             FD_UNINIT => None,
-            val => Some(val as libc::c_int),
+            val => Some(val),
         }
     }
 
@@ -59,9 +67,8 @@ fn get_rng_fd() -> Result<libc::c_int, Error> {
         wait_until_rng_ready()?;
 
         let fd = open_readonly(FILE_PATH)?;
-        // The fd always fits in a usize without conflicting with FD_UNINIT.
-        debug_assert!(fd >= 0 && (fd as usize) < FD_UNINIT);
-        FD.store(fd as usize, Relaxed);
+        debug_assert!(fd != FD_UNINIT);
+        FD.store(fd, Relaxed);
 
         Ok(fd)
     }
