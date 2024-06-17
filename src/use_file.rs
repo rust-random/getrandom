@@ -3,16 +3,10 @@
 extern crate std;
 
 use crate::{util_libc::sys_fill_exact, Error};
-use core::{
-    cell::UnsafeCell,
-    ffi::c_void,
-    mem::MaybeUninit,
-    sync::atomic::{AtomicI32, Ordering},
-};
-use std::{
-    fs, io,
-    os::fd::{IntoRawFd as _, RawFd},
-};
+use core::{ffi::c_void, mem::MaybeUninit};
+use std::{fs::File, io, os::unix::io::AsRawFd as _};
+// TODO(MSRV feature(once_cell_try)): Use std::sync::OnceLock instead.
+use once_cell::sync::OnceCell as OnceLock;
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -26,78 +20,41 @@ const FILE_PATH: &str = "/dev/urandom";
 // `#[cold]` because it is hot when it is actually used.
 #[cfg_attr(any(target_os = "android", target_os = "linux"), inline(never))]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let fd = get_rng_fd()?;
-    sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
-    })
-}
-
-// Returns the file descriptor for the device file used to retrieve random
-// bytes. The file will be opened exactly once. All subsequent calls will
-// return the same file descriptor. This file descriptor is never closed.
-fn get_rng_fd() -> Result<RawFd, Error> {
-    // std::os::fd::{BorrowedFd, OwnedFd} guarantee that -1 is not a valid file descriptor.
-    const FD_UNINIT: RawFd = -1;
-
-    // In theory `RawFd` could be something other than `i32`, but for the
-    // targets we currently support that use `use_file`, it is always `i32`.
-    // If/when we add support for a target where that isn't the case, we may
-    // need to use a different atomic type or make other accomodations. The
-    // compiler will let us know if/when that is the case, because the
-    // `FD.store(fd)` would fail to compile.
-    //
     // The opening of the file, by libc/libstd/etc. may write some unknown
     // state into in-process memory. (Such state may include some sanitizer
     // bookkeeping, or we might be operating in a unikernal-like environment
     // where all the "kernel" file descriptor bookkeeping is done in our
-    // process.) `get_fd_locked` stores into FD using `Ordering::Release` to
-    // ensure any such state is synchronized. `get_fd` loads from `FD` with
-    // `Ordering::Acquire` to synchronize with it.
-    static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
+    // process.) Thus we avoid using (relaxed) atomics like we use in other
+    // parts of the library.
+    //
+    // We prevent multiple threads from opening file descriptors concurrently,
+    // which could run into the limit on the number of open file descriptors.
+    // Our goal is to have no more than one file descriptor open, ever.
+    //
+    // We assume any call to `OnceLock::get_or_try_init` synchronizes-with
+    // (Ordering::Acquire) the preceding call to `OnceLock::get_or_try_init`
+    // after `init()` returns an `Ok` result (Ordering::Release). See
+    // https://github.com/rust-lang/rust/issues/126239.
+    static FILE: OnceLock<File> = OnceLock::new();
+    let file = FILE.get_or_try_init(init)?;
 
-    fn get_fd() -> Option<RawFd> {
-        match FD.load(Ordering::Acquire) {
-            FD_UNINIT => None,
-            val => Some(val),
-        }
-    }
+    // TODO(MSRV feature(read_buf)): Use `std::io::Read::read_buf`
+    sys_fill_exact(dest, |buf| unsafe {
+        libc::read(
+            file.as_raw_fd(),
+            buf.as_mut_ptr().cast::<c_void>(),
+            buf.len(),
+        )
+    })
+}
 
-    #[cold]
-    fn get_fd_locked() -> Result<RawFd, Error> {
-        // This mutex is used to prevent multiple threads from opening file
-        // descriptors concurrently, which could run into the limit on the
-        // number of open file descriptors. Our goal is to have no more than one
-        // file descriptor open, ever.
-        //
-        // SAFETY: We use the mutex only in this method, and we always unlock it
-        // before returning, making sure we don't violate the pthread_mutex_t API.
-        static MUTEX: Mutex = Mutex::new();
-        unsafe { MUTEX.lock() };
-        let _guard = DropGuard(|| unsafe { MUTEX.unlock() });
+#[cold]
+fn init() -> Result<File, Error> {
+    // On Linux, /dev/urandom might return insecure values.
+    #[cfg(any(target_os = "android", target_os = "linux"))]
+    wait_until_rng_ready()?;
 
-        if let Some(fd) = get_fd() {
-            return Ok(fd);
-        }
-
-        // On Linux, /dev/urandom might return insecure values.
-        #[cfg(any(target_os = "android", target_os = "linux"))]
-        wait_until_rng_ready()?;
-
-        let file = fs::File::open(FILE_PATH).map_err(map_io_error)?;
-
-        let fd = file.into_raw_fd();
-        debug_assert!(fd != FD_UNINIT);
-        FD.store(fd, Ordering::Release);
-
-        Ok(fd)
-    }
-
-    // Use double-checked locking to avoid acquiring the lock if possible.
-    if let Some(fd) = get_fd() {
-        Ok(fd)
-    } else {
-        get_fd_locked()
-    }
+    File::open(FILE_PATH).map_err(map_io_error)
 }
 
 // Polls /dev/random to make sure it is ok to read from /dev/urandom.
@@ -130,9 +87,7 @@ fn get_rng_fd() -> Result<RawFd, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
-    use std::os::unix::io::AsRawFd as _;
-
-    let file = fs::File::open("/dev/random").map_err(map_io_error)?;
+    let file = File::open("/dev/random").map_err(map_io_error)?;
     let mut pfd = libc::pollfd {
         fd: file.as_raw_fd(),
         events: libc::POLLIN,
@@ -170,30 +125,4 @@ fn map_io_error(err: io::Error) -> Error {
                 _ => Error::ERRNO_NOT_POSITIVE,
             }
         })
-}
-
-struct Mutex(UnsafeCell<libc::pthread_mutex_t>);
-
-impl Mutex {
-    const fn new() -> Self {
-        Self(UnsafeCell::new(libc::PTHREAD_MUTEX_INITIALIZER))
-    }
-    unsafe fn lock(&self) {
-        let r = libc::pthread_mutex_lock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-    unsafe fn unlock(&self) {
-        let r = libc::pthread_mutex_unlock(self.0.get());
-        debug_assert_eq!(r, 0);
-    }
-}
-
-unsafe impl Sync for Mutex {}
-
-struct DropGuard<F: FnMut()>(F);
-
-impl<F: FnMut()> Drop for DropGuard<F> {
-    fn drop(&mut self) {
-        self.0()
-    }
 }
