@@ -331,6 +331,8 @@ jobs:
           aarch64-apple-tvos,
         ]
         include:
+          - target: aarch64-unknown-nto-qnx710
+            features: ["std"]
           # Supported tier 3 targets with libstd support
           - target: x86_64-unknown-openbsd
             features: ["std"]
