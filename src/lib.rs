@@ -205,7 +205,48 @@
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
     html_root_url = "https://docs.rs/getrandom/0.2.15"
 )]
-#![feature(once_cell_try)]
+#![cfg_attr(any(
+    any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"),
+    all(
+        not(feature = "linux_disable_fallback"),
+        any(
+        // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
+        // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
+        // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
+        // RISC-V Android targets sufficiently new API level, same will apply for potential
+        // new Android `target_arch`es.
+        // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
+        // [1]: https://github.com/rust-lang/rust/pull/120593
+        all(
+            target_os = "android",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+        ),
+        // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
+        // that precede the version (3.17) in which `getrandom(2)` was added:
+        // https://doc.rust-lang.org/stable/rustc/platform-support.html
+        all(
+            target_os = "linux",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "powerpc",
+                target_arch = "powerpc64",
+                target_arch = "s390x",
+                target_arch = "x86",
+                target_arch = "x86_64",
+                // Minimum supported Linux kernel version for MUSL targets
+                // is not specified explicitly (as of Rust 1.77) and they
+                // are used in practice to target pre-3.17 kernels.
+                target_env = "musl",
+            ),
+        )
+    ))),
+    feature(core_io_borrowed_buf, once_cell_try, read_buf))]
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -236,7 +277,6 @@ pub use crate::error::Error;
 // regardless of what value it returns.
 cfg_if! {
     if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
-        mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "macos",

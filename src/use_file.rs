@@ -2,9 +2,13 @@
 
 extern crate std;
 
-use crate::{util_libc::sys_fill_exact, Error};
-use core::{ffi::c_void, mem::MaybeUninit};
-use std::{fs::File, io, os::unix::io::AsRawFd as _, sync::OnceLock};
+use crate::Error;
+use core::{io::BorrowedBuf, mem::MaybeUninit};
+use std::{
+    fs::File,
+    io::{self, Read as _},
+    sync::OnceLock,
+};
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -34,16 +38,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // after `init()` returns an `Ok` result (Ordering::Release). See
     // https://github.com/rust-lang/rust/issues/126239.
     static FILE: OnceLock<File> = OnceLock::new();
-    let file = FILE.get_or_try_init(init)?;
-
-    // TODO(MSRV feature(read_buf)): Use `std::io::Read::read_buf`
-    sys_fill_exact(dest, |buf| unsafe {
-        libc::read(
-            file.as_raw_fd(),
-            buf.as_mut_ptr().cast::<c_void>(),
-            buf.len(),
-        )
-    })
+    let mut file: &File = FILE.get_or_try_init(init)?;
+    file.read_buf_exact(BorrowedBuf::from(dest).unfilled())
+        .map_err(map_io_error)
 }
 
 #[cold]
@@ -85,6 +82,8 @@ fn init() -> Result<File, Error> {
 // libsodium uses `libc::poll` similarly to this.
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn wait_until_rng_ready() -> Result<(), Error> {
+    use std::os::fd::AsRawFd as _;
+
     let file = File::open("/dev/random").map_err(map_io_error)?;
     let mut pfd = libc::pollfd {
         fd: file.as_raw_fd(),
