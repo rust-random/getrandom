@@ -4,9 +4,7 @@ extern crate std;
 
 use crate::{util_libc::sys_fill_exact, Error};
 use core::{ffi::c_void, mem::MaybeUninit};
-use std::{fs::File, io, os::unix::io::AsRawFd as _};
-// TODO(MSRV feature(once_cell_try)): Use std::sync::OnceLock instead.
-use once_cell::sync::OnceCell as OnceLock;
+use std::{fs::File, io, os::unix::io::AsRawFd as _, sync::OnceLock};
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
