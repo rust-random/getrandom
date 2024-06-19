@@ -3,6 +3,7 @@
 
 // rdrand.rs expects to be part of the getrandom main crate, so we need these
 // additional imports to get rdrand.rs to compile.
+use core::mem::MaybeUninit;
 use getrandom::Error;
 #[macro_use]
 extern crate cfg_if;
@@ -13,10 +14,15 @@ mod rdrand;
 #[path = "../src/util.rs"]
 mod util;
 
-// The rdrand implementation has the signature of getrandom_uninit(), but our
-// tests expect getrandom_impl() to have the signature of getrandom().
+use crate::util::slice_assume_init_mut;
+
 fn getrandom_impl(dest: &mut [u8]) -> Result<(), Error> {
     rdrand::getrandom_inner(unsafe { util::slice_as_uninit_mut(dest) })?;
     Ok(())
 }
+fn getrandom_uninit_impl(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+    rdrand::getrandom_inner(dest)?;
+    Ok(unsafe { slice_assume_init_mut(dest) })
+}
+
 mod common;
