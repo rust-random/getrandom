@@ -225,13 +225,12 @@ jobs:
         include:
           - os: ubuntu-22.04
             host: x86_64-unknown-linux-musl
-          - os: windows-2022
-            host: x86_64-pc-windows-msvc
-            # We get spurious failures on Windows, see:
-            # https://github.com/rust-random/getrandom/issues/400
-            continue-on-error: true
           - os: macos-12
             host: x86_64-apple-darwin
+          # We get spurious failures on Windows, see:
+          # https://github.com/rust-random/getrandom/issues/400
+          # - os: windows-2022
+          #   host: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
