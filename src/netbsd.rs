@@ -56,8 +56,19 @@ fn init() -> *mut c_void {
         const POLYFILL: GetRandomFn = polyfill_using_kern_arand;
         ptr = POLYFILL as *mut c_void;
     }
-    GETRANDOM.store(ptr, Ordering::Release);
-    ptr
+    // TODO(MSRV 1.64): Consider using `Ordering::Release` instead of
+    // `Ordering::AcqRel`; see https://github.com/matklad/once_cell/issues/220
+    // and https://github.com/rust-lang/rust/pull/98383.
+    match GETRANDOM.compare_exchange(ptr::null_mut(), ptr, Ordering::AcqRel, Ordering::Acquire) {
+        // We won the race; `GETRANDOM` now has the value `ptr`.
+        Ok(_) => ptr,
+        // We lost the race; another thread stored a different value. We always
+        // use the first value stored so that we only ever use one
+        // implementation. This usually won't matter but in theory it could
+        // matter if a sandbox or antivirus or something is causing dlsym to
+        // act in a non-idempotent way.
+        Err(previously_stored) => previously_stored,
+    }
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
