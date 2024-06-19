@@ -22,7 +22,7 @@ fn kern_arnd(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
     }
 }
 
-type GetRandomFn = unsafe extern "C" fn(*mut u8, libc::size_t, libc::c_uint) -> libc::ssize_t;
+type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
 // getrandom(2) was introduced in NetBSD 10.0
 static GETRANDOM: LazyPtr = LazyPtr::new();
@@ -38,7 +38,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !fptr.is_null() {
         let func: GetRandomFn = unsafe { core::mem::transmute(fptr) };
         return sys_fill_exact(dest, |buf| unsafe {
-            func(buf.as_mut_ptr().cast::<u8>(), buf.len(), 0)
+            func(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
         });
     }
 
