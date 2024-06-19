@@ -5,6 +5,7 @@
     feature = "custom",
     not(feature = "js")
 ))]
+#![cfg_attr(feature = "unstable-sanitize", feature(cfg_sanitize))]
 
 use wasm_bindgen_test::wasm_bindgen_test as test;
 
@@ -34,7 +35,7 @@ fn super_insecure_rng(buf: &mut [u8]) -> Result<(), Error> {
 
 register_custom_getrandom!(super_insecure_rng);
 
-use getrandom::getrandom as getrandom_impl;
+use getrandom::{getrandom as getrandom_impl, getrandom_uninit as getrandom_uninit_impl};
 mod common;
 
 #[test]

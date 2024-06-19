@@ -50,6 +50,8 @@ rustc-dep-of-std = [
   "compiler_builtins",
   "core",
 ]
+# Enable support for sanitizers; Requires Rust feature `cfg_sanitize`.
+unstable-sanitize = []
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
 

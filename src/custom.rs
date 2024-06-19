@@ -96,6 +96,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // compatibility with implementations that rely on that (e.g. Rust
     // implementations that construct a `&mut [u8]` slice from `dest` and
     // `len`).
+    // XXX: Because we do this, memory sanitizer isn't able to detect when
+    // `__getrandom_custom` fails to fill `dest`, but we can't poison `dest`
+    // here either, for the same reason we have to fill it in the first place.
     let dest = uninit_slice_fill_zero(dest);
     let ret = unsafe { __getrandom_custom(dest.as_mut_ptr(), dest.len()) };
     match NonZeroU32::new(ret) {

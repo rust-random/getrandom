@@ -5,7 +5,8 @@
     feature = "custom",
     not(feature = "js")
 )))]
+#![cfg_attr(feature = "unstable-sanitize", feature(cfg_sanitize))]
 
 // Use the normal getrandom implementation on this architecture.
-use getrandom::getrandom as getrandom_impl;
+use getrandom::{getrandom as getrandom_impl, getrandom_uninit as getrandom_uninit_impl};
 mod common;
