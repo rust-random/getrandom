@@ -1,54 +1,52 @@
-// Test that a custom handler works on wasm32-unknown-unknown
-#![cfg(all(
-    target_arch = "wasm32",
-    target_os = "unknown",
-    feature = "custom",
-    not(feature = "js")
-))]
-
-use wasm_bindgen_test::wasm_bindgen_test as test;
-
 use core::num::NonZeroU32;
 use getrandom::{getrandom, register_custom_getrandom, Error};
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+use wasm_bindgen_test::wasm_bindgen_test as test;
 
-fn len7_err() -> Error {
-    NonZeroU32::new(Error::INTERNAL_START + 7).unwrap().into()
-}
-
-fn super_insecure_rng(buf: &mut [u8]) -> Result<(), Error> {
+const LEN7_CODE: u32 = Error::CUSTOM_START + 7;
+// Returns a custom error if input is length 7, otherwise fills with 0x55.
+fn mock_rng(buf: &mut [u8]) -> Result<(), Error> {
     // `getrandom` guarantees it will not call any implementation if the output
     // buffer is empty.
     assert!(!buf.is_empty());
-    // Length 7 buffers return a custom error
     if buf.len() == 7 {
-        return Err(len7_err());
+        return Err(NonZeroU32::new(LEN7_CODE).unwrap().into());
     }
-    // Otherwise, fill bytes based on input length
-    let mut start = buf.len() as u8;
-    for b in buf {
-        *b = start;
-        start = start.wrapping_mul(3);
-    }
+    buf.fill(0x55);
     Ok(())
 }
 
-register_custom_getrandom!(super_insecure_rng);
+// Test registering a custom implementation, even on supported platforms.
+register_custom_getrandom!(mock_rng);
 
-use getrandom::getrandom as getrandom_impl;
-mod common;
-
+// Invoking with an empty buffer should never call the custom implementation.
 #[test]
-fn custom_rng_output() {
-    let mut buf = [0u8; 4];
-    assert_eq!(getrandom(&mut buf), Ok(()));
-    assert_eq!(buf, [4, 12, 36, 108]);
-
-    let mut buf = [0u8; 3];
-    assert_eq!(getrandom(&mut buf), Ok(()));
-    assert_eq!(buf, [3, 9, 27]);
+fn custom_empty() {
+    getrandom(&mut []).unwrap();
 }
 
+// On a supported platform, make sure the custom implementation isn't used. We
+// test on a few common platfroms, rather than duplicating the lib.rs logic.
+#[cfg(any(
+    target_os = "linux",
+    target_os = "windows",
+    target_os = "macos",
+    target_os = "espidf",
+    target_os = "wasi",
+    all(target_family = "wasm", target_os = "unknown", feature = "js"),
+))]
 #[test]
-fn rng_err_output() {
-    assert_eq!(getrandom(&mut [0; 7]), Err(len7_err()));
+fn custom_not_used() {
+    getrandom(&mut [0; 7]).unwrap();
+}
+// On an unsupported platform, make sure the custom implementation is used.
+#[cfg(all(target_family = "wasm", target_os = "unknown", not(feature = "js")))]
+#[test]
+fn custom_used() {
+    let err = getrandom(&mut [0; 7]).unwrap_err();
+    assert_eq!(err.code().get(), LEN7_CODE);
+
+    let mut buf = [0; 12];
+    getrandom(&mut buf).unwrap();
+    assert_eq!(buf, [0x55; 12]);
 }
