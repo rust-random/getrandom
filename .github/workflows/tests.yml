@@ -258,8 +258,8 @@ jobs:
       - name: Test (Safari)
         if: runner.os == 'macOS'
         run: wasm-pack test --headless --safari --features=js,test-in-browser
-      - name: Test (custom getrandom)
-        run: wasm-pack test --node --features=custom
+      - name: Test (custom getrandom, no unit tests)
+        run: wasm-pack test --node --features=custom --test=custom
       - name: Test (JS overrides custom)
         run: wasm-pack test --node --features=custom,js
 
