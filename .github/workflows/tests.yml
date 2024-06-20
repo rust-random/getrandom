@@ -38,8 +38,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
-      # Make sure enabling the std and custom features don't break anything
-      - run: cargo test --features=std,custom
+      # Ensure enabling features works, and run feature-specific tests.
+      - run: cargo test --features=std,custom,rdrand
       - run: cargo test --features=linux_disable_fallback
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
