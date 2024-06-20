@@ -174,3 +174,9 @@ impl<F: FnMut()> Drop for DropGuard<F> {
         self.0()
     }
 }
+
+// We only need separate tests here when use_file is the fallback.
+#[cfg(all(test, any(target_os = "android", target_os = "linux")))]
+mod tests {
+    crate::tests::define_tests!(super::getrandom_inner);
+}
