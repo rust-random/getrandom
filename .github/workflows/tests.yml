@@ -174,7 +174,8 @@ jobs:
 
   macos-link:
     name: macOS ARM64 Build/Link
-    runs-on: macos-12
+    # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
@@ -184,7 +185,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
       - run: cargo test --no-run --target=aarch64-apple-ios --features=std
-      - run: cargo test --no-run --target=aarch64-apple-watchos-sim -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
+      # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
+      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+      - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
 
   cross-link:
     name: Cross Build/Link
@@ -318,9 +323,6 @@ jobs:
           armv7-sony-vita-newlibeabihf,
           riscv32imc-esp-espidf,
           aarch64-unknown-nto-qnx710,
-          # `std` support still in progress. Can be moved up with the other
-          # apple targets after https://github.com/rust-lang/rust/pull/103503
-          aarch64-apple-tvos,
         ]
         include:
           - target: aarch64-unknown-nto-qnx710
