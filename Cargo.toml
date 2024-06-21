@@ -27,6 +27,9 @@ wasi = { version = "0.11", default-features = false }
 [target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
 windows-targets = "0.52"
 
+[target.'cfg(any(target_os = "aix", target_os = "android", target_os = "haiku", target_os = "linux", target_os = "nto", target_os = "redox"))'.dependencies]
+once_cell = { version = "1.19.0", default-features = false, features = ["std"]}
+
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
 js-sys = { version = "0.3", optional = true }
