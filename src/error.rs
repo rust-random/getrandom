@@ -94,18 +94,16 @@ impl Error {
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error
     #[inline]
     pub fn raw_os_error(self) -> Option<i32> {
-        if self.0.get() < Self::INTERNAL_START {
-            match () {
-                #[cfg(target_os = "solid_asp3")]
+        const _: () = assert!(i32::MAX.unsigned_abs() == Error::INTERNAL_START - 1);
+        i32::try_from(self.0.get()).ok().map(|errno| {
+            if cfg!(target_os = "solid_asp3") {
                 // On SOLID, negate the error code again to obtain the original
                 // error code.
-                () => Some(-(self.0.get() as i32)),
-                #[cfg(not(target_os = "solid_asp3"))]
-                () => Some(self.0.get() as i32),
+                -errno
+            } else {
+                errno
             }
-        } else {
-            None
-        }
+        })
     }
 
     /// Extract the bare error code.

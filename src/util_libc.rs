@@ -55,9 +55,9 @@ pub fn sys_fill_exact(
 ) -> Result<(), Error> {
     while !buf.is_empty() {
         let res = sys_fill(buf);
-        match res {
-            res if res > 0 => buf = buf.get_mut(res as usize..).ok_or(Error::UNEXPECTED)?,
-            -1 => {
+        match usize::try_from(res) {
+            Ok(res) if res > 0 => buf = buf.get_mut(res..).ok_or(Error::UNEXPECTED)?,
+            Err(_) if res == -1 => {
                 let err = last_os_error();
                 // We should try again if the call was interrupted.
                 if err.raw_os_error() != Some(libc::EINTR) {
