@@ -87,9 +87,11 @@ fn open_fd() -> Result<libc::c_int, Error> {
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 mod sync {
-    // On non-Linux targets the critical section only opens file,
-    // which should not block, so in the unlikely contended case,
-    // we can sleep-wait for the opening operation to finish.
+    /// Sleep 1 ms before checking `FD` again.
+    ///
+    /// On non-Linux targets the critical section only opens file,
+    /// which should not block, so in the unlikely contended case,
+    /// we can sleep-wait for the opening operation to finish.
     pub(super) fn wait() {
         let rqtp = libc::timespec {
             tv_sec: 0,
@@ -114,6 +116,12 @@ mod sync {
     use super::{Error, FD, FD_ONGOING_INIT};
     use crate::util_libc::{last_os_error, open_readonly};
 
+    /// Wait for atomic `FD` to change value from `FD_ONGOING_INIT` to something else.
+    ///
+    /// Futex syscall with `FUTEX_WAIT` op puts the current thread to sleep
+    /// until futex syscall with `FUTEX_WAKE` op gets executed for `FD`.
+    ///
+    /// For more information read: https://www.man7.org/linux/man-pages/man2/futex.2.html
     pub(super) fn wait() {
         let op = libc::FUTEX_WAIT | libc::FUTEX_PRIVATE_FLAG;
         let timeout_ptr = core::ptr::null::<libc::timespec>();
@@ -128,6 +136,7 @@ mod sync {
         });
     }
 
+    /// Wake up all threads which wait for value of atomic `FD` to change.
     pub(super) fn wake() {
         let op = libc::FUTEX_WAKE | libc::FUTEX_PRIVATE_FLAG;
         let ret = unsafe { libc::syscall(libc::SYS_futex, &FD, op, libc::INT_MAX) };
