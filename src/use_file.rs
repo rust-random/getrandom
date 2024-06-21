@@ -73,7 +73,13 @@ fn open_or_wait() -> Result<libc::c_int, Error> {
         Err(_) => FD_UNINIT,
     };
     FD.store(val, Ordering::Release);
+
+    // On non-Linux targets `wait` is just 1 ms sleep,
+    // so we don't need any explicit wake up in addition
+    // to updating value of `FD`.
+    #[cfg(any(target_os = "android", target_os = "linux"))]
     sync::wake();
+
     res
 }
 
@@ -101,14 +107,11 @@ mod sync {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        // We ignore return value since we do not care
-        // if sleep is interrupted
+        // We do not care if sleep gets interrupted, so the return value is ignored
         unsafe {
             libc::nanosleep(&rqtp, &mut rmtp);
         }
     }
-
-    pub(super) fn wake() {}
 }
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
