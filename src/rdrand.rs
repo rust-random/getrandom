@@ -93,6 +93,7 @@ fn is_rdrand_good() -> bool {
     unsafe { self_test() }
 }
 
+#[allow(dead_code)]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RDRAND_GOOD: LazyBool = LazyBool::new();
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
@@ -120,4 +121,9 @@ unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
         tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
     Some(())
+}
+
+#[cfg(test)]
+mod tests {
+    crate::tests::define_tests!(super::getrandom_inner);
 }

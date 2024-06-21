@@ -224,6 +224,13 @@ mod util;
 mod custom;
 #[cfg(feature = "std")]
 mod error_impls;
+// If the rdrand feature is enabled, always bring in the rdrand module, so
+// that the RDRAND implementation can be tested.
+#[cfg(all(
+    any(target_env = "sgx", feature = "rdrand"),
+    any(target_arch = "x86_64", target_arch = "x86"),
+))]
+mod rdrand;
 
 pub use crate::error::Error;
 
@@ -330,10 +337,10 @@ cfg_if! {
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        #[path = "rdrand.rs"] mod imp;
+        use rdrand as imp;
     } else if #[cfg(all(feature = "rdrand",
                         any(target_arch = "x86_64", target_arch = "x86")))] {
-        #[path = "rdrand.rs"] mod imp;
+        use rdrand as imp;
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
                         target_os = "unknown"))] {
@@ -404,3 +411,6 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     // since it returned `Ok`.
     Ok(unsafe { slice_assume_init_mut(dest) })
 }
+
+#[cfg(test)]
+mod tests;
