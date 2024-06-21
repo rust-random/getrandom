@@ -1,11 +1,12 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use crate::{lazy::LazyBool, linux_android, use_file, util_libc::last_os_error, Error};
+use crate::{linux_android, use_file, util_libc::last_os_error, Error};
 use core::mem::MaybeUninit;
+use once_cell::race::OnceBool;
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getrandom(2) was introduced in Linux 3.17
-    static HAS_GETRANDOM: LazyBool = LazyBool::new();
-    if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
+    static HAS_GETRANDOM: OnceBool = OnceBool::new();
+    if HAS_GETRANDOM.get_or_init(is_getrandom_available) {
         linux_android::getrandom_inner(dest)
     } else {
         use_file::getrandom_inner(dest)

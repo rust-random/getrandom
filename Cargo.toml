@@ -13,6 +13,10 @@ exclude = [".*"]
 
 [dependencies]
 cfg-if = "1"
+once_cell = { version = "1.19.0", default-features = false, optional = true }
+
+[target.'cfg(any(target_os = "android", target_os = "linux", all(target_arch = "x86_64", target_env = "sgx")))'.dependencies]
+once_cell = { version = "1.19.0", default-features = false, features = ["race"] }
 
 # When built as part of libstd
 compiler_builtins = { version = "0.1", optional = true }
@@ -30,6 +34,10 @@ windows-targets = "0.52"
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.62", default-features = false, optional = true }
 js-sys = { version = "0.3", optional = true }
+
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dev-dependencies]
+once_cell = { version = "1.19.0", default-features = false, features = ["race"] }
+
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = "0.3.18"
 
@@ -40,7 +48,7 @@ std = []
 # Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
 linux_disable_fallback = []
 # Feature to enable fallback RDRAND-based implementation on x86/x86_64
-rdrand = []
+rdrand = ["once_cell/race"]
 # Feature to enable JavaScript bindings on wasm*-unknown-unknown
 js = ["wasm-bindgen", "js-sys"]
 # Feature to enable custom RNG implementations
