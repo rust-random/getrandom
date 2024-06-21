@@ -93,20 +93,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      # There is no precompiled cargo-dinghy for Aarch64. The precompiled
-      # x86_64 binary runs on ARM64 macOS via Rosetta 2, but it fails to
-      # correctly interface with macOS toolchain.
       - name: Install precompiled cargo-dinghy
-        if: ${{ matrix.target == 'x86_64-apple-ios' }}
         run: |
-          VERSION=0.6.2
+          VERSION=0.7.2
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
-      - name: cargo install cargo-dinghy
-        if: ${{ matrix.target == 'aarch64-apple-ios-sim' }}
-        run: |
-          VERSION=0.6.2
-          cargo install cargo-dinghy --version ${VERSION}
       - name: Check cargo-dinghy version.
         run: cargo dinghy --version
       - name: Setup Simulator
