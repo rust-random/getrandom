@@ -9,17 +9,17 @@
 //! | Windows 7 and 8   | `*-win7‑windows‑*` | [`RtlGenRandom`]
 //! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
-//! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5]
+//! | FreeBSD           | `*‑freebsd`        | [`getrandom_libc`][5]
 //! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
-//! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris           | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
-//! | illumos           | `*‑illumos`        | [`getrandom`][12]
+//! | NetBSD            | `*‑netbsd`         | [`getrandom_libc`][16] if available, otherwise [`kern.arandom`][8]
+//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom_libc`][9]
+//! | Solaris           | `*‑solaris`        | [`getrandom_libc`][11] (with `GRND_RANDOM`)
+//! | illumos           | `*‑illumos`        | [`getrandom_libc`][12]
 //! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox             | `*‑redox`          | `/dev/urandom`
 //! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
 //! | Hermit            | `*-hermit`         | [`sys_read_entropy`]
-//! | Hurd              | `*-hurd-*`         | [`getrandom`][17]
+//! | Hurd              | `*-hurd-*`         | [`getrandom_libc`][17]
 //! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
@@ -27,7 +27,7 @@
 //! | WASI              | `wasm32‑wasi`      | [`random_get`]
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
-//! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
+//! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom_libc`][18]
 //! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
 //! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 //! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
@@ -208,6 +208,7 @@
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![allow(clippy::duplicate_mod)]
 
 #[macro_use]
 extern crate cfg_if;
@@ -227,6 +228,40 @@ mod error_impls;
 
 pub use crate::error::Error;
 
+#[macro_use]
+mod cfg_module;
+
+macro_rules! define_supported_modules {
+    ($($module:ident),+) => {$(
+        cfg_if_module!($module, {
+            mod $module;
+        });
+    )+};
+}
+
+// Define all modules supported by the target
+define_supported_modules!(
+    util_libc,
+    use_file,
+    getentropy,
+    getrandom_libc,
+    linux_android,
+    linux_android_with_fallback,
+    solaris,
+    netbsd,
+    fuchsia,
+    apple_other,
+    wasi,
+    hermit,
+    vxworks,
+    solid,
+    espidf,
+    windows7,
+    windows,
+    rdrand,
+    js
+);
+
 // System-specific implementations.
 //
 // These should all provide getrandom_inner with the signature
@@ -236,7 +271,6 @@ pub use crate::error::Error;
 // regardless of what value it returns.
 cfg_if! {
     if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
-        mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "macos",
@@ -244,7 +278,6 @@ cfg_if! {
         target_os = "vita",
         target_os = "emscripten",
     ))] {
-        mod util_libc;
         #[path = "getentropy.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "dragonfly",
@@ -255,8 +288,7 @@ cfg_if! {
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
     ))] {
-        mod util_libc;
-        #[path = "getrandom.rs"] mod imp;
+        #[path = "getrandom_libc.rs"] mod imp;
     } else if #[cfg(all(
         not(feature = "linux_disable_fallback"),
         any(
@@ -297,29 +329,22 @@ cfg_if! {
             )
         ),
     ))] {
-        mod util_libc;
-        mod use_file;
-        mod linux_android;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
-        mod util_libc;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(target_os = "solaris")] {
-        mod util_libc;
         #[path = "solaris.rs"] mod imp;
     } else if #[cfg(target_os = "netbsd")] {
-        mod util_libc;
         #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
     } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
-        #[path = "apple-other.rs"] mod imp;
+        #[path = "apple_other.rs"] mod imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         #[path = "wasi.rs"] mod imp;
     } else if #[cfg(target_os = "hermit")] {
         #[path = "hermit.rs"] mod imp;
     } else if #[cfg(target_os = "vxworks")] {
-        mod util_libc;
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(target_os = "solid_asp3")] {
         #[path = "solid.rs"] mod imp;
@@ -329,10 +354,10 @@ cfg_if! {
         #[path = "windows7.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
-    } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "rdrand",
-                        any(target_arch = "x86_64", target_arch = "x86")))] {
+    } else if #[cfg(any(
+        all(target_arch = "x86_64", target_env = "sgx"),
+        all(feature = "rdrand", any(target_arch = "x86_64", target_arch = "x86"))
+    ))] {
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(feature = "js",
                         any(target_arch = "wasm32", target_arch = "wasm64"),
@@ -351,6 +376,8 @@ cfg_if! {
                         https://docs.rs/getrandom/#unsupported-targets");
     }
 }
+
+pub mod generators;
 
 /// Fill `dest` with random bytes from the system's preferred random number
 /// source.
