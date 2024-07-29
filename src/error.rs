@@ -82,7 +82,7 @@ impl Error {
     ///
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
-    pub(super) fn from_os_error(code: u32) -> Self {
+    pub fn from_os_error(code: u32) -> Self {
         match NonZeroU32::new(code) {
             Some(code) if code.get() < Self::INTERNAL_START => Self(code),
             _ => Self::UNEXPECTED,
