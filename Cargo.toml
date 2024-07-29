@@ -52,6 +52,8 @@ rustc-dep-of-std = [
 ]
 # Unstable/test-only feature to run wasm-bindgen tests in a browser
 test-in-browser = []
+# Feature to enable the RNDR register-based implementation on aarch64 linux
+rndr = []
 
 [[test]]
 name = "custom"
