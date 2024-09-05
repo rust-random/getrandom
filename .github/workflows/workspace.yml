@@ -23,7 +23,7 @@ jobs:
         # Fixed Nigthly version is used to prevent
         # CI failures which are not relevant to PR changes
         # on introduction of new Clippy lints.
-        toolchain: nightly-2024-06-11
+        toolchain: nightly-2024-09-04
         components: clippy,rust-src
     - name: std feature
       run: cargo clippy --features std
@@ -59,8 +59,10 @@ jobs:
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-redox
     - name: VxWorks (vxworks.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-wrs-vxworks
-    - name: WASI (wasi.rs)
-      run: cargo clippy -Zbuild-std=core --target wasm32-wasip2
+    - name: WASI preview 1 (wasi.rs)
+      run: cargo clippy -Zbuild-std=core --target wasm32-wasip1
+    - name: WASI preview 2 (wasi.rs)
+      run: cargo clippy -Zbuild-std=core,alloc --target wasm32-wasip2
     - name: Windows 7 (windows7.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-win7-windows-msvc
     - name: Windows (windows.rs)
@@ -86,7 +88,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           # We need Nightly for doc_auto_cfg
-          toolchain: nightly-2024-06-11
+          toolchain: nightly-2024-09-04
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:

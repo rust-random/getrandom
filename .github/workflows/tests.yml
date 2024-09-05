@@ -273,22 +273,41 @@ jobs:
         # does not yet support memory64.
         run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
 
-  wasi-tests:
-    name: WASI Test
+  wasip1-tests:
+    name: WASI Preview 1 Test
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          targets: wasm32-wasi
+          targets: wasm32-wasip1
       - name: Install precompiled wasmtime
         run: |
-          VERSION=v2.0.0
+          VERSION=v24.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target wasm32-wasi
+      - run: cargo test --no-default-features --target wasm32-wasip1
+
+  wasip2-tests:
+    name: WASI Preview 2 Test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-wasip2
+          components: rust-src
+      - name: Install precompiled wasmtime
+        run: |
+          VERSION=v24.0.0
+          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+          wasmtime --version
+      - uses: Swatinem/rust-cache@v2
+      # Without enabled optimizations tests cause stack overflow in Wasmtime
+      - run: cargo test --release -Zbuild-std=std,panic_abort --target wasm32-wasip2
 
   build-tier2:
     name: Tier 2 Build

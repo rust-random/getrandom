@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 - Update MSRV to 1.38 [#425]
+- Remove support of the `wasm32-wasi` target (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
+
+### Added
+- `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 
 [#425]: https://github.com/rust-random/getrandom/pull/425
+[#499]: https://github.com/rust-random/getrandom/pull/499
 
 ## [0.2.15] - 2024-05-06
 ### Added
