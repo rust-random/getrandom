@@ -281,7 +281,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly # TODO: Use stable after 1.82 is released as stable
-          targets: [wasm32-wasip1, wasm32-wasip2]
+          targets: wasm32-wasip1,wasm32-wasip2
       - name: Install Wasmtime
         run: |
           VERSION=v24.0.0
