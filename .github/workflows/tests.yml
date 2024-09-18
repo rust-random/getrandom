@@ -274,12 +274,13 @@ jobs:
         run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
 
   wasip1-tests:
-    name: WASI Preview 1 Test
+    name: WASI 0.1 Test
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.81
           targets: wasm32-wasip1
       - name: Install precompiled wasmtime
         run: |
@@ -291,12 +292,13 @@ jobs:
       - run: cargo test --no-default-features --target wasm32-wasip1
 
   wasip2-tests:
-    name: WASI Preview 2 Test
+    name: WASI 0.2 Test
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: beta # TODO: Use 1.82 after it's released
           targets: wasm32-wasip2
           components: rust-src
       - name: Install precompiled wasmtime
