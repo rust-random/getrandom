@@ -24,6 +24,11 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
     let (prefix, chunks, suffix) = unsafe { dest.align_to_mut::<MaybeUninit<u64>>() };
 
+    // We use `get_random_u64` instead of `get_random_bytes` because the latter creates
+    // an allocation due to the Wit IDL [restrictions][0]. This should be fine since
+    // the main use case of `getrandom` is seed generation.
+    //
+    // [0]: https://github.com/WebAssembly/wasi-random/issues/27
     if !prefix.is_empty() {
         let val = get_random_u64();
         let src = (&val as *const u64).cast();
