@@ -24,8 +24,8 @@
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
 //! | Emscripten        | `*‑emscripten`     | [`getentropy`][13]
-//! | WASI preview 1    | `wasm32‑wasip1`    | [`random_get`]
-//! | WASI preview 2    | `wasm32‑wasip2`    | [`get-random-u64`]
+//! | WASI 0.1    | `wasm32‑wasip1`    | [`random_get`]
+//! | WASI 0.2    | `wasm32‑wasip2`    | [`get-random-u64`]
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
