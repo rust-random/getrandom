@@ -300,7 +300,6 @@ jobs:
         with:
           toolchain: nightly # TODO: Use 1.82 after it's released
           targets: wasm32-wasip2
-          components: rust-src
       - name: Install precompiled wasmtime
         run: |
           VERSION=v24.0.0
@@ -309,7 +308,7 @@ jobs:
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
       # Without enabled optimizations tests cause stack overflow in Wasmtime
-      - run: cargo test --release -Zbuild-std=std,panic_abort --target wasm32-wasip2
+      - run: cargo test --target wasm32-wasip2
 
   build-tier2:
     name: Tier 2 Build
