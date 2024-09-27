@@ -1,6 +1,7 @@
 //! RDRAND backend for x86(-64) targets
-use crate::{lazy::LazyBool, util::slice_as_uninit, Error};
+use crate::{util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
+use once_cell::race::OnceBool;
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
@@ -94,8 +95,8 @@ fn is_rdrand_good() -> bool {
 }
 
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    static RDRAND_GOOD: LazyBool = LazyBool::new();
-    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+    static RDRAND_GOOD: OnceBool = OnceBool::new();
+    if !RDRAND_GOOD.get_or_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }
     // SAFETY: After this point, we know rdrand is supported.
