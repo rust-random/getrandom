@@ -27,7 +27,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let ret = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
     match ret {
         0 => Ok(()),
-        _ => Err(Error::from_os_error(ret.into())),
+        _ => Err(Error::from_os_error(ret as u32)),
     }
 }
 
