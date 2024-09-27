@@ -274,21 +274,25 @@ jobs:
         run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
 
   wasi-tests:
-    name: WASI Test
+    name: WASI Tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
-          targets: wasm32-wasi
-      - name: Install precompiled wasmtime
+          toolchain: nightly # TODO: Use stable after 1.82 is released as stable
+          targets: wasm32-wasip1,wasm32-wasip2
+      - name: Install Wasmtime
         run: |
-          VERSION=v2.0.0
+          VERSION=v24.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target wasm32-wasi
+      - name: WASI 0.1 Test
+        run: cargo test --target wasm32-wasip1
+      - name: WASI 0.2 Test
+        run: cargo test --target wasm32-wasip2
 
   build-tier2:
     name: Tier 2 Build

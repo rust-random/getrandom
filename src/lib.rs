@@ -24,7 +24,8 @@
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
 //! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
 //! | Emscripten        | `*‑emscripten`     | [`getentropy`][13]
-//! | WASI              | `wasm32‑wasi`      | [`random_get`]
+//! | WASI 0.1    | `wasm32‑wasip1`    | [`random_get`]
+//! | WASI 0.2    | `wasm32‑wasip2`    | [`get-random-u64`]
 //! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
@@ -191,7 +192,8 @@
 //! [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
 //! [`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 //! [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
-//! [`random_get`]: https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
+//! [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
+//! [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 //! [WebAssembly support]: #webassembly-support
 //! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 //! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
