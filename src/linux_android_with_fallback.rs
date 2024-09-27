@@ -8,7 +8,13 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if HAS_GETRANDOM.unsync_init(is_getrandom_available) {
         linux_android::getrandom_inner(dest)
     } else {
-        use_file::getrandom_inner(dest)
+        // prevent inlining of the fallback implementation
+        #[inline(never)]
+        fn inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+            use_file::getrandom_inner(dest)
+        }
+
+        inner(dest)
     }
 }
 
