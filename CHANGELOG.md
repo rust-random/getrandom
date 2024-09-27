@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Breaking Changes
-- Update MSRV to 1.38 [#425]
+- Update MSRV to 1.60 [#472]
 - Remove support of the `wasm32-wasi` target (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
+
+### Changed
+- Switch to `futex` on Linux and to `nanosleep`-based wait loop on other targets
+  in the `use_file` backend [#490]
 
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 
-[#425]: https://github.com/rust-random/getrandom/pull/425
+[#472]: https://github.com/rust-random/getrandom/pull/472
+[#490]: https://github.com/rust-random/getrandom/pull/490
 [#499]: https://github.com/rust-random/getrandom/pull/499
 
 ## [0.2.15] - 2024-05-06
