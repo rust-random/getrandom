@@ -58,6 +58,10 @@ impl Error {
     pub const NODE_ES_MODULE: Error = internal_error(14);
     /// Calling Windows ProcessPrng failed.
     pub const WINDOWS_PROCESS_PRNG: Error = internal_error(15);
+    /// RNDR register read failed due to a hardware issue.
+    pub const FAILED_RNDR: Error = internal_error(16);
+    /// RNDR register is not supported on this target.
+    pub const NO_RNDR: Error = internal_error(17);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -78,7 +82,7 @@ impl Error {
     ///
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
-    pub(super) fn from_os_error(code: u32) -> Self {
+    pub fn from_os_error(code: u32) -> Self {
         match NonZeroU32::new(code) {
             Some(code) if code.get() < Self::INTERNAL_START => Self(code),
             _ => Self::UNEXPECTED,
@@ -175,6 +179,8 @@ fn internal_desc(error: Error) -> Option<&'static str> {
         Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
         Error::NODE_ES_MODULE => Some("Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support"),
         Error::WINDOWS_PROCESS_PRNG => Some("ProcessPrng: Windows system function failure"),
+        Error::NO_RNDR => Some("RNDR: Register not supported"),
+        Error::FAILED_RNDR => Some("RNDR: Could not generate a random number"),
         _ => None,
     }
 }
