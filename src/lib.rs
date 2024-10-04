@@ -124,7 +124,7 @@
 //!
 //! ### Custom implementations
 //!
-//! The [`register_custom_getrandom!`] macro allows a user to mark their own
+//! The `register_custom_getrandom!` macro allows a user to mark their own
 //! function as the backing implementation for [`getrandom`]. See the macro's
 //! documentation for more information about writing and registering your own
 //! custom implementations.
