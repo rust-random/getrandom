@@ -380,6 +380,20 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build -Z build-std=core --target=${{ matrix.target }}
 
+  build-esp-idf:
+    name: ESP-IDF Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - nv:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
+        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+
+
   build-no-atomics:
     name: No Atomics Build
     runs-on: ubuntu-22.04

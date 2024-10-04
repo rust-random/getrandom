@@ -170,6 +170,8 @@
 //! - `wasm_js`: use Web or Node.js APIs. Can be enabled only for OS-less
 //!   (i.e. `target_os = "unknown"`) WASM targets.
 //! - `rdrand`: use RDRAND instruction. Can be enabled only for x86 and x86-64 targets.
+//! - `esp_idf`: use [`esp_fill_random`]. Note that without a proper hardware configuration
+//!   it may return poor quality entropy. Can be enabled only for ESP-IDF trgets.
 //! - `custom`: use "custom" backend defined by an extern function.
 //!   See the "custom implementations" section for more information.
 //!
@@ -266,6 +268,10 @@ cfg_if! {
         )))]
         compile_error!("`wasm_js` backend can be enabled only on OS-less WASM targets!");
         #[path = "js.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "esp_idf")] {
+        #[cfg(not(target_os = "espidf"))]
+        compile_error!("`esp_idf` backend can be enabled only for ESP-IDF targets!");
+        #[path = "espidf.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "haiku",
         target_os = "redox",
@@ -361,8 +367,6 @@ cfg_if! {
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(target_os = "solid_asp3")] {
         #[path = "solid.rs"] mod imp;
-    } else if #[cfg(target_os = "espidf")] {
-        #[path = "espidf.rs"] mod imp;
     } else if #[cfg(all(windows, target_vendor = "win7"))] {
         #[path = "windows7.rs"] mod imp;
     } else if #[cfg(windows)] {

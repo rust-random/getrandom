@@ -47,7 +47,7 @@ std = []
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "linux_getrandom", "wasm_js"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "linux_getrandom", "wasm_js", "esp_idf"))',
   'cfg(getrandom_browser_test)',
 ]
 

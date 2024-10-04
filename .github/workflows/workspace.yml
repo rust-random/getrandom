@@ -34,6 +34,8 @@ jobs:
     - name: iOS (apple-other.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
     - name: ESP-IDF (espidf.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
       run: cargo clippy -Zbuild-std=core --target riscv32imc-esp-espidf
     - name: Fuchsia (fuchsia.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
