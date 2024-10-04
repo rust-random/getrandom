@@ -253,6 +253,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         #[cfg(not(any(target_os = "android", target_os = "linux")))]
         compile_error!("`linux_getrandom` backend can be enabled only for Linux/Android targets!");
+        mod util_libc;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]

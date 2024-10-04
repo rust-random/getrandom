@@ -40,9 +40,6 @@ jobs:
       - run: cargo test
       # Make sure enabling the std feature doesn't break anything
       - run: cargo test --features=std
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
@@ -74,6 +71,9 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
         run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo test --features=std
 
   ios-tests:
     name: iOS Simulator Test
@@ -368,7 +368,7 @@ jobs:
       matrix:
         target: [
           x86_64-unknown-uefi,
-          x86_64-wrs-x86_64-unknown-l4re-uclibc,
+          x86_64-unknown-l4re-uclibc,
         ]
     steps:
       - uses: actions/checkout@v4
@@ -391,4 +391,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --features custom --target riscv32i-unknown-none-elf
+        run: cargo build --target riscv32i-unknown-none-elf
