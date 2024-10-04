@@ -13,8 +13,22 @@ compile_error!(
 
 #[cfg(target_env = "p1")]
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    unsafe { wasi::random_get(dest.as_mut_ptr().cast::<u8>(), dest.len()) }
-        .map_err(|e| Error::from_os_error(e.raw().into()))
+    // This linking is vendored from the wasi crate:
+    // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2344-2350
+    #[link(wasm_import_module = "wasi_snapshot_preview1")]
+    extern "C" {
+        fn random_get(arg0: i32, arg1: i32) -> i32;
+    }
+
+    // Based on the wasi code:
+    // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2046-2062
+    // Note that size of an allocated object can not be bigger than isize::MAX bytes.
+    // WASI 0.1 supports only 32-bit WASM, so casting length to `i32` is safe.
+    let ret = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
+    match ret {
+        0 => Ok(()),
+        _ => Err(Error::from_os_error(ret as u32)),
+    }
 }
 
 #[cfg(target_env = "p2")]
