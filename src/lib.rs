@@ -159,6 +159,20 @@
 //! its own limits on the grade of randomness it can promise in environments
 //! with few sources of entropy.
 //!
+//! ## Configuration flags
+//!
+//! `getrandom` allows to change default backends or enable non-default backends
+//! using the `getrandom_backend` configuration flag. Supported values:
+//!
+//! - `linux_getrandom`: use `getrandom` syscall without `/dev/urandom` fallback.
+//!   Bumps minimum supported Linux kernel version to 3.17 and Android API level
+//!   to 23 (Marshmallow). Can be enabled only for Linux and Android targets.
+//! - `wasm_js`: use Web or Node.js APIs. Can be enabled only for OS-less
+//!   (i.e. `target_os = "unknown"`) WASM targets.
+//! - `rdrand`: use RDRAND instruction. Can be enabled only for x86 and x86-64 targets.
+//! - `custom`: use "custom" backend defined by an extern function.
+//!   See the "custom implementations" section for more information.
+//!
 //! ## Error handling
 //!
 //! We always choose failure over returning known insecure "random" bytes. In
@@ -214,20 +228,17 @@
 #[macro_use]
 extern crate cfg_if;
 
-use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 use core::mem::MaybeUninit;
 
 mod error;
 mod lazy;
 mod util;
-// To prevent a breaking change when targets are added, we always export the
-// register_custom_getrandom macro, so old Custom RNG crates continue to build.
-#[cfg(feature = "custom")]
-mod custom;
+
 #[cfg(feature = "std")]
 mod error_impls;
 
 pub use crate::error::Error;
+use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 
 // System-specific implementations.
 //
@@ -237,7 +248,29 @@ pub use crate::error::Error;
 // The function MUST NOT ever write uninitialized bytes into `dest`,
 // regardless of what value it returns.
 cfg_if! {
-    if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
+    if #[cfg(getrandom_backend = "custom")] {
+        #[path = "custom.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "linux_getrandom")] {
+        #[cfg(not(any(target_os = "android", target_os = "linux")))]
+        compile_error!("`linux_getrandom` backend can be enabled only for Linux/Android targets!");
+        #[path = "linux_android.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "rdrand")] {
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+        compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
+        #[path = "rdrand.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "wasm_js")] {
+        #[cfg(not(all(
+            any(target_arch = "wasm32", target_arch = "wasm64"),
+            target_os = "unknown",
+        )))]
+        compile_error!("`wasm_js` backend can be enabled only on OS-less WASM targets!");
+        #[path = "js.rs"] mod imp;
+    } else if #[cfg(any(
+        target_os = "haiku",
+        target_os = "redox",
+        target_os = "nto",
+        target_os = "aix",
+    ))] {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
@@ -259,45 +292,42 @@ cfg_if! {
     ))] {
         mod util_libc;
         #[path = "getrandom.rs"] mod imp;
-    } else if #[cfg(all(
-        not(feature = "linux_disable_fallback"),
-        any(
-            // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
-            // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
-            // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
-            // RISC-V Android targets sufficiently new API level, same will apply for potential
-            // new Android `target_arch`es.
-            // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
-            // [1]: https://github.com/rust-lang/rust/pull/120593
-            all(
-                target_os = "android",
-                any(
-                    target_arch = "aarch64",
-                    target_arch = "arm",
-                    target_arch = "x86",
-                    target_arch = "x86_64",
-                ),
+    } else if #[cfg(any(
+        // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
+        // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
+        // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
+        // RISC-V Android targets sufficiently new API level, same will apply for potential
+        // new Android `target_arch`es.
+        // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
+        // [1]: https://github.com/rust-lang/rust/pull/120593
+        all(
+            target_os = "android",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "x86",
+                target_arch = "x86_64",
             ),
-            // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
-            // that precede the version (3.17) in which `getrandom(2)` was added:
-            // https://doc.rust-lang.org/stable/rustc/platform-support.html
-            all(
-                target_os = "linux",
-                any(
-                    target_arch = "aarch64",
-                    target_arch = "arm",
-                    target_arch = "powerpc",
-                    target_arch = "powerpc64",
-                    target_arch = "s390x",
-                    target_arch = "x86",
-                    target_arch = "x86_64",
-                    // Minimum supported Linux kernel version for MUSL targets
-                    // is not specified explicitly (as of Rust 1.77) and they
-                    // are used in practice to target pre-3.17 kernels.
-                    target_env = "musl",
-                ),
-            )
         ),
+        // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
+        // that precede the version (3.17) in which `getrandom(2)` was added:
+        // https://doc.rust-lang.org/stable/rustc/platform-support.html
+        all(
+            target_os = "linux",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "powerpc",
+                target_arch = "powerpc64",
+                target_arch = "s390x",
+                target_arch = "x86",
+                target_arch = "x86_64",
+                // Minimum supported Linux kernel version for MUSL targets
+                // is not specified explicitly (as of Rust 1.77) and they
+                // are used in practice to target pre-3.17 kernels.
+                target_env = "musl",
+            ),
+        )
     ))] {
         mod util_libc;
         mod use_file;
@@ -314,7 +344,12 @@ cfg_if! {
         #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
-    } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
+    } else if #[cfg(any(
+        target_os = "ios",
+        target_os = "visionos",
+        target_os = "watchos",
+        target_os = "tvos",
+    ))] {
         #[path = "apple-other.rs"] mod imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         #[path = "wasi.rs"] mod imp;
@@ -333,20 +368,13 @@ cfg_if! {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "rdrand",
-                        any(target_arch = "x86_64", target_arch = "x86")))] {
-        #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "js",
-                        any(target_arch = "wasm32", target_arch = "wasm64"),
-                        target_os = "unknown"))] {
-        #[path = "js.rs"] mod imp;
-    } else if #[cfg(feature = "custom")] {
-        use custom as imp;
-    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),
-                        target_os = "unknown"))] {
+    } else if #[cfg(all(
+        any(target_arch = "wasm32", target_arch = "wasm64"),
+        target_os = "unknown",
+    ))] {
         compile_error!("the wasm*-unknown-unknown targets are not supported by \
-                        default, you may need to enable the \"js\" feature. \
-                        For more information see: \
+                        default, you may need to enable the \"wasm_js\" \
+                        configuration flag. For more information see: \
                         https://docs.rs/getrandom/#webassembly-support");
     } else {
         compile_error!("target is not supported, for more information see: \
