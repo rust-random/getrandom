@@ -31,8 +31,8 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 [target.'cfg(all(getrandom_backend = "wasm_js", any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-wasm-bindgen = { version = "0.2.89", default-features = false, optional = true }
-js-sys = { version = "0.3", optional = true }
+wasm-bindgen = { version = "0.2.89", default-features = false }
+js-sys = "0.3"
 [target.'cfg(all(getrandom_backend = "wasm_js", getrandom_browser_test, any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = "0.3.39"
 
