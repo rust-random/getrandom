@@ -338,7 +338,6 @@ jobs:
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
           armv7-sony-vita-newlibeabihf,
-          riscv32imc-esp-espidf,
           aarch64-unknown-nto-qnx710,
         ]
         # Supported tier 3 targets with libstd support
@@ -392,7 +391,6 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
         run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
-
 
   build-no-atomics:
     name: No Atomics Build
