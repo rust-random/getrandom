@@ -22,29 +22,36 @@
 //! | Hurd              | `*-hurd-*`         | [`getrandom`][17]
 //! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
 //! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
 //! | Emscripten        | `*‑emscripten`     | [`getentropy`][13]
-//! | WASI 0.1    | `wasm32‑wasip1`    | [`random_get`]
-//! | WASI 0.2    | `wasm32‑wasip2`    | [`get-random-u64`]
-//! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
+//! | WASI 0.1          | `wasm32‑wasip1`    | [`random_get`]
+//! | WASI 0.2          | `wasm32‑wasip2`    | [`get-random-u64`]
 //! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 //! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
 //! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
 //! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 //! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
 //!
+//! This crate also provides optional backends which can be enabled using [configuration flags]:
+//!
+//! | Backend name      | Target            | Target Triple        | Implementation
+//! | ----------------- | ----------------- | -------------------- | --------------
+//! | `linux_getrandom` | Linux, Android    | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback)
+//! | `rdrand`          | x86, x86-64       | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
+//! | `esp_idf`         | ESP-IDF           | `*‑espidf`           | [`esp_fill_random`]
+//! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
+//! | `custom`          | All targets       | `*`                  | User-provided custom implementation (see [custom backends])
+//!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
-//! ## Unsupported targets
+//! ### Platform Support
+//! This crate generally supports the same operating system and platform versions
+//! that the Rust standard library does. Additional targets may be supported using
+//! pluggable custom implementations.
 //!
-//! By default, `getrandom` will not compile on unsupported targets, but certain
-//! features allow a user to select a "fallback" implementation if no supported
-//! implementation exists.
-//!
-//! All of the below mechanisms only affect unsupported
-//! targets. Supported targets will _always_ use their supported implementations.
-//! This prevents a crate from overriding a secure source of randomness
-//! (either accidentally or intentionally).
+//! This means that as Rust drops support for old versions of operating systems
+//! (such as old Linux kernel versions, Android API levels, etc) in stable releases,
+//! `getrandom` may create new patch releases (`0.N.x`) that remove support for
+//! outdated platform versions.
 //!
 //! ## `/dev/urandom` fallback on Linux and Android
 //!
@@ -60,79 +67,6 @@
 //! The fallback can be disabled by enabling the `linux_disable_fallback` crate feature.
 //! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
 //! Android API level to 23 (Marshmallow).
-//!
-//! ### RDRAND on x86
-//!
-//! *If the `rdrand` Cargo feature is enabled*, `getrandom` will fallback to using
-//! the [`RDRAND`] instruction to get randomness on `no_std` `x86`/`x86_64`
-//! targets. This feature has no effect on other CPU architectures.
-//!
-//! ### WebAssembly support
-//!
-//! This crate fully supports the
-//! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and
-//! [`wasm32-unknown-emscripten`](https://www.hellorust.com/setup/emscripten/)
-//! targets. However, the `wasm32-unknown-unknown` target (i.e. the target used
-//! by `wasm-pack`) is not automatically
-//! supported since, from the target name alone, we cannot deduce which
-//! JavaScript interface is in use (or if JavaScript is available at all).
-//!
-//! Instead, *if the `js` Cargo feature is enabled*, this crate will assume
-//! that you are building for an environment containing JavaScript, and will
-//! call the appropriate methods. Both web browser (main window and Web Workers)
-//! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
-//!
-//! To enable the `js` Cargo feature, add the following to the `dependencies`
-//! section in your `Cargo.toml` file:
-//! ```toml
-//! [dependencies]
-//! getrandom = { version = "0.2", features = ["js"] }
-//! ```
-//!
-//! This can be done even if `getrandom` is not a direct dependency. Cargo
-//! allows crates to enable features for indirect dependencies.
-//!
-//! This feature should only be enabled for binary, test, or benchmark crates.
-//! Library crates should generally not enable this feature, leaving such a
-//! decision to *users* of their library. Also, libraries should not introduce
-//! their own `js` features *just* to enable `getrandom`'s `js` feature.
-//!
-//! This feature has no effect on targets other than `wasm32-unknown-unknown`.
-//!
-//! #### Node.js ES module support
-//!
-//! Node.js supports both [CommonJS modules] and [ES modules]. Due to
-//! limitations in wasm-bindgen's [`module`] support, we cannot directly
-//! support ES Modules running on Node.js. However, on Node v15 and later, the
-//! module author can add a simple shim to support the Web Cryptography API:
-//! ```js
-//! import { webcrypto } from 'node:crypto'
-//! globalThis.crypto = webcrypto
-//! ```
-//! This crate will then use the provided `webcrypto` implementation.
-//!
-//! ### Platform Support
-//! This crate generally supports the same operating system and platform versions
-//! that the Rust standard library does. Additional targets may be supported using
-//! pluggable custom implementations.
-//!
-//! This means that as Rust drops support for old versions of operating systems
-//! (such as old Linux kernel versions, Android API levels, etc) in stable releases,
-//! `getrandom` may create new patch releases (`0.N.x`) that remove support for
-//! outdated platform versions.
-//!
-//! ### Custom implementations
-//!
-//! The `register_custom_getrandom!` macro allows a user to mark their own
-//! function as the backing implementation for [`getrandom`]. See the macro's
-//! documentation for more information about writing and registering your own
-//! custom implementations.
-//!
-//! Note that registering a custom implementation only has an effect on targets
-//! that would otherwise not compile. Any supported targets (including those
-//! using `rdrand` and `js` Cargo features) continue using their normal
-//! implementations even if a function is registered.
 //!
 //! ## Early boot
 //!
@@ -168,12 +102,89 @@
 //!   Bumps minimum supported Linux kernel version to 3.17 and Android API level
 //!   to 23 (Marshmallow). Can be enabled only for Linux and Android targets.
 //! - `wasm_js`: use Web or Node.js APIs. Can be enabled only for OS-less
-//!   (i.e. `target_os = "unknown"`) WASM targets.
+//!   (i.e. `target_os = "unknown"`) WASM targets. See the [WebAssembly support]
+//!   for more information.
 //! - `rdrand`: use RDRAND instruction. Can be enabled only for x86 and x86-64 targets.
 //! - `esp_idf`: use [`esp_fill_random`]. Note that without a proper hardware configuration
 //!   it may return poor quality entropy. Can be enabled only for ESP-IDF trgets.
 //! - `custom`: use "custom" backend defined by an extern function.
-//!   See the "custom implementations" section for more information.
+//!   See [custom backends] for more information.
+//!
+//! The flag can be enabled using either RUSTFLAGS environment variable, 
+//! e.g. `RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build`, or by specifying
+//! the `rustflags` field in [`.cargo/config.toml`] (note that it can be done on
+//! per-target basis).
+//!
+//! Note that using a non-default backend in a library (e.g. for tests or benchmarks)
+//! WILL NOT have any effect on its users.
+//!
+//! [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
+//!
+//! ### WebAssembly support
+//!
+//! This crate fully supports the [WASI] and [Emscripten] targets. However,
+//! the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
+//! is not automatically supported since, from the target name alone, we cannot deduce
+//! which JavaScript interface should be used (or if JavaScript is available at all).
+//!
+//! Instead, *if the `wasm_js` backend is enabled*, this crate will assume
+//! that you are building for an environment containing JavaScript, and will
+//! call the appropriate methods. Both web browser (main window and Web Workers)
+//! and Node.js environments are supported, invoking the methods
+//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
+//!
+//! To enable the `wasm_js` backend, you can add the following lines to your
+//! project's `.cargo/config.toml` file:
+//! ```toml
+//! [target.wasm32-unknown-unknown]
+//! rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+//! ```
+//!
+//! #### Node.js ES module support
+//!
+//! Node.js supports both [CommonJS modules] and [ES modules]. Due to
+//! limitations in wasm-bindgen's [`module`] support, we cannot directly
+//! support ES Modules running on Node.js. However, on Node v15 and later, the
+//! module author can add a simple shim to support the Web Cryptography API:
+//! ```js
+//! import { webcrypto } from 'node:crypto'
+//! globalThis.crypto = webcrypto
+//! ```
+//! This crate will then use the provided `webcrypto` implementation.
+//!
+//! ### Custom backend
+//!
+//! If this crate does not support your target out of box or you have to use
+//! a non-default entropy source, then you can provide a custom implementation.
+//! You need to enable the custom backend as described in the [configuration flags]
+//! section. Next, you need to define an `extern` function with the following
+//! signature:
+//!
+//! ```ignore
+//! #[no_mangle]
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 { ... }
+//! ```
+//!
+//! This function ideally should be defined in the root crate of your project,
+//! e.g. in your `main.rs`. This function MUST be defined only once for your
+//! project, i.e. upstream library crates SHOULD NOT define it outside of
+//! tests and benchmarks. Improper configuration of this backend may result
+//! in linking errors.
+//!
+//! The function accepts pointer to buffer which should be filled with random
+//! data and length in bytes. Note that the buffer MAY be uninitialized.
+//! On success the function should return 0 and fully fill the input buffer,
+//! every other return result will be interpreted as an error code.
+//!
+//! If you are confident that `getrandom` is not used in your project, but
+//! it gets pulled nevertheless by one of your dependencies, then you can
+//! use the following custom backend which always returns "unsupported" error:
+//! ```no_run
+//! #[no_mangle]
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//!     getrandom::Error::UNSUPPORTED.code().get()
+//! }
+//! ```
 //!
 //! ## Error handling
 //!
@@ -211,12 +222,16 @@
 //! [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 //! [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 //! [WebAssembly support]: #webassembly-support
+//! [configuration flags]: #configuration-flags
+//! [custom backends]: #custom-backends
 //! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 //! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
 //! [ES modules]: https://nodejs.org/api/esm.html
 //! [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
 //! [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
+//! [WASI]: https://github.com/CraneStation/wasi
+//! [Emscripten]: https://www.hellorust.com/setup/emscripten/
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -382,8 +397,9 @@ cfg_if! {
                         configuration flag. For more information see: \
                         https://docs.rs/getrandom/#webassembly-support");
     } else {
-        compile_error!("target is not supported, for more information see: \
-                        https://docs.rs/getrandom/#unsupported-targets");
+        compile_error!("target is not supported. You may need to define \
+                        a custom backend see: \
+                        https://docs.rs/getrandom/#custom-backends");
     }
 }
 
