@@ -15,8 +15,8 @@ exclude = [".*"]
 cfg-if = "1"
 
 # When built as part of libstd
-#compiler_builtins = { version = "0.1", optional = true }
-#core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
+compiler_builtins = { version = "0.1", optional = true }
+core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
 [target.'cfg(unix)'.dependencies]
 libc = { version = "0.2.154", default-features = false }
@@ -40,9 +40,7 @@ wasm-bindgen-test = "0.3.39"
 # Implement std-only traits for getrandom::Error
 std = []
 # Unstable feature to support being a libstd dependency
-#rustc-dep-of-std = ["compiler_builtins", "core"]
-# Unstable/test-only feature to run wasm-bindgen tests in a browser
-#test-in-browser = []
+rustc-dep-of-std = ["compiler_builtins", "core"]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
