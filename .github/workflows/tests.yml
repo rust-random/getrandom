@@ -389,7 +389,7 @@ jobs:
         with:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - nv:
+      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
         run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
 
