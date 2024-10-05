@@ -110,7 +110,7 @@
 //! - `custom`: use "custom" backend defined by an extern function.
 //!   See [custom backends] for more information.
 //!
-//! The flag can be enabled using either RUSTFLAGS environment variable, 
+//! The flag can be enabled using either RUSTFLAGS environment variable,
 //! e.g. `RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build`, or by specifying
 //! the `rustflags` field in [`.cargo/config.toml`] (note that it can be done on
 //! per-target basis).
