@@ -1,4 +1,6 @@
-use getrandom::getrandom;
+use std::mem::MaybeUninit;
+
+use getrandom::{getrandom, getrandom_uninit};
 
 #[cfg(getrandom_browser_test)]
 use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -9,6 +11,8 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
     getrandom(&mut [0u8; 0]).unwrap();
+    let res = getrandom_uninit(&mut []).unwrap();
+    assert!(res.is_empty());
 }
 
 // Return the number of bits in which s1 and s2 differ
@@ -20,20 +24,34 @@ fn num_diff_bits(s1: &[u8], s2: &[u8]) -> usize {
         .sum()
 }
 
+fn uninit_array<const N: usize>() -> [MaybeUninit<u8>; N] {
+    [const { MaybeUninit::uninit() }; N]
+}
+
 // Tests the quality of calling getrandom on two large buffers
 #[test]
 fn test_diff() {
-    let mut v1 = [0u8; 1000];
+    const N: usize = 1000;
+    let mut v1 = [0u8; N];
+    let mut v2 = [0u8; N];
     getrandom(&mut v1).unwrap();
-
-    let mut v2 = [0u8; 1000];
     getrandom(&mut v2).unwrap();
+
+    let mut t1 = uninit_array::<N>();
+    let mut t2 = uninit_array::<N>();
+    let r1 = getrandom_uninit(&mut t1).unwrap();
+    let r2 = getrandom_uninit(&mut t2).unwrap();
+    assert_eq!(r1.len(), N);
+    assert_eq!(r2.len(), N);
 
     // Between 3.5 and 4.5 bits per byte should differ. Probability of failure:
     // ~ 2^(-94) = 2 * CDF[BinomialDistribution[8000, 0.5], 3500]
-    let d = num_diff_bits(&v1, &v2);
-    assert!(d > 3500);
-    assert!(d < 4500);
+    let d1 = num_diff_bits(&v1, &v2);
+    assert!(d1 > 3500);
+    assert!(d1 < 4500);
+    let d2 = num_diff_bits(r1, r2);
+    assert!(d2 > 3500);
+    assert!(d2 < 4500);
 }
 
 // Tests the quality of calling getrandom repeatedly on small buffers
