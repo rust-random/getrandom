@@ -38,9 +38,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
-      # Make sure enabling the std and custom features don't break anything
-      - run: cargo test --features=std,custom
-      - run: cargo test --features=linux_disable_fallback
+      # Make sure enabling the std feature doesn't break anything
+      - run: cargo test --features=std
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
@@ -69,6 +68,12 @@ jobs:
           sudo apt-get install --no-install-recommends ${{ matrix.packages }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+        run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo test --features=std
 
   ios-tests:
     name: iOS Simulator Test
@@ -242,21 +247,27 @@ jobs:
           wasm-pack --version
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
-        run: wasm-pack test --node --features=js
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        run: wasm-pack test --node
       - name: Test (Firefox)
-        run: wasm-pack test --headless --firefox --features=js,test-in-browser
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+        run: wasm-pack test --headless --firefox
       - name: Test (Chrome)
-        run: wasm-pack test --headless --chrome --features=js,test-in-browser
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+        run: wasm-pack test --headless --chrome
       - name: Test (Edge)
         if: runner.os == 'Windows'
-        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe
       - name: Test (Safari)
         if: runner.os == 'macOS'
-        run: wasm-pack test --headless --safari --features=js,test-in-browser
-      - name: Test (custom getrandom)
-        run: wasm-pack test --node --features=custom
-      - name: Test (JS overrides custom)
-        run: wasm-pack test --node --features=custom,js
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+        run: wasm-pack test --headless --safari
 
   wasm64-tests:
     name: wasm64 Build/Link
@@ -268,10 +279,12 @@ jobs:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build and Link tests (build-std)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
         # This target is Tier 3, so we have to build libstd ourselves.
         # We currently cannot run these tests because wasm-bindgen-test-runner
         # does not yet support memory64.
-        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
+        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown
 
   wasi-tests:
     name: WASI Tests
@@ -325,24 +338,18 @@ jobs:
           aarch64-kmc-solid_asp3,
           armv6k-nintendo-3ds,
           armv7-sony-vita-newlibeabihf,
-          riscv32imc-esp-espidf,
           aarch64-unknown-nto-qnx710,
         ]
+        # Supported tier 3 targets with libstd support
         include:
           - target: aarch64-unknown-nto-qnx710
             features: ["std"]
-          # Supported tier 3 targets with libstd support
           - target: x86_64-unknown-openbsd
             features: ["std"]
           - target: x86_64-unknown-dragonfly
             features: ["std"]
           - target: x86_64-unknown-haiku
             features: ["std"]
-          # Unsupported tier 3 targets to test the rdrand feature
-          - target: x86_64-unknown-uefi
-            features: ["rdrand"]
-          - target: x86_64-unknown-l4re-uclibc
-            features: ["rdrand"]
           - target: i686-unknown-hurd-gnu
             features: ["std"]
     steps:
@@ -353,6 +360,38 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
 
+  build-rdrand:
+    name: RDRAND Build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        target: [
+          x86_64-unknown-uefi,
+          x86_64-unknown-l4re-uclibc,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+
+  build-esp-idf:
+    name: ESP-IDF Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
+        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+
   build-no-atomics:
     name: No Atomics Build
     runs-on: ubuntu-22.04
@@ -362,4 +401,6 @@ jobs:
         with:
           targets: riscv32i-unknown-none-elf
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --features custom --target riscv32i-unknown-none-elf
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+        run: cargo build --target riscv32i-unknown-none-elf

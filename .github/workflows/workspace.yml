@@ -27,11 +27,15 @@ jobs:
         components: clippy,rust-src
     - name: std feature
       run: cargo clippy --features std
-    - name: custom feature
-      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf --features custom
+    - name: custom backend
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf
     - name: iOS (apple-other.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
     - name: ESP-IDF (espidf.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
       run: cargo clippy -Zbuild-std=core --target riscv32imc-esp-espidf
     - name: Fuchsia (fuchsia.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
@@ -42,9 +46,13 @@ jobs:
     - name: Hermit (hermit.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-hermit
     - name: Web WASM (js.rs)
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features js
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown
     - name: Linux (linux_android.rs)
-      run: cargo clippy --target x86_64-unknown-linux-gnu --features linux_disable_fallback
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+      run: cargo clippy --target x86_64-unknown-linux-gnu
     - name: Linux (linux_android_with_fallback.rs)
       run: cargo clippy --target x86_64-unknown-linux-gnu
     - name: NetBSD (netbsd.rs)
@@ -93,4 +101,4 @@ jobs:
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
-        run: cargo doc --no-deps --features custom
+        run: cargo doc --no-deps --features std

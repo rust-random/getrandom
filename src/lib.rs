@@ -2,103 +2,87 @@
 //!
 //! # Supported targets
 //!
-//! | Target            | Target Triple      | Implementation
-//! | ----------------- | ------------------ | --------------
-//! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-//! | Windows 10+       | `*‑windows‑*`      | [`ProcessPrng`]
-//! | Windows 7 and 8   | `*-win7‑windows‑*` | [`RtlGenRandom`]
-//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
+//! | Target             | Target Triple      | Implementation
+//! | ------------------ | ------------------ | --------------
+//! | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
+//! | Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
+//! | Windows 7 and 8    | `*-win7‑windows‑*` | [`RtlGenRandom`]
+//! | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
-//! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5]
-//! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
-//! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris           | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
-//! | illumos           | `*‑illumos`        | [`getrandom`][12]
-//! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
-//! | Redox             | `*‑redox`          | `/dev/urandom`
-//! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
-//! | Hermit            | `*-hermit`         | [`sys_read_entropy`]
-//! | Hurd              | `*-hurd-*`         | [`getrandom`][17]
-//! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
-//! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | ESP-IDF           | `*‑espidf`         | [`esp_fill_random`]
-//! | Emscripten        | `*‑emscripten`     | [`getentropy`][13]
-//! | WASI 0.1    | `wasm32‑wasip1`    | [`random_get`]
-//! | WASI 0.2    | `wasm32‑wasip2`    | [`get-random-u64`]
-//! | Web Browser and Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js, see [WebAssembly support]
-//! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
-//! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
-//! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
-//! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
-//! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
+//! | FreeBSD            | `*‑freebsd`        | [`getrandom`][5]
+//! | OpenBSD            | `*‑openbsd`        | [`getentropy`][7]
+//! | NetBSD             | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
+//! | Dragonfly BSD      | `*‑dragonfly`      | [`getrandom`][9]
+//! | Solaris            | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
+//! | illumos            | `*‑illumos`        | [`getrandom`][12]
+//! | Fuchsia OS         | `*‑fuchsia`        | [`cprng_draw`]
+//! | Redox              | `*‑redox`          | `/dev/urandom`
+//! | Haiku              | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
+//! | Hermit             | `*-hermit`         | [`sys_read_entropy`]
+//! | Hurd               | `*-hurd-*`         | [`getrandom`][17]
+//! | SGX                | `x86_64‑*‑sgx`     | [`RDRAND`]
+//! | VxWorks            | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
+//! | Emscripten         | `*‑emscripten`     | [`getentropy`][13]
+//! | WASI 0.1           | `wasm32‑wasip1`    | [`random_get`]
+//! | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
+//! | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
+//! | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
+//! | PS Vita            | `*-vita-*`         | [`getentropy`][13]
+//! | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
+//! | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 //!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
-//! ## Unsupported targets
+//! ## Opt-in backends
 //!
-//! By default, `getrandom` will not compile on unsupported targets, but certain
-//! features allow a user to select a "fallback" implementation if no supported
-//! implementation exists.
+//! `getrandom` also provides optional backends which can be enabled using `getrandom_backend`
+//! configuration flag:
 //!
-//! All of the below mechanisms only affect unsupported
-//! targets. Supported targets will _always_ use their supported implementations.
-//! This prevents a crate from overriding a secure source of randomness
-//! (either accidentally or intentionally).
+//! | Backend name      | Target               | Target Triple        | Implementation
+//! | ----------------- | -------------------- | -------------------- | --------------
+//! | `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+//! | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
+//! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low quality entropy without proper hardware configuration!
+//! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
+//! | `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
 //!
-//! ## `/dev/urandom` fallback on Linux and Android
+//! The configuration flag can be enabled either by specifying the `rustflags` field in
+//! [`.cargo/config.toml`] (note that it can be done on a per-target basis), or by using
+//! `RUSTFLAGS` environment variable:
 //!
-//! On Linux targets the fallback is present only if either `target_env` is `musl`,
-//! or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
-//! `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
-//! kernel versions which support `getrandom` system call, so fallback is not needed.
+//! ```sh
+//! RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build
+//! ```
 //!
-//! On Android targets the fallback is present only for the following `target_arch`es:
-//! `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
-//! sufficiently high API levels.
+//! Enabling an opt-in backend will replace backend used by default. Doing it for a wrong target
+//! (e.g. using `linux_getrandom` while compiling for a Windows target) will result
+//! in a compilation error. Be extremely carefull while using opt-in backends, since incorrect
+//! configuration may result in vulnerable or in always panicking applications.
 //!
-//! The fallback can be disabled by enabling the `linux_disable_fallback` crate feature.
-//! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
-//! Android API level to 23 (Marshmallow).
+//! Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
+//! WILL NOT have any effect on its downstream users.
 //!
-//! ### RDRAND on x86
-//!
-//! *If the `rdrand` Cargo feature is enabled*, `getrandom` will fallback to using
-//! the [`RDRAND`] instruction to get randomness on `no_std` `x86`/`x86_64`
-//! targets. This feature has no effect on other CPU architectures.
+//! [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
 //!
 //! ### WebAssembly support
 //!
-//! This crate fully supports the
-//! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and
-//! [`wasm32-unknown-emscripten`](https://www.hellorust.com/setup/emscripten/)
-//! targets. However, the `wasm32-unknown-unknown` target (i.e. the target used
-//! by `wasm-pack`) is not automatically
-//! supported since, from the target name alone, we cannot deduce which
-//! JavaScript interface is in use (or if JavaScript is available at all).
+//! This crate fully supports the [WASI] and [Emscripten] targets. However,
+//! the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
+//! is not automatically supported since, from the target name alone, we cannot deduce
+//! which JavaScript interface should be used (or if JavaScript is available at all).
 //!
-//! Instead, *if the `js` Cargo feature is enabled*, this crate will assume
+//! Instead, *if the `wasm_js` backend is enabled*, this crate will assume
 //! that you are building for an environment containing JavaScript, and will
 //! call the appropriate methods. Both web browser (main window and Web Workers)
 //! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
+//! [described above](#opt-in-backends) using the [`wasm-bindgen`] toolchain.
 //!
-//! To enable the `js` Cargo feature, add the following to the `dependencies`
-//! section in your `Cargo.toml` file:
+//! To enable the `wasm_js` backend, you can add the following lines to your
+//! project's `.cargo/config.toml` file:
 //! ```toml
-//! [dependencies]
-//! getrandom = { version = "0.2", features = ["js"] }
+//! [target.wasm32-unknown-unknown]
+//! rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
 //! ```
-//!
-//! This can be done even if `getrandom` is not a direct dependency. Cargo
-//! allows crates to enable features for indirect dependencies.
-//!
-//! This feature should only be enabled for binary, test, or benchmark crates.
-//! Library crates should generally not enable this feature, leaving such a
-//! decision to *users* of their library. Also, libraries should not introduce
-//! their own `js` features *just* to enable `getrandom`'s `js` feature.
-//!
-//! This feature has no effect on targets other than `wasm32-unknown-unknown`.
 //!
 //! #### Node.js ES module support
 //!
@@ -112,6 +96,42 @@
 //! ```
 //! This crate will then use the provided `webcrypto` implementation.
 //!
+//! ### Custom backend
+//!
+//! If this crate does not support your target out of box or you have to use
+//! a non-default entropy source, then you can provide a custom implementation.
+//! You need to enable the custom backend as described in the [configuration flags]
+//! section. Next, you need to define an `extern` function with the following
+//! signature:
+//!
+//! ```
+//! #[no_mangle]
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//!     todo!()
+//! }
+//! ```
+//!
+//! This function ideally should be defined in the root crate of your project,
+//! e.g. in your `main.rs`. This function MUST be defined only once for your
+//! project, i.e. upstream library crates SHOULD NOT define it outside of
+//! tests and benchmarks. Improper configuration of this backend may result
+//! in linking errors.
+//!
+//! The function accepts pointer to buffer which should be filled with random
+//! data and length in bytes. Note that the buffer MAY be uninitialized.
+//! On success the function should return 0 and fully fill the input buffer,
+//! every other return result will be interpreted as an error code.
+//!
+//! If you are confident that `getrandom` is not used in your project, but
+//! it gets pulled nevertheless by one of your dependencies, then you can
+//! use the following custom backend which always returns "unsupported" error:
+//! ```
+//! #[no_mangle]
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//!     getrandom::Error::UNSUPPORTED.code().get()
+//! }
+//! ```
+//!
 //! ### Platform Support
 //! This crate generally supports the same operating system and platform versions
 //! that the Rust standard library does. Additional targets may be supported using
@@ -122,17 +142,20 @@
 //! `getrandom` may create new patch releases (`0.N.x`) that remove support for
 //! outdated platform versions.
 //!
-//! ### Custom implementations
+//! ## `/dev/urandom` fallback on Linux and Android
 //!
-//! The [`register_custom_getrandom!`] macro allows a user to mark their own
-//! function as the backing implementation for [`getrandom`]. See the macro's
-//! documentation for more information about writing and registering your own
-//! custom implementations.
+//! On Linux targets the fallback is present only if either `target_env` is `musl`,
+//! or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
+//! `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
+//! kernel versions which support `getrandom` system call, so fallback is not needed.
 //!
-//! Note that registering a custom implementation only has an effect on targets
-//! that would otherwise not compile. Any supported targets (including those
-//! using `rdrand` and `js` Cargo features) continue using their normal
-//! implementations even if a function is registered.
+//! On Android targets the fallback is present only for the following `target_arch`es:
+//! `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
+//! sufficiently high API levels.
+//!
+//! The fallback can be disabled by enabling the `linux_getrandom` opt-in backend.
+//! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
+//! Android API level to 23 (Marshmallow).
 //!
 //! ## Early boot
 //!
@@ -195,12 +218,16 @@
 //! [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 //! [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 //! [WebAssembly support]: #webassembly-support
+//! [configuration flags]: #configuration-flags
+//! [custom backend]: #custom-backend
 //! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 //! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
 //! [ES modules]: https://nodejs.org/api/esm.html
 //! [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
 //! [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
+//! [WASI]: https://github.com/CraneStation/wasi
+//! [Emscripten]: https://www.hellorust.com/setup/emscripten/
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -214,20 +241,17 @@
 #[macro_use]
 extern crate cfg_if;
 
-use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 use core::mem::MaybeUninit;
 
 mod error;
 mod lazy;
 mod util;
-// To prevent a breaking change when targets are added, we always export the
-// register_custom_getrandom macro, so old Custom RNG crates continue to build.
-#[cfg(feature = "custom")]
-mod custom;
+
 #[cfg(feature = "std")]
 mod error_impls;
 
 pub use crate::error::Error;
+use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 
 // System-specific implementations.
 //
@@ -237,7 +261,34 @@ pub use crate::error::Error;
 // The function MUST NOT ever write uninitialized bytes into `dest`,
 // regardless of what value it returns.
 cfg_if! {
-    if #[cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))] {
+    if #[cfg(getrandom_backend = "custom")] {
+        #[path = "custom.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "linux_getrandom")] {
+        #[cfg(not(any(target_os = "android", target_os = "linux")))]
+        compile_error!("`linux_getrandom` backend can be enabled only for Linux/Android targets!");
+        mod util_libc;
+        #[path = "linux_android.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "rdrand")] {
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+        compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
+        #[path = "rdrand.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "wasm_js")] {
+        #[cfg(not(all(
+            any(target_arch = "wasm32", target_arch = "wasm64"),
+            target_os = "unknown",
+        )))]
+        compile_error!("`wasm_js` backend can be enabled only on OS-less WASM targets!");
+        #[path = "js.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "esp_idf")] {
+        #[cfg(not(target_os = "espidf"))]
+        compile_error!("`esp_idf` backend can be enabled only for ESP-IDF targets!");
+        #[path = "espidf.rs"] mod imp;
+    } else if #[cfg(any(
+        target_os = "haiku",
+        target_os = "redox",
+        target_os = "nto",
+        target_os = "aix",
+    ))] {
         mod util_libc;
         #[path = "use_file.rs"] mod imp;
     } else if #[cfg(any(
@@ -259,45 +310,42 @@ cfg_if! {
     ))] {
         mod util_libc;
         #[path = "getrandom.rs"] mod imp;
-    } else if #[cfg(all(
-        not(feature = "linux_disable_fallback"),
-        any(
-            // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
-            // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
-            // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
-            // RISC-V Android targets sufficiently new API level, same will apply for potential
-            // new Android `target_arch`es.
-            // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
-            // [1]: https://github.com/rust-lang/rust/pull/120593
-            all(
-                target_os = "android",
-                any(
-                    target_arch = "aarch64",
-                    target_arch = "arm",
-                    target_arch = "x86",
-                    target_arch = "x86_64",
-                ),
+    } else if #[cfg(any(
+        // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
+        // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
+        // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
+        // RISC-V Android targets sufficiently new API level, same will apply for potential
+        // new Android `target_arch`es.
+        // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
+        // [1]: https://github.com/rust-lang/rust/pull/120593
+        all(
+            target_os = "android",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "x86",
+                target_arch = "x86_64",
             ),
-            // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
-            // that precede the version (3.17) in which `getrandom(2)` was added:
-            // https://doc.rust-lang.org/stable/rustc/platform-support.html
-            all(
-                target_os = "linux",
-                any(
-                    target_arch = "aarch64",
-                    target_arch = "arm",
-                    target_arch = "powerpc",
-                    target_arch = "powerpc64",
-                    target_arch = "s390x",
-                    target_arch = "x86",
-                    target_arch = "x86_64",
-                    // Minimum supported Linux kernel version for MUSL targets
-                    // is not specified explicitly (as of Rust 1.77) and they
-                    // are used in practice to target pre-3.17 kernels.
-                    target_env = "musl",
-                ),
-            )
         ),
+        // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
+        // that precede the version (3.17) in which `getrandom(2)` was added:
+        // https://doc.rust-lang.org/stable/rustc/platform-support.html
+        all(
+            target_os = "linux",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "powerpc",
+                target_arch = "powerpc64",
+                target_arch = "s390x",
+                target_arch = "x86",
+                target_arch = "x86_64",
+                // Minimum supported Linux kernel version for MUSL targets
+                // is not specified explicitly (as of Rust 1.77) and they
+                // are used in practice to target pre-3.17 kernels.
+                target_env = "musl",
+            ),
+        )
     ))] {
         mod util_libc;
         mod use_file;
@@ -314,7 +362,12 @@ cfg_if! {
         #[path = "netbsd.rs"] mod imp;
     } else if #[cfg(target_os = "fuchsia")] {
         #[path = "fuchsia.rs"] mod imp;
-    } else if #[cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))] {
+    } else if #[cfg(any(
+        target_os = "ios",
+        target_os = "visionos",
+        target_os = "watchos",
+        target_os = "tvos",
+    ))] {
         #[path = "apple-other.rs"] mod imp;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         #[path = "wasi.rs"] mod imp;
@@ -325,32 +378,24 @@ cfg_if! {
         #[path = "vxworks.rs"] mod imp;
     } else if #[cfg(target_os = "solid_asp3")] {
         #[path = "solid.rs"] mod imp;
-    } else if #[cfg(target_os = "espidf")] {
-        #[path = "espidf.rs"] mod imp;
     } else if #[cfg(all(windows, target_vendor = "win7"))] {
         #[path = "windows7.rs"] mod imp;
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "rdrand",
-                        any(target_arch = "x86_64", target_arch = "x86")))] {
-        #[path = "rdrand.rs"] mod imp;
-    } else if #[cfg(all(feature = "js",
-                        any(target_arch = "wasm32", target_arch = "wasm64"),
-                        target_os = "unknown"))] {
-        #[path = "js.rs"] mod imp;
-    } else if #[cfg(feature = "custom")] {
-        use custom as imp;
-    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"),
-                        target_os = "unknown"))] {
+    } else if #[cfg(all(
+        any(target_arch = "wasm32", target_arch = "wasm64"),
+        target_os = "unknown",
+    ))] {
         compile_error!("the wasm*-unknown-unknown targets are not supported by \
-                        default, you may need to enable the \"js\" feature. \
-                        For more information see: \
+                        default, you may need to enable the \"wasm_js\" \
+                        configuration flag. For more information see: \
                         https://docs.rs/getrandom/#webassembly-support");
     } else {
-        compile_error!("target is not supported, for more information see: \
-                        https://docs.rs/getrandom/#unsupported-targets");
+        compile_error!("target is not supported. You may need to define \
+                        a custom backend see: \
+                        https://docs.rs/getrandom/#custom-backends");
     }
 }
 
