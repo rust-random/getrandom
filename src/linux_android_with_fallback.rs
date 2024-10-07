@@ -60,7 +60,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
     if raw_ptr == NOT_AVAILABLE {
         // prevent inlining of the fallback implementation
-        #[cold]
+        #[inline(never)]
         fn inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             use_file::getrandom_inner(dest)
         }
