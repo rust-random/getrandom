@@ -2,121 +2,65 @@
 //!
 //! # Supported targets
 //!
-//! | Target            | Target Triple      | Implementation
-//! | ----------------- | ------------------ | --------------
-//! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-//! | Windows 10+       | `*‑windows‑*`      | [`ProcessPrng`]
-//! | Windows 7 and 8   | `*-win7‑windows‑*` | [`RtlGenRandom`]
-//! | macOS             | `*‑apple‑darwin`   | [`getentropy`][3]
+//! | Target             | Target Triple      | Implementation
+//! | ------------------ | ------------------ | --------------
+//! | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
+//! | Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
+//! | Windows 7 and 8    | `*-win7‑windows‑*` | [`RtlGenRandom`]
+//! | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
-//! | FreeBSD           | `*‑freebsd`        | [`getrandom`][5]
-//! | OpenBSD           | `*‑openbsd`        | [`getentropy`][7]
-//! | NetBSD            | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
-//! | Dragonfly BSD     | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris           | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
-//! | illumos           | `*‑illumos`        | [`getrandom`][12]
-//! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`]
-//! | Redox             | `*‑redox`          | `/dev/urandom`
-//! | Haiku             | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
-//! | Hermit            | `*-hermit`         | [`sys_read_entropy`]
-//! | Hurd              | `*-hurd-*`         | [`getrandom`][17]
-//! | SGX               | `x86_64‑*‑sgx`     | [`RDRAND`]
-//! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
-//! | Emscripten        | `*‑emscripten`     | [`getentropy`][13]
-//! | WASI 0.1          | `wasm32‑wasip1`    | [`random_get`]
-//! | WASI 0.2          | `wasm32‑wasip2`    | [`get-random-u64`]
-//! | SOLID             | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
-//! | Nintendo 3DS      | `*-nintendo-3ds`   | [`getrandom`][18]
-//! | PS Vita           | `*-vita-*`         | [`getentropy`][13]
-//! | QNX Neutrino      | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
-//! | AIX               | `*-ibm-aix`        | [`/dev/urandom`][15]
-//!
-//! This crate also provides optional backends which can be enabled using [configuration flags]:
-//!
-//! | Backend name      | Target            | Target Triple        | Implementation
-//! | ----------------- | ----------------- | -------------------- | --------------
-//! | `linux_getrandom` | Linux, Android    | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback)
-//! | `rdrand`          | x86, x86-64       | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
-//! | `esp_idf`         | ESP-IDF           | `*‑espidf`           | [`esp_fill_random`]
-//! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown` | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
-//! | `custom`          | All targets       | `*`                  | User-provided custom implementation (see [custom backends])
+//! | FreeBSD            | `*‑freebsd`        | [`getrandom`][5]
+//! | OpenBSD            | `*‑openbsd`        | [`getentropy`][7]
+//! | NetBSD             | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
+//! | Dragonfly BSD      | `*‑dragonfly`      | [`getrandom`][9]
+//! | Solaris            | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
+//! | illumos            | `*‑illumos`        | [`getrandom`][12]
+//! | Fuchsia OS         | `*‑fuchsia`        | [`cprng_draw`]
+//! | Redox              | `*‑redox`          | `/dev/urandom`
+//! | Haiku              | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
+//! | Hermit             | `*-hermit`         | [`sys_read_entropy`]
+//! | Hurd               | `*-hurd-*`         | [`getrandom`][17]
+//! | SGX                | `x86_64‑*‑sgx`     | [`RDRAND`]
+//! | VxWorks            | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`
+//! | Emscripten         | `*‑emscripten`     | [`getentropy`][13]
+//! | WASI 0.1           | `wasm32‑wasip1`    | [`random_get`]
+//! | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
+//! | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
+//! | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
+//! | PS Vita            | `*-vita-*`         | [`getentropy`][13]
+//! | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
+//! | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 //!
 //! Pull Requests that add support for new targets to `getrandom` are always welcome.
 //!
-//! ### Platform Support
-//! This crate generally supports the same operating system and platform versions
-//! that the Rust standard library does. Additional targets may be supported using
-//! pluggable custom implementations.
+//! ## Opt-in backends
 //!
-//! This means that as Rust drops support for old versions of operating systems
-//! (such as old Linux kernel versions, Android API levels, etc) in stable releases,
-//! `getrandom` may create new patch releases (`0.N.x`) that remove support for
-//! outdated platform versions.
+//! `getrandom` also provides optional backends which can be enabled using `getrandom_backend`
+//! configuration flag:
 //!
-//! ## `/dev/urandom` fallback on Linux and Android
+//! | Backend name      | Target               | Target Triple        | Implementation
+//! | ----------------- | -------------------- | -------------------- | --------------
+//! | `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+//! | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
+//! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]
+//! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
+//! | `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
 //!
-//! On Linux targets the fallback is present only if either `target_env` is `musl`,
-//! or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
-//! `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
-//! kernel versions which support `getrandom` system call, so fallback is not needed.
+//! The configuration flag can be enabled either by specifying the `rustflags` field in
+//! [`.cargo/config.toml`] (note that it can be done on a per-target basis), or by using
+//! `RUSTFLAGS` environment variable:
 //!
-//! On Android targets the fallback is present only for the following `target_arch`es:
-//! `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
-//! sufficiently high API levels.
+//! ```sh
+//! RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build
+//! ```
 //!
-//! The fallback can be disabled by enabling the `linux_disable_fallback` crate feature.
-//! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
-//! Android API level to 23 (Marshmallow).
+//! Enabling an opt-in backend will replace backend used by default. Doing it for a wrong target
+//! (e.g. using `linux_getrandom` while compiling for a Windows target) will result
+//! in a compilation error. Be extremely carefull while using opt-in backends, since incorrect
+//! configuration may result in vulnerable or in always panicking applications.
 //!
-//! ## Early boot
-//!
-//! Sometimes, early in the boot process, the OS has not collected enough
-//! entropy to securely seed its RNG. This is especially common on virtual
-//! machines, where standard "random" events are hard to come by.
-//!
-//! Some operating system interfaces always block until the RNG is securely
-//! seeded. This can take anywhere from a few seconds to more than a minute.
-//! A few (Linux, NetBSD and Solaris) offer a choice between blocking and
-//! getting an error; in these cases, we always choose to block.
-//!
-//! On Linux (when the `getrandom` system call is not available), reading from
-//! `/dev/urandom` never blocks, even when the OS hasn't collected enough
-//! entropy yet. To avoid returning low-entropy bytes, we first poll
-//! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
-//!
-//! On OpenBSD, this kind of entropy accounting isn't available, and on
-//! NetBSD, blocking on it is discouraged. On these platforms, nonblocking
-//! interfaces are used, even when reliable entropy may not be available.
-//! On the platforms where it is used, the reliability of entropy accounting
-//! itself isn't free from controversy. This library provides randomness
-//! sourced according to the platform's best practices, but each platform has
-//! its own limits on the grade of randomness it can promise in environments
-//! with few sources of entropy.
-//!
-//! ## Configuration flags
-//!
-//! `getrandom` allows to change default backends or enable non-default backends
-//! using the `getrandom_backend` configuration flag. Supported values:
-//!
-//! - `linux_getrandom`: use `getrandom` syscall without `/dev/urandom` fallback.
-//!   Bumps minimum supported Linux kernel version to 3.17 and Android API level
-//!   to 23 (Marshmallow). Can be enabled only for Linux and Android targets.
-//! - `wasm_js`: use Web or Node.js APIs. Can be enabled only for OS-less
-//!   (i.e. `target_os = "unknown"`) WASM targets. See the [WebAssembly support]
-//!   for more information.
-//! - `rdrand`: use RDRAND instruction. Can be enabled only for x86 and x86-64 targets.
-//! - `esp_idf`: use [`esp_fill_random`]. Note that without a proper hardware configuration
-//!   it may return poor quality entropy. Can be enabled only for ESP-IDF trgets.
-//! - `custom`: use "custom" backend defined by an extern function.
-//!   See [custom backends] for more information.
-//!
-//! The flag can be enabled using either RUSTFLAGS environment variable,
-//! e.g. `RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build`, or by specifying
-//! the `rustflags` field in [`.cargo/config.toml`] (note that it can be done on
-//! per-target basis).
-//!
-//! Note that using a non-default backend in a library (e.g. for tests or benchmarks)
-//! WILL NOT have any effect on its users.
+//! Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
+//! WILL NOT have any effect on its downstream users.
 //!
 //! [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
 //!
@@ -131,7 +75,7 @@
 //! that you are building for an environment containing JavaScript, and will
 //! call the appropriate methods. Both web browser (main window and Web Workers)
 //! and Node.js environments are supported, invoking the methods
-//! [described above](#supported-targets) using the [`wasm-bindgen`] toolchain.
+//! [described above](#opt-in-backends) using the [`wasm-bindgen`] toolchain.
 //!
 //! To enable the `wasm_js` backend, you can add the following lines to your
 //! project's `.cargo/config.toml` file:
@@ -160,9 +104,11 @@
 //! section. Next, you need to define an `extern` function with the following
 //! signature:
 //!
-//! ```ignore
+//! ```
 //! #[no_mangle]
-//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 { ... }
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//!     todo!()
+//! }
 //! ```
 //!
 //! This function ideally should be defined in the root crate of your project,
@@ -179,12 +125,62 @@
 //! If you are confident that `getrandom` is not used in your project, but
 //! it gets pulled nevertheless by one of your dependencies, then you can
 //! use the following custom backend which always returns "unsupported" error:
-//! ```no_run
+//! ```
 //! #[no_mangle]
 //! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
 //!     getrandom::Error::UNSUPPORTED.code().get()
 //! }
 //! ```
+//!
+//! ### Platform Support
+//! This crate generally supports the same operating system and platform versions
+//! that the Rust standard library does. Additional targets may be supported using
+//! pluggable custom implementations.
+//!
+//! This means that as Rust drops support for old versions of operating systems
+//! (such as old Linux kernel versions, Android API levels, etc) in stable releases,
+//! `getrandom` may create new patch releases (`0.N.x`) that remove support for
+//! outdated platform versions.
+//!
+//! ## `/dev/urandom` fallback on Linux and Android
+//!
+//! On Linux targets the fallback is present only if either `target_env` is `musl`,
+//! or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
+//! `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
+//! kernel versions which support `getrandom` system call, so fallback is not needed.
+//!
+//! On Android targets the fallback is present only for the following `target_arch`es:
+//! `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
+//! sufficiently high API levels.
+//!
+//! The fallback can be disabled by enabling the `linux_getrandom` opt-in backend.
+//! Note that doing so will bump minimum supported Linux kernel version to 3.17 and
+//! Android API level to 23 (Marshmallow).
+//!
+//! ## Early boot
+//!
+//! Sometimes, early in the boot process, the OS has not collected enough
+//! entropy to securely seed its RNG. This is especially common on virtual
+//! machines, where standard "random" events are hard to come by.
+//!
+//! Some operating system interfaces always block until the RNG is securely
+//! seeded. This can take anywhere from a few seconds to more than a minute.
+//! A few (Linux, NetBSD and Solaris) offer a choice between blocking and
+//! getting an error; in these cases, we always choose to block.
+//!
+//! On Linux (when the `getrandom` system call is not available), reading from
+//! `/dev/urandom` never blocks, even when the OS hasn't collected enough
+//! entropy yet. To avoid returning low-entropy bytes, we first poll
+//! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.
+//!
+//! On OpenBSD, this kind of entropy accounting isn't available, and on
+//! NetBSD, blocking on it is discouraged. On these platforms, nonblocking
+//! interfaces are used, even when reliable entropy may not be available.
+//! On the platforms where it is used, the reliability of entropy accounting
+//! itself isn't free from controversy. This library provides randomness
+//! sourced according to the platform's best practices, but each platform has
+//! its own limits on the grade of randomness it can promise in environments
+//! with few sources of entropy.
 //!
 //! ## Error handling
 //!
@@ -223,7 +219,7 @@
 //! [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 //! [WebAssembly support]: #webassembly-support
 //! [configuration flags]: #configuration-flags
-//! [custom backends]: #custom-backends
+//! [custom backend]: #custom-backend
 //! [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 //! [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 //! [CommonJS modules]: https://nodejs.org/api/modules.html
