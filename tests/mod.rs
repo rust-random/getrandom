@@ -146,7 +146,7 @@ mod custom {
     //
     // WARNING: this custom implementation is for testing purposes ONLY!
     #[no_mangle]
-    unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+    unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         assert_ne!(len, 0);
