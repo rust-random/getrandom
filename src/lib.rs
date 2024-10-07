@@ -106,7 +106,7 @@
 //!
 //! ```
 //! #[no_mangle]
-//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), getrandom::Error> {
 //!     todo!()
 //! }
 //! ```
@@ -127,8 +127,8 @@
 //! use the following custom backend which always returns "unsupported" error:
 //! ```
 //! #[no_mangle]
-//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
-//!     getrandom::Error::UNSUPPORTED.code().get()
+//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), getrandom::Error> {
+//!     Err(getrandom::Error::UNSUPPORTED)
 //! }
 //! ```
 //!
