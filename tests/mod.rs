@@ -102,6 +102,8 @@ fn test_multithreading() {
 
 #[cfg(getrandom_backend = "custom")]
 mod custom {
+    use getrandom::Error;
+
     struct Xoshiro128PlusPlus {
         s: [u32; 4],
     }
@@ -146,13 +148,13 @@ mod custom {
     //
     // WARNING: this custom implementation is for testing purposes ONLY!
     #[no_mangle]
-    unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+    unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         assert_ne!(len, 0);
 
         if len == 142 {
-            return getrandom::Error::CUSTOM_START + 142;
+            return Err(Error::new_custom(142));
         }
 
         let dest_u32 = dest.cast::<u32>();
@@ -169,7 +171,7 @@ mod custom {
                 core::ptr::write_unaligned(dest.add(i), val as u8);
             }
         }
-        0
+        Ok(())
     }
 
     // Test that enabling the custom feature indeed uses the custom implementation
