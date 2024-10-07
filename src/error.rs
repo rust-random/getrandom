@@ -20,44 +20,38 @@ use core::{fmt, num::NonZeroU32};
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Error(NonZeroU32);
 
-const fn internal_error(n: u16) -> Error {
-    // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
-    let code = Error::INTERNAL_START + (n as u32);
-    Error(unsafe { NonZeroU32::new_unchecked(code) })
-}
-
 impl Error {
     /// This target/platform is not supported by `getrandom`.
-    pub const UNSUPPORTED: Error = internal_error(0);
+    pub const UNSUPPORTED: Error = Self::new_internal(0);
     /// The platform-specific `errno` returned a non-positive value.
-    pub const ERRNO_NOT_POSITIVE: Error = internal_error(1);
+    pub const ERRNO_NOT_POSITIVE: Error = Self::new_internal(1);
     /// Encountered an unexpected situation which should not happen in practice.
-    pub const UNEXPECTED: Error = internal_error(2);
+    pub const UNEXPECTED: Error = Self::new_internal(2);
     /// Call to [`CCRandomGenerateBytes`](https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html) failed
     /// on iOS, tvOS, or waatchOS.
     // TODO: Update this constant name in the next breaking release.
-    pub const IOS_SEC_RANDOM: Error = internal_error(3);
+    pub const IOS_SEC_RANDOM: Error = Self::new_internal(3);
     /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
-    pub const WINDOWS_RTL_GEN_RANDOM: Error = internal_error(4);
+    pub const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(4);
     /// RDRAND instruction failed due to a hardware issue.
-    pub const FAILED_RDRAND: Error = internal_error(5);
+    pub const FAILED_RDRAND: Error = Self::new_internal(5);
     /// RDRAND instruction unsupported on this target.
-    pub const NO_RDRAND: Error = internal_error(6);
+    pub const NO_RDRAND: Error = Self::new_internal(6);
     /// The environment does not support the Web Crypto API.
-    pub const WEB_CRYPTO: Error = internal_error(7);
+    pub const WEB_CRYPTO: Error = Self::new_internal(7);
     /// Calling Web Crypto API `crypto.getRandomValues` failed.
-    pub const WEB_GET_RANDOM_VALUES: Error = internal_error(8);
+    pub const WEB_GET_RANDOM_VALUES: Error = Self::new_internal(8);
     /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
-    pub const VXWORKS_RAND_SECURE: Error = internal_error(11);
+    pub const VXWORKS_RAND_SECURE: Error = Self::new_internal(11);
     /// Node.js does not have the `crypto` CommonJS module.
-    pub const NODE_CRYPTO: Error = internal_error(12);
+    pub const NODE_CRYPTO: Error = Self::new_internal(12);
     /// Calling Node.js function `crypto.randomFillSync` failed.
-    pub const NODE_RANDOM_FILL_SYNC: Error = internal_error(13);
+    pub const NODE_RANDOM_FILL_SYNC: Error = Self::new_internal(13);
     /// Called from an ES module on Node.js. This is unsupported, see:
     /// <https://docs.rs/getrandom#nodejs-es-module-support>.
-    pub const NODE_ES_MODULE: Error = internal_error(14);
+    pub const NODE_ES_MODULE: Error = Self::new_internal(14);
     /// Calling Windows ProcessPrng failed.
-    pub const WINDOWS_PROCESS_PRNG: Error = internal_error(15);
+    pub const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(15);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -108,13 +102,18 @@ impl Error {
         }
     }
 
-    /// Extract the bare error code.
-    ///
-    /// This code can either come from the underlying OS, or be a custom error.
-    /// Use [`Error::raw_os_error()`] to disambiguate.
-    #[inline]
-    pub const fn code(self) -> NonZeroU32 {
-        self.0
+    /// Creates a new instance of an `Error` from a particular custom error code.
+    pub const fn new_custom(n: u16) -> Error {
+        // SAFETY: code > 0 as CUSTOM_START > 0 and adding n won't overflow a u32.
+        let code = Error::CUSTOM_START + (n as u32);
+        Error(unsafe { NonZeroU32::new_unchecked(code) })
+    }
+
+    /// Creates a new instance of an `Error` from a particular internal error code.
+    const fn new_internal(n: u16) -> Error {
+        // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
+        let code = Error::INTERNAL_START + (n as u32);
+        Error(unsafe { NonZeroU32::new_unchecked(code) })
     }
 }
 
@@ -150,12 +149,6 @@ impl fmt::Display for Error {
         } else {
             write!(f, "Unknown Error: {}", self.0.get())
         }
-    }
-}
-
-impl From<NonZeroU32> for Error {
-    fn from(code: NonZeroU32) -> Self {
-        Self(code)
     }
 }
 
