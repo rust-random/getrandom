@@ -42,7 +42,7 @@
 //! | ----------------- | -------------------- | -------------------- | --------------
 //! | `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
 //! | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
-//! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]
+//! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low quality entropy without proper hardware configuration!
 //! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
 //! | `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
 //!
