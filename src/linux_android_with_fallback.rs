@@ -19,7 +19,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 fn is_getrandom_available() -> bool {
-    if linux_android::getrandom_syscall(&mut []) < 0 {
+    if cfg!(getrandom_test_linux_fallback) {
+        false
+    } else if linux_android::getrandom_syscall(&mut []) < 0 {
         match last_os_error().raw_os_error() {
             Some(libc::ENOSYS) => false, // No kernel support
             // The fallback on EPERM is intentionally not done on Android since this workaround
