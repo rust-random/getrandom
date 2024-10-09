@@ -1,4 +1,5 @@
-use getrandom::getrandom;
+use core::mem::MaybeUninit;
+use getrandom::{getrandom, getrandom_uninit};
 
 #[cfg(getrandom_browser_test)]
 use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -9,6 +10,8 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
     getrandom(&mut [0u8; 0]).unwrap();
+    let res = getrandom_uninit(&mut []).unwrap();
+    assert!(res.is_empty());
 }
 
 // Return the number of bits in which s1 and s2 differ
@@ -20,34 +23,51 @@ fn num_diff_bits(s1: &[u8], s2: &[u8]) -> usize {
         .sum()
 }
 
+// TODO: use `[const { MaybeUninit::uninit() }; N]` after MSRV is bumped to 1.79+
+// or `MaybeUninit::uninit_array`
+fn uninit_vec(n: usize) -> Vec<MaybeUninit<u8>> {
+    vec![MaybeUninit::uninit(); n]
+}
+
 // Tests the quality of calling getrandom on two large buffers
 #[test]
 fn test_diff() {
-    let mut v1 = [0u8; 1000];
+    const N: usize = 1000;
+    let mut v1 = [0u8; N];
+    let mut v2 = [0u8; N];
     getrandom(&mut v1).unwrap();
-
-    let mut v2 = [0u8; 1000];
     getrandom(&mut v2).unwrap();
+
+    let mut t1 = uninit_vec(N);
+    let mut t2 = uninit_vec(N);
+    let r1 = getrandom_uninit(&mut t1).unwrap();
+    let r2 = getrandom_uninit(&mut t2).unwrap();
+    assert_eq!(r1.len(), N);
+    assert_eq!(r2.len(), N);
 
     // Between 3.5 and 4.5 bits per byte should differ. Probability of failure:
     // ~ 2^(-94) = 2 * CDF[BinomialDistribution[8000, 0.5], 3500]
-    let d = num_diff_bits(&v1, &v2);
-    assert!(d > 3500);
-    assert!(d < 4500);
+    let d1 = num_diff_bits(&v1, &v2);
+    assert!(d1 > 3500);
+    assert!(d1 < 4500);
+    let d2 = num_diff_bits(r1, r2);
+    assert!(d2 > 3500);
+    assert!(d2 < 4500);
 }
 
-// Tests the quality of calling getrandom repeatedly on small buffers
 #[test]
 fn test_small() {
-    let mut buf1 = [0u8; 64];
-    let mut buf2 = [0u8; 64];
+    const N: usize = 64;
     // For each buffer size, get at least 256 bytes and check that between
     // 3 and 5 bits per byte differ. Probability of failure:
     // ~ 2^(-91) = 64 * 2 * CDF[BinomialDistribution[8*256, 0.5], 3*256]
-    for size in 1..=64 {
+    for size in 1..=N {
         let mut num_bytes = 0;
         let mut diff_bits = 0;
         while num_bytes < 256 {
+            let mut buf1 = [0u8; N];
+            let mut buf2 = [0u8; N];
+
             let s1 = &mut buf1[..size];
             let s2 = &mut buf2[..size];
 
@@ -62,10 +82,48 @@ fn test_small() {
     }
 }
 
+// Tests the quality of calling getrandom repeatedly on small buffers
+#[test]
+fn test_small_uninit() {
+    const N: usize = 64;
+    // For each buffer size, get at least 256 bytes and check that between
+    // 3 and 5 bits per byte differ. Probability of failure:
+    // ~ 2^(-91) = 64 * 2 * CDF[BinomialDistribution[8*256, 0.5], 3*256]
+    for size in 1..=N {
+        let mut num_bytes = 0;
+        let mut diff_bits = 0;
+        while num_bytes < 256 {
+            let mut buf1 = uninit_vec(N);
+            let mut buf2 = uninit_vec(N);
+
+            let s1 = &mut buf1[..size];
+            let s2 = &mut buf2[..size];
+
+            let r1 = getrandom_uninit(s1).unwrap();
+            let r2 = getrandom_uninit(s2).unwrap();
+            assert_eq!(r1.len(), size);
+            assert_eq!(r2.len(), size);
+
+            num_bytes += size;
+            diff_bits += num_diff_bits(r1, r2);
+        }
+        assert!(diff_bits > 3 * num_bytes);
+        assert!(diff_bits < 5 * num_bytes);
+    }
+}
+
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
     getrandom(&mut huge).unwrap();
+}
+
+#[test]
+fn test_huge_uninit() {
+    const N: usize = 100_000;
+    let mut huge = uninit_vec(N);
+    let res = getrandom_uninit(&mut huge).unwrap();
+    assert_eq!(res.len(), N);
 }
 
 #[test]
