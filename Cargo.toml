@@ -44,6 +44,7 @@ level = "warn"
 check-cfg = [
   'cfg(getrandom_backend, values("custom", "rdrand", "linux_getrandom", "wasm_js", "esp_idf"))',
   'cfg(getrandom_browser_test)',
+  'cfg(getrandom_test_linux_fallback)',
 ]
 
 [package.metadata.docs.rs]

@@ -105,8 +105,10 @@
 //! signature:
 //!
 //! ```
+//! use getrandom::Error;
+//!
 //! #[no_mangle]
-//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
+//! unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
 //!     todo!()
 //! }
 //! ```
@@ -126,9 +128,11 @@
 //! it gets pulled nevertheless by one of your dependencies, then you can
 //! use the following custom backend which always returns "unsupported" error:
 //! ```
+//! use getrandom::Error;
+//!
 //! #[no_mangle]
-//! unsafe fn __getrandom_custom(dest: *mut u8, len: usize) -> u32 {
-//!     getrandom::Error::UNSUPPORTED.code().get()
+//! unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
+//!     Err(Error::UNSUPPORTED)
 //! }
 //! ```
 //!

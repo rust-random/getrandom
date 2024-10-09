@@ -27,7 +27,9 @@ fn init() -> *mut c_void {
         let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(raw_ptr) };
         // Check that `getrandom` syscall is supported by kernel
         let res = unsafe { fptr(ptr::NonNull::dangling().as_ptr(), 0, 0) };
-        if res < 0 {
+        if cfg!(getrandom_test_linux_fallback) {
+            NOT_AVAILABLE
+        } else if res < 0 {
             match util_libc::last_os_error().raw_os_error() {
                 Some(libc::ENOSYS) => NOT_AVAILABLE, // No kernel support
                 // The fallback on EPERM is intentionally not done on Android since this workaround
