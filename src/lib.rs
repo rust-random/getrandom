@@ -248,7 +248,6 @@ extern crate cfg_if;
 use core::mem::MaybeUninit;
 
 mod error;
-mod lazy;
 mod util;
 
 #[cfg(feature = "std")]
@@ -275,6 +274,8 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "rdrand")] {
         #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
         compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
+
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "wasm_js")] {
         #[cfg(not(all(
@@ -351,6 +352,7 @@ cfg_if! {
             ),
         )
     ))] {
+        mod lazy;
         mod util_libc;
         mod use_file;
         mod linux_android;
@@ -387,6 +389,7 @@ cfg_if! {
     } else if #[cfg(windows)] {
         #[path = "windows.rs"] mod imp;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
+        mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(all(
         any(target_arch = "wasm32", target_arch = "wasm64"),

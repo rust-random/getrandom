@@ -1,6 +1,4 @@
 //! Helpers built around pointer-sized atomics.
-#![cfg(target_has_atomic = "ptr")]
-#![allow(dead_code)]
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 // This structure represents a lazily initialized static usize value. Useful
