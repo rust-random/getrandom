@@ -352,7 +352,6 @@ cfg_if! {
             ),
         )
     ))] {
-        mod lazy;
         mod util_libc;
         mod use_file;
         #[path = "linux_android_with_fallback.rs"] mod imp;
