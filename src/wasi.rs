@@ -24,10 +24,16 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2046-2062
     // Note that size of an allocated object can not be bigger than isize::MAX bytes.
     // WASI 0.1 supports only 32-bit WASM, so casting length to `i32` is safe.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     let ret = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
     match ret {
         0 => Ok(()),
-        _ => Err(Error::from_os_error(ret as u32)),
+        code => {
+            let err = u32::try_from(code)
+                .map(Error::from_os_error)
+                .unwrap_or(Error::UNEXPECTED);
+            Err(err)
+        }
     }
 }
 

@@ -56,7 +56,10 @@ pub fn sys_fill_exact(
     while !buf.is_empty() {
         let res = sys_fill(buf);
         match res {
-            res if res > 0 => buf = buf.get_mut(res as usize..).ok_or(Error::UNEXPECTED)?,
+            res if res > 0 => {
+                let len = usize::try_from(res).map_err(|_| Error::UNEXPECTED)?;
+                buf = buf.get_mut(len..).ok_or(Error::UNEXPECTED)?;
+            }
             -1 => {
                 let err = last_os_error();
                 // We should try again if the call was interrupted.

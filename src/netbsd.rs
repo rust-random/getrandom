@@ -19,26 +19,18 @@ unsafe extern "C" fn polyfill_using_kern_arand(
 ) -> libc::ssize_t {
     debug_assert_eq!(flags, 0);
 
-    static MIB: [libc::c_int; 2] = [libc::CTL_KERN, libc::KERN_ARND];
+    const MIB_LEN: libc::c_uint = 2;
+    static MIB: [libc::c_int; MIB_LEN as usize] = [libc::CTL_KERN, libc::KERN_ARND];
 
     // NetBSD will only return up to 256 bytes at a time, and
     // older NetBSD kernels will fail on longer buffers.
     let mut len = cmp::min(buflen, 256);
 
-    let ret = unsafe {
-        libc::sysctl(
-            MIB.as_ptr(),
-            MIB.len() as libc::c_uint,
-            buf,
-            &mut len,
-            ptr::null(),
-            0,
-        )
-    };
+    let ret = unsafe { libc::sysctl(MIB.as_ptr(), MIB_LEN, buf, &mut len, ptr::null(), 0) };
     if ret == -1 {
         -1
     } else {
-        len as libc::ssize_t
+        libc::ssize_t::try_from(len).expect("len is bounded by 256")
     }
 }
 
