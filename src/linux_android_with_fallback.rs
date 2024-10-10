@@ -23,11 +23,12 @@ fn init() -> NonNull<c_void> {
     let res_ptr = match NonNull::new(raw_ptr) {
         Some(fptr) => {
             let getrandom_fn = unsafe { mem::transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
+            let dangling_ptr = ptr::NonNull::dangling().as_ptr();
             // Check that `getrandom` syscall is supported by kernel
-            let res = unsafe { getrandom_fn(ptr::NonNull::dangling().as_ptr(), 0, 0) };
+            let res = unsafe { getrandom_fn(dangling_ptr, 0, 0) };
             if cfg!(getrandom_test_linux_fallback) {
                 NOT_AVAILABLE
-            } else if res < 0 {
+            } else if res.is_negative() {
                 match util_libc::last_os_error().raw_os_error() {
                     Some(libc::ENOSYS) => NOT_AVAILABLE, // No kernel support
                     // The fallback on EPERM is intentionally not done on Android since this workaround
@@ -48,6 +49,12 @@ fn init() -> NonNull<c_void> {
     res_ptr
 }
 
+// prevent inlining of the fallback implementation
+#[inline(never)]
+fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    use_file::getrandom_inner(dest)
+}
+
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
@@ -62,15 +69,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     };
 
     if fptr == NOT_AVAILABLE {
-        // prevent inlining of the fallback implementation
-        #[inline(never)]
-        fn inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-            use_file::getrandom_inner(dest)
-        }
-
-        inner(dest)
+        use_file_fallback(dest)
     } else {
-        // note: `transume` is currently the only way to get function pointer
+        // note: `transume` is currently the only way to convert pointer into function reference
         let getrandom_fn = unsafe { mem::transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
         util_libc::sys_fill_exact(dest, |buf| unsafe {
             getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
