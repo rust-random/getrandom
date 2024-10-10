@@ -6,14 +6,18 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     util_libc::sys_fill_exact(dest, getrandom_syscall)
 }
 
-// Also used by linux_android_with_fallback to check if the syscall is available.
 pub fn getrandom_syscall(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
-    unsafe {
+    let res: libc::c_long = unsafe {
         libc::syscall(
             libc::SYS_getrandom,
             buf.as_mut_ptr().cast::<core::ffi::c_void>(),
             buf.len(),
             0,
-        ) as libc::ssize_t
-    }
+        )
+    };
+
+    const _: () =
+        assert!(core::mem::size_of::<libc::c_long>() == core::mem::size_of::<libc::ssize_t>());
+    res.try_into()
+        .expect("c_long to ssize_t conversion is lossless")
 }
