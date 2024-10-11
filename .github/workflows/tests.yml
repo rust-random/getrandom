@@ -382,6 +382,29 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build -Z build-std=core --target=${{ matrix.target }}
 
+  build-rndr:
+    name: RNDR Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-unknown-linux-gnu, aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: RNDR enabled at compile time (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection without std (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection with std (macOS)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+
   build-esp-idf:
     name: ESP-IDF Build
     runs-on: ubuntu-22.04
