@@ -45,7 +45,7 @@ jobs:
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-freebsd
     - name: Hermit (hermit.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-hermit
-    - name: Web WASM (js.rs)
+    - name: Web WASM (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
       run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown

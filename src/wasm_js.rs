@@ -4,6 +4,12 @@ use crate::Error;
 extern crate std;
 use std::{mem::MaybeUninit, thread_local};
 
+#[cfg(not(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_os = "unknown",
+)))]
+compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
+
 use js_sys::{global, Function, Uint8Array};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 

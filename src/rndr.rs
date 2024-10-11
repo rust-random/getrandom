@@ -1,13 +1,13 @@
 //! RNDR register backend for aarch64 targets
-// Arm Architecture Reference Manual for A-profile architecture
-// ARM DDI 0487K.a, ID032224, D23.2.147 RNDR, Random Number
-
-#[cfg(not(target_arch = "aarch64"))]
-compile_error!("the `rndr` backend can be enabled only for AArch64 targets!");
-
+//!
+//! Arm Architecture Reference Manual for A-profile architecture:
+//! ARM DDI 0487K.a, ID032224, D23.2.147 RNDR, Random Number
 use crate::{util::slice_as_uninit, Error};
 use core::arch::asm;
 use core::mem::{size_of, MaybeUninit};
+
+#[cfg(not(target_arch = "aarch64"))]
+compile_error!("the `rndr` backend can be enabled only for AArch64 targets!");
 
 const RETRY_LIMIT: usize = 5;
 
