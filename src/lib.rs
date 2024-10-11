@@ -42,6 +42,7 @@
 //! | ----------------- | -------------------- | -------------------- | --------------
 //! | `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
 //! | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
+//! | `rndr`            | AArch64              | `aarch64-*`          | [`RNDR`] register
 //! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low quality entropy without proper hardware configuration!
 //! | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
 //! | `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
@@ -215,6 +216,7 @@
 //! [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
 //! [`Crypto.getRandomValues`]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues
 //! [`RDRAND`]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide
+//! [`RNDR`]: https://developer.arm.com/documentation/ddi0601/2024-06/AArch64-Registers/RNDR--Random-Number
 //! [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 //! [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
 //! [`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
@@ -292,6 +294,8 @@ cfg_if! {
 
         mod lazy;
         #[path = "rdrand.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "rndr")] {
+        #[path = "rndr.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "wasm_js")] {
         #[cfg(not(all(
             any(target_arch = "wasm32", target_arch = "wasm64"),

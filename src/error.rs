@@ -52,6 +52,10 @@ impl Error {
     pub const NODE_ES_MODULE: Error = Self::new_internal(14);
     /// Calling Windows ProcessPrng failed.
     pub const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(15);
+    /// RNDR register read failed due to a hardware issue.
+    pub const RNDR_FAILURE: Error = Self::new_internal(16);
+    /// RNDR register is not supported on this target.
+    pub const RNDR_NOT_AVAILABLE: Error = Self::new_internal(17);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -149,23 +153,26 @@ impl fmt::Display for Error {
 }
 
 fn internal_desc(error: Error) -> Option<&'static str> {
-    match error {
-        Error::UNSUPPORTED => Some("getrandom: this target is not supported"),
-        Error::ERRNO_NOT_POSITIVE => Some("errno: did not return a positive value"),
-        Error::UNEXPECTED => Some("unexpected situation"),
-        Error::IOS_SEC_RANDOM => Some("SecRandomCopyBytes: iOS Security framework failure"),
-        Error::WINDOWS_RTL_GEN_RANDOM => Some("RtlGenRandom: Windows system function failure"),
-        Error::FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
-        Error::NO_RDRAND => Some("RDRAND: instruction not supported"),
-        Error::WEB_CRYPTO => Some("Web Crypto API is unavailable"),
-        Error::WEB_GET_RANDOM_VALUES => Some("Calling Web API crypto.getRandomValues failed"),
-        Error::VXWORKS_RAND_SECURE => Some("randSecure: VxWorks RNG module is not initialized"),
-        Error::NODE_CRYPTO => Some("Node.js crypto CommonJS module is unavailable"),
-        Error::NODE_RANDOM_FILL_SYNC => Some("Calling Node.js API crypto.randomFillSync failed"),
-        Error::NODE_ES_MODULE => Some("Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support"),
-        Error::WINDOWS_PROCESS_PRNG => Some("ProcessPrng: Windows system function failure"),
-        _ => None,
-    }
+    let desc = match error {
+        Error::UNSUPPORTED => "getrandom: this target is not supported",
+        Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
+        Error::UNEXPECTED => "unexpected situation",
+        Error::IOS_SEC_RANDOM => "SecRandomCopyBytes: iOS Security framework failure",
+        Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
+        Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
+        Error::NO_RDRAND => "RDRAND: instruction not supported",
+        Error::WEB_CRYPTO => "Web Crypto API is unavailable",
+        Error::WEB_GET_RANDOM_VALUES => "Calling Web API crypto.getRandomValues failed",
+        Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
+        Error::NODE_CRYPTO => "Node.js crypto CommonJS module is unavailable",
+        Error::NODE_RANDOM_FILL_SYNC => "Calling Node.js API crypto.randomFillSync failed",
+        Error::NODE_ES_MODULE => "Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support",
+        Error::WINDOWS_PROCESS_PRNG => "ProcessPrng: Windows system function failure",
+        Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
+        Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
+        _ => return None,
+    };
+    Some(desc)
 }
 
 #[cfg(test)]
