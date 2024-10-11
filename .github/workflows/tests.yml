@@ -272,8 +272,8 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
         run: wasm-pack test --headless --safari
 
-  wasm64-tests:
-    name: wasm64 Build/Link
+  wasm64-build:
+    name: Wasm64 Build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -283,7 +283,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build and Link tests (build-std)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
         # This target is Tier 3, so we have to build libstd ourselves.
         # We currently cannot run these tests because wasm-bindgen-test-runner
         # does not yet support memory64.
