@@ -61,8 +61,6 @@ fn is_rndr_available() -> bool {
     cfg_if::cfg_if! {
         if #[cfg(target_feature = "rand")] {
             true
-        } else if #[cfg(feature = "std")] {
-            std::arch::is_aarch64_feature_detected!("rand")
         } else if #[cfg(target_os = "linux")] {
             /// Check whether FEAT_RNG is available on the system
             ///
@@ -89,6 +87,11 @@ fn is_rndr_available() -> bool {
             #[path = "../src/lazy.rs"] mod lazy;
             static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
             RNDR_GOOD.unsync_init(mrs_check)
+        } else if #[cfg(feature = "std")] {
+            extern crate std;
+            #[path = "../src/lazy.rs"] mod lazy;
+            static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
+            RNDR_GOOD.unsync_init(|| std::arch::is_aarch64_feature_detected!("rand"))
         } else {
             compile_error!(
                 "RNDR `no_std` runtime detection is currently supported only on Linux targets. \
