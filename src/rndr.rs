@@ -66,6 +66,8 @@ fn is_rndr_available() -> bool {
             ///
             /// Requires the caller either be running in EL1 or be on a system supporting MRS
             /// emulation. Due to the above, the implementation is currently restricted to Linux.
+            ///
+            /// Relying on runtime detection bumps minimum supported Linux kernel version to 4.11.
             fn mrs_check() -> bool {
                 let mut id_aa64isar0: u64;
 
