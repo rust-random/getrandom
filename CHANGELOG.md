@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 - Update MSRV to 1.60 [#472]
-- Remove support of the `wasm32-wasi` target (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
-- Remove `impl From<NonZeroU32> for Error` and `Error::code` method [#507]
+
+#### Removed
+- `wasm32-wasi` target support (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
+- Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
 
 ### Changed
 - Switch to `futex` on Linux and to `nanosleep`-based wait loop on other targets
@@ -18,11 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 - `Error::new_custom` method [#507]
+- AArch64 RNDR register opt-in backend [#512]
 
 [#472]: https://github.com/rust-random/getrandom/pull/472
 [#490]: https://github.com/rust-random/getrandom/pull/490
 [#499]: https://github.com/rust-random/getrandom/pull/499
 [#507]: https://github.com/rust-random/getrandom/pull/507
+[#512]: https://github.com/rust-random/getrandom/pull/512
 
 ## [0.2.15] - 2024-05-06
 ### Added
