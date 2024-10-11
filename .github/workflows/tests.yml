@@ -393,7 +393,7 @@ jobs:
           targets: aarch64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" --target-feature=+rand
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
         run: cargo build --target=aarch64-unknown-linux-gnu
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
