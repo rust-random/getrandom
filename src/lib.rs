@@ -284,29 +284,17 @@ cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
         #[path = "custom.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
-        #[cfg(not(any(target_os = "android", target_os = "linux")))]
-        compile_error!("`linux_getrandom` backend can be enabled only for Linux/Android targets!");
         mod util_libc;
         #[path = "linux_android.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "rdrand")] {
-        #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
-        compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
-
         mod lazy;
         #[path = "rdrand.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "rndr")] {
         #[path = "rndr.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "wasm_js")] {
-        #[cfg(not(all(
-            any(target_arch = "wasm32", target_arch = "wasm64"),
-            target_os = "unknown",
-        )))]
-        compile_error!("`wasm_js` backend can be enabled only on OS-less WASM targets!");
-        #[path = "js.rs"] mod imp;
+        #[path = "wasm_js.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "esp_idf")] {
-        #[cfg(not(target_os = "espidf"))]
-        compile_error!("`esp_idf` backend can be enabled only for ESP-IDF targets!");
-        #[path = "espidf.rs"] mod imp;
+        #[path = "esp_idf.rs"] mod imp;
     } else if #[cfg(any(
         target_os = "haiku",
         target_os = "redox",
