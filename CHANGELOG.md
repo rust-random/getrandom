@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wasm32-wasi` target support (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
 - `linux_disable_fallback`, `rdrand`, `js`, `test-in-browser`, and `custom` crate features
   in favor of configuration flags [#504]
+- `register_custom_getrandom!` macro [#504]
 - Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
 
 ### Changed
