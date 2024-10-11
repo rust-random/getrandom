@@ -52,7 +52,7 @@
 //! `RUSTFLAGS` environment variable:
 //!
 //! ```sh
-//! RUSTFLAGS='getrandom_backend="linux_getrandom"' cargo build
+//! RUSTFLAGS='--cfg getrandom_backend="linux_getrandom"' cargo build
 //! ```
 //!
 //! Enabling an opt-in backend will replace backend used by default. Doing it for a wrong target
