@@ -18,7 +18,7 @@ env:
 
 jobs:
   linux:
-    name: No panic (Linux)
+    name: Linux
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -56,3 +56,17 @@ jobs:
       run: cargo build --release --target wasm32-wasip2
     - name: Check (wasi.rs, preview 2)
       run: ret=$(grep panic target/wasm32-wasip2/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+
+  macos:
+    name: macOS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    
+    - name: Build (getentropy.rs)
+      run: cargo build --release
+    - name: Check (getentropy.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
