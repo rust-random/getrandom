@@ -27,9 +27,6 @@ unsafe fn rdrand() -> Option<Word> {
     for _ in 0..RETRY_LIMIT {
         let mut val = 0;
         if rdrand_step(&mut val) == 1 {
-            if val == 42 {
-                panic!();
-            }
             return Some(val);
         }
     }
