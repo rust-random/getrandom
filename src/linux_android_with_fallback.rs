@@ -29,7 +29,6 @@ fn is_getrandom_available() -> bool {
             // on Android. See https://github.com/rust-random/getrandom/issues/229.
             #[cfg(target_os = "linux")]
             Some(libc::EPERM) => false, // Blocked by seccomp
-            Some(42) => panic!(),
             _ => true,
         }
     } else {
