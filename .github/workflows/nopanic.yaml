@@ -1,0 +1,72 @@
+name: No panic
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: nopanic_check
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        # We need Nightly for the rust-std component for wasm32-wasip2
+        toolchain: nightly-2024-10-14
+        targets: wasm32-wasip1, wasm32-wasip2
+    
+    - name: Build (linux_android_with_fallback.rs)
+      run: cargo build --release
+    - name: Check (linux_android_with_fallback.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+    - name: Build (linux_android.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+      run: cargo build --release
+    - name: Check (linux_android.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+    - name: Build (rdrand.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+      run: cargo build --release
+    - name: Check (rdrand.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+    - name: Build (wasi.rs, preview 1)
+      run: cargo build --release --target wasm32-wasip1
+    - name: Check (wasi.rs, preview 1)
+      run: ret=$(grep panic target/wasm32-wasip1/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+
+    - name: Build (wasi.rs, preview 2)
+      run: cargo build --release --target wasm32-wasip2
+    - name: Check (wasi.rs, preview 2)
+      run: ret=$(grep panic target/wasm32-wasip2/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+
+  macos:
+    name: macOS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    
+    - name: Build (getentropy.rs)
+      run: cargo build --release
+    - name: Check (getentropy.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]

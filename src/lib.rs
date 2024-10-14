@@ -195,6 +195,15 @@
 //! on every call to `getrandom`, hence after the first successful call one
 //! can be reasonably confident that no errors will occur.
 //!
+//! ## Panic handling
+//!
+//! We strive to eliminate all potential panics from our implementation.
+//! In other words, when compiled with enabled optimizations, generated
+//! binary code for `getrandom` functions should not contain any panic
+//! branches. Even if platform misbiheaves and returns an unexpected
+//! result, our code should correctly handle it and return an error like
+//! [`Error::UNEXPECTED`].
+//!
 //! [1]: https://manned.org/getrandom.2
 //! [2]: https://manned.org/urandom.4
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
