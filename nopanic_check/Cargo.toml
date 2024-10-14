@@ -14,3 +14,9 @@ getrandom = { path = ".." }
 
 [profile.release]
 panic = "abort"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+  'cfg(getrandom_backend, values("custom"))',
+]

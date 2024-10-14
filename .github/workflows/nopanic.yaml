@@ -47,6 +47,13 @@ jobs:
     - name: Check (rdrand.rs)
       run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
+    - name: Build (custom.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+      run: cargo build --release
+    - name: Check (custom.rs)
+      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
     - name: Build (wasi.rs, preview 1)
       run: cargo build --release --target wasm32-wasip1
     - name: Check (wasi.rs, preview 1)
