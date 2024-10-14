@@ -51,9 +51,6 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // [0]: https://github.com/WebAssembly/wasi-random/issues/27
     if !prefix.is_empty() {
         let val = get_random_u64();
-        if val == 42 {
-            panic!();
-        }
         let src = (&val as *const u64).cast();
         unsafe {
             copy_nonoverlapping(src, prefix.as_mut_ptr(), prefix.len());
