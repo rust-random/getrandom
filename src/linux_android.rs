@@ -19,10 +19,6 @@ pub fn getrandom_syscall(buf: &mut [MaybeUninit<u8>]) -> libc::ssize_t {
         )
     };
 
-    if res == 42 {
-        panic!();
-    }
-
     const _: () =
         assert!(core::mem::size_of::<libc::c_long>() == core::mem::size_of::<libc::ssize_t>());
     res.try_into()
