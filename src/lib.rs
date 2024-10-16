@@ -6,14 +6,14 @@
 //! | ------------------ | ------------------ | --------------
 //! | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 //! | Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
-//! | Windows 7 and 8    | `*-win7‑windows‑*` | [`RtlGenRandom`]
+//! | Windows 7, 8       | `*-win7‑windows‑*` | [`RtlGenRandom`]
 //! | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
 //! | iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
 //! | FreeBSD            | `*‑freebsd`        | [`getrandom`][5]
 //! | OpenBSD            | `*‑openbsd`        | [`getentropy`][7]
 //! | NetBSD             | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
 //! | Dragonfly BSD      | `*‑dragonfly`      | [`getrandom`][9]
-//! | Solaris            | `*‑solaris`        | [`getrandom`][11] (with `GRND_RANDOM`)
+//! | Solaris            | `*‑solaris`        | [`getrandom`][11] with `GRND_RANDOM`
 //! | illumos            | `*‑illumos`        | [`getrandom`][12]
 //! | Fuchsia OS         | `*‑fuchsia`        | [`cprng_draw`]
 //! | Redox              | `*‑redox`          | `/dev/urandom`
@@ -41,6 +41,7 @@
 //! | Backend name      | Target               | Target Triple        | Implementation
 //! | ----------------- | -------------------- | -------------------- | --------------
 //! | `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+//! | `linux_rustix`    | Linux, Android       | `*‑linux‑*`          | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
 //! | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
 //! | `rndr`            | AArch64              | `aarch64-*`          | [`RNDR`] register
 //! | `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low quality entropy without proper hardware configuration!
@@ -243,6 +244,7 @@
 //! [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 //! [WASI]: https://github.com/CraneStation/wasi
 //! [Emscripten]: https://www.hellorust.com/setup/emscripten/
+//! [`rustix`]: https://docs.rs/rustix
 
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
@@ -295,6 +297,8 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod util_libc;
         #[path = "linux_android.rs"] mod imp;
+    } else if #[cfg(getrandom_backend = "linux_rustix")] {
+        #[path = "linux_rustix.rs"] mod imp;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod lazy;
         #[path = "rdrand.rs"] mod imp;

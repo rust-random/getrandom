@@ -18,23 +18,60 @@ cfg-if = "1"
 compiler_builtins = { version = "0.1", optional = true }
 core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
-[target.'cfg(unix)'.dependencies]
+# linux_android / linux_android_with_fallback
+[target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(target_env = "", getrandom_backend = "linux_rustix", getrandom_backend = "custom"))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
+# linux_rustix
+[target.'cfg(all(any(target_os = "linux", target_os = "android"), any(target_env = "", getrandom_backend = "linux_rustix")))'.dependencies]
+rustix = { version = "0.38", default-features = false, features = ["rand"] }
+
+# apple-other
+[target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# getentropy
+[target.'cfg(any(target_os = "macos", target_os = "openbsd", target_os = "vita", target_os = "emscripten"))'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# getrandom
+[target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# netbsd
+[target.'cfg(target_os = "netbsd")'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# solaris
+[target.'cfg(target_os = "solaris")'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# use_file
+[target.'cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# vxworks
+[target.'cfg(target_os = "vxworks")'.dependencies]
+libc = { version = "0.2.154", default-features = false }
+
+# wasi (0.2 only)
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies]
 wasi = { version = "0.13", default-features = false }
 
+# windows7
 [target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
 windows-targets = "0.52"
 
+# wasm_js
 [target.'cfg(all(getrandom_backend = "wasm_js", any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.89", default-features = false }
 js-sys = "0.3"
-[target.'cfg(all(getrandom_backend = "wasm_js", getrandom_browser_test, any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dev-dependencies]
+[target.'cfg(all(getrandom_backend = "wasm_js", getrandom_browser_test, target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = "0.3.39"
 
 [features]
-# Implement std-only traits for getrandom::Error
+# Implement std::error::Error for getrandom::Error and
+# use std to retrieve OS error descriptions
 std = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["compiler_builtins", "core"]
@@ -42,7 +79,7 @@ rustc-dep-of-std = ["compiler_builtins", "core"]
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js", "esp_idf"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
   'cfg(getrandom_browser_test)',
   'cfg(getrandom_test_linux_fallback)',
 ]
