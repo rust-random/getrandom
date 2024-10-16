@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 - `getrandom_backend` configuration flag for selection of opt-in backends [#504]
 - `Error::new_custom` method [#507]
-- AArch64 RNDR register opt-in backend [#512]
+- `rndr` opt-in backend [#512]
+- `linux_rustix` opt-in backend [#520]
 
 [#415]: https://github.com/rust-random/getrandom/pull/415
 [#440]: https://github.com/rust-random/getrandom/pull/440
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#504]: https://github.com/rust-random/getrandom/pull/504
 [#507]: https://github.com/rust-random/getrandom/pull/507
 [#512]: https://github.com/rust-random/getrandom/pull/512
+[#520]: https://github.com/rust-random/getrandom/pull/520
 
 ## [0.2.15] - 2024-05-06
 ### Added
