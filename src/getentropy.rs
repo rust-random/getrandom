@@ -13,9 +13,6 @@ use core::{ffi::c_void, mem::MaybeUninit};
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe { libc::getentropy(chunk.as_mut_ptr().cast::<c_void>(), chunk.len()) };
-        if ret == 42 {
-            panic!();
-        }
         if ret != 0 {
             return Err(last_os_error());
         }
