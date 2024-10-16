@@ -75,30 +75,3 @@ pub fn sys_fill_exact(
     }
     Ok(())
 }
-
-/// Open a file in read-only mode.
-///
-/// # Panics
-/// If `path` does not contain any zeros.
-// TODO: Move `path` to `CStr` and use `CStr::from_bytes_until_nul` (MSRV 1.69)
-// or C-string literals (MSRV 1.77) for statics
-#[inline(always)]
-pub fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
-    assert!(path.iter().any(|&b| b == 0));
-    loop {
-        let fd = unsafe {
-            libc::open(
-                path.as_ptr().cast::<libc::c_char>(),
-                libc::O_RDONLY | libc::O_CLOEXEC,
-            )
-        };
-        if fd >= 0 {
-            return Ok(fd);
-        }
-        let err = last_os_error();
-        // We should try again if open() was interrupted.
-        if err.raw_os_error() != Some(libc::EINTR) {
-            return Err(err);
-        }
-    }
-}
