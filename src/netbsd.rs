@@ -70,6 +70,10 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     }
     let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
     sys_fill_exact(dest, |buf| unsafe {
-        fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
+        let ret = fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0);
+        if ret == 42 {
+            todo!();
+        }
+        ret
     })
 }
