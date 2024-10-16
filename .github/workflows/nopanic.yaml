@@ -21,59 +21,94 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@master
-      with:
-        # We need Nightly for the rust-std component for wasm32-wasip2
-        toolchain: nightly-2024-10-14
-        targets: wasm32-wasip1, wasm32-wasip2
-    
-    - name: Build (linux_android_with_fallback.rs)
-      run: cargo build --release
-    - name: Check (linux_android_with_fallback.rs)
-      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          # We need Nightly for the rust-std component for wasm32-wasip2
+          toolchain: nightly-2024-10-14
+          targets: wasm32-wasip1, wasm32-wasip2
+      
+      - name: Build (linux_android_with_fallback.rs)
+        run: cargo build --release
+      - name: Check (linux_android_with_fallback.rs)
+        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
-    - name: Build (linux_android.rs)
-      env:
-        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-      run: cargo build --release
-    - name: Check (linux_android.rs)
-      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - name: Build (linux_android.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+        run: cargo build --release
+      - name: Check (linux_android.rs)
+        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
-    - name: Build (rdrand.rs)
-      env:
-        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-      run: cargo build --release
-    - name: Check (rdrand.rs)
-      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - name: Build (rdrand.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build --release
+      - name: Check (rdrand.rs)
+        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
-    - name: Build (custom.rs)
-      env:
-        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-      run: cargo build --release
-    - name: Check (custom.rs)
-      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - name: Build (custom.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+        run: cargo build --release
+      - name: Check (custom.rs)
+        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
-    - name: Build (wasi.rs, preview 1)
-      run: cargo build --release --target wasm32-wasip1
-    - name: Check (wasi.rs, preview 1)
-      run: ret=$(grep panic target/wasm32-wasip1/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+      - name: Build (wasi.rs, preview 1)
+        run: cargo build --release --target wasm32-wasip1
+      - name: Check (wasi.rs, preview 1)
+        run: ret=$(grep panic target/wasm32-wasip1/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
 
-    - name: Build (wasi.rs, preview 2)
-      run: cargo build --release --target wasm32-wasip2
-    - name: Check (wasi.rs, preview 2)
-      run: ret=$(grep panic target/wasm32-wasip2/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+      - name: Build (wasi.rs, preview 2)
+        run: cargo build --release --target wasm32-wasip2
+      - name: Check (wasi.rs, preview 2)
+        run: ret=$(grep panic target/wasm32-wasip2/release/getrandom_wrapper.wasm; echo $?); [ $ret -eq 1 ]
+
+  cross:
+    name: Cross
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rust-src
+          targets: aarch64-unknown-linux-gnu,x86_64-unknown-netbsd,x86_64-unknown-freebsd,x86_64-pc-solaris
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build (rndr.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cross build --release --target=aarch64-unknown-linux-gnu
+      - name: Check (rndr.rs)
+        run: ret=$(grep panic target/aarch64-unknown-linux-gnu/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+      - name: Build (getrandom.rs)
+        run: cross build --release --target=x86_64-unknown-freebsd
+      - name: Check (getrandom.rs)
+        run: ret=$(grep panic target/x86_64-unknown-freebsd/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+      # - name: Build (netbsd.rs)
+      #   run: cross build --release --target=x86_64-unknown-netbsd
+      # - name: Check (netbsd.rs)
+      #   run: ret=$(grep panic target/x86_64-unknown-netbsd/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+
+      # - name: Build (solaris.rs)
+      #   run: cross build --release --target=x86_64-pc-solaris
+      # - name: Check (solaris.rs)
+      #   run: ret=$(grep panic target/x86_64-pc-solaris/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
   macos:
     name: macOS
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: stable
-    
-    - name: Build (getentropy.rs)
-      run: cargo build --release
-    - name: Check (getentropy.rs)
-      run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      
+      - name: Build (getentropy.rs)
+        run: cargo build --release
+      - name: Check (getentropy.rs)
+        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
