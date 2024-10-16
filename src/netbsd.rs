@@ -25,12 +25,17 @@ unsafe extern "C" fn polyfill_using_kern_arand(
     // NetBSD will only return up to 256 bytes at a time, and
     // older NetBSD kernels will fail on longer buffers.
     let mut len = cmp::min(buflen, 256);
+    let expected_ret = libc::c_int::try_from(len).expect("len is bounded by 256");
 
     let ret = unsafe { libc::sysctl(MIB.as_ptr(), MIB_LEN, buf, &mut len, ptr::null(), 0) };
-    if ret == -1 {
+
+    if ret == expected_ret {
+        libc::ssize_t::try_from(ret).expect("len is bounded by 256")
+    } else if ret == -1 {
         -1
     } else {
-        libc::ssize_t::try_from(len).expect("len is bounded by 256")
+        // Zero return result will be converted into `Error::UNEXPECTED` by `sys_fill_exact`
+        0
     }
 }
 
