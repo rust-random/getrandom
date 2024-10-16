@@ -16,6 +16,7 @@ getrandom = { path = ".." }
 
 [profile.release]
 panic = "abort"
+strip = true
 
 [lints.rust.unexpected_cfgs]
 level = "warn"

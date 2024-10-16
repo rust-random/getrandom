@@ -27,6 +27,7 @@ jobs:
           # We need Nightly for the rust-std component for wasm32-wasip2
           toolchain: nightly-2024-10-14
           targets: wasm32-wasip1, wasm32-wasip2
+      - uses: Swatinem/rust-cache@v2
       
       - name: Build (linux_android_with_fallback.rs)
         run: cargo build --release
@@ -82,6 +83,7 @@ jobs:
           toolchain: stable
           components: rust-src
           targets: aarch64-unknown-linux-gnu,x86_64-unknown-netbsd,x86_64-unknown-freebsd,x86_64-pc-solaris
+      - uses: Swatinem/rust-cache@v2
       # TODO: use pre-compiled cross after a new (post-0.2.5) release
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross
@@ -110,14 +112,21 @@ jobs:
 
   macos:
     name: macOS
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+          targets: aarch64-apple-ios
+      - uses: Swatinem/rust-cache@v2
       
       - name: Build (getentropy.rs)
-        run: cargo build --release
+        run: cargo build --release --target=aarch64-apple-darwin
       - name: Check (getentropy.rs)
-        run: ret=$(grep panic target/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+        run: ret=$(grep -c panic target/aarch64-apple-darwin/release/libgetrandom_wrapper.dylib); (( $ret == 1))
+
+      - name: Build (apple-other.rs)
+        run: cargo build --release --target=aarch64-apple-ios
+      - name: Check (apple-other.rs)
+        run: ret=$(grep -c panic target/aarch64-apple-ios/release/libgetrandom_wrapper.dylib); (( $ret == 1))
