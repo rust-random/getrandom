@@ -89,10 +89,10 @@ jobs:
       - name: Check (getrandom.rs)
         run: ret=$(grep panic target/x86_64-unknown-freebsd/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
-      # - name: Build (netbsd.rs)
-      #   run: cross build --release --target=x86_64-unknown-netbsd
-      # - name: Check (netbsd.rs)
-      #   run: ret=$(grep panic target/x86_64-unknown-netbsd/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
+      - name: Build (netbsd.rs)
+        run: cross build --release --target=x86_64-unknown-netbsd
+      - name: Check (netbsd.rs)
+        run: ret=$(grep panic target/x86_64-unknown-netbsd/release/libgetrandom_wrapper.so; echo $?); [ $ret -eq 1 ]
 
       # - name: Build (solaris.rs)
       #   run: cross build --release --target=x86_64-pc-solaris
