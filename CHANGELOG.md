@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not read from `errno` when `libc` did not indicate error on Solaris [#448]
 - Switch from `libpthread`'s mutex to `futex` on Linux and to `nanosleep`-based wait loop
   on other targets in the `use_file` backend [#490]
+- Do not retry on `EAGAIN` while polling `/dev/random` on Linux [#522]
 
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#512]: https://github.com/rust-random/getrandom/pull/512
 [#520]: https://github.com/rust-random/getrandom/pull/520
 [#521]: https://github.com/rust-random/getrandom/pull/521
+[#522]: https://github.com/rust-random/getrandom/pull/522
 
 ## [0.2.15] - 2024-05-06
 ### Added

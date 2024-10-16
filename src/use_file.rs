@@ -191,8 +191,10 @@ mod sync {
                 break Ok(());
             }
             let err = last_os_error();
+            // Assuming that `poll` is called correctly,
+            // on Linux it can return only EINTR and ENOMEM errors.
             match err.raw_os_error() {
-                Some(libc::EINTR) | Some(libc::EAGAIN) => continue,
+                Some(libc::EINTR) => continue,
                 _ => break Err(err),
             }
         };
