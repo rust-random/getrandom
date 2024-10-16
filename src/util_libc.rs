@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::Error;
 use core::mem::MaybeUninit;
 
@@ -34,7 +33,7 @@ cfg_if! {
     }
 }
 
-pub fn last_os_error() -> Error {
+pub(crate) fn last_os_error() -> Error {
     let errno: libc::c_int = unsafe { get_errno() };
 
     // c_int-to-u32 conversion is lossless for nonnegative values if they are the same size.
@@ -49,7 +48,8 @@ pub fn last_os_error() -> Error {
 // Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
 //   - should return -1 and set errno on failure
 //   - should return the number of bytes written on success
-pub fn sys_fill_exact(
+#[allow(dead_code)]
+pub(crate) fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
     sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> libc::ssize_t,
 ) -> Result<(), Error> {
