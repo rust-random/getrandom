@@ -384,10 +384,8 @@ cfg_if! {
             ),
         )
     ))] {
-        mod lazy;
         mod util_libc;
         mod use_file;
-        mod linux_android;
         #[path = "linux_android_with_fallback.rs"] mod imp;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
         mod util_libc;
