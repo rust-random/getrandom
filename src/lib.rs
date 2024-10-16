@@ -205,6 +205,17 @@
 //! result, our code should correctly handle it and return an error like
 //! [`Error::UNEXPECTED`].
 //!
+//! ## Sanitizer support
+//!
+//! If your code uses `getrandom_uninit` and you use memory sanitizer
+//! (i.e. `-Zsanitizer=memory`), then you need to pass `getrandom_sanitize`
+//! configuration flag for `getrandom_uninit` to unpoison destination buffer.
+//!
+//! For example, it can be done like this (requires Nightly compiler):
+//! ```
+//! RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+//! ```
+//!
 //! [1]: https://manned.org/getrandom.2
 //! [2]: https://manned.org/urandom.4
 //! [3]: https://www.unix.com/man-page/mojave/2/getentropy/
@@ -254,6 +265,7 @@
 #![no_std]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(getrandom_sanitize, feature(cfg_sanitize))]
 #![deny(
     clippy::cast_lossless,
     clippy::cast_possible_truncation,
@@ -474,7 +486,20 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
     if !dest.is_empty() {
         imp::getrandom_inner(dest)?;
     }
+
+    #[cfg(getrandom_sanitize)]
+    #[cfg(sanitize = "memory")]
+    extern "C" {
+        fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
+    }
+
     // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
     // since it returned `Ok`.
-    Ok(unsafe { slice_assume_init_mut(dest) })
+    Ok(unsafe {
+        #[cfg(getrandom_sanitize)]
+        #[cfg(sanitize = "memory")]
+        __msan_unpoison(dest.as_mut_ptr().cast(), dest.len());
+
+        slice_assume_init_mut(dest)
+    })
 }

@@ -80,6 +80,7 @@ rustc-dep-of-std = ["compiler_builtins", "core"]
 level = "warn"
 check-cfg = [
   'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
+  'cfg(getrandom_sanitize)',
   'cfg(getrandom_browser_test)',
   'cfg(getrandom_test_linux_fallback)',
 ]
