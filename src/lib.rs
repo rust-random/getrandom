@@ -212,7 +212,7 @@
 //! configuration flag for `getrandom_uninit` to unpoison destination buffer.
 //!
 //! For example, it can be done like this (requires Nightly compiler):
-//! ```
+//! ```text
 //! RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
 //! ```
 //!
