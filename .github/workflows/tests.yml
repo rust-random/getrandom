@@ -159,6 +159,20 @@ jobs:
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
 
+  sanitizer-test:
+    name: Sanitizer Test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-10-08
+          components: rust-src
+      - env:
+          RUSTFLAGS: -Dwarnings -Zsanitizer=memory --cfg getrandom_sanitize
+        # `--all-targets` is used to skip doc tests which currently fail linking
+        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu --all-targets
+
   cross-tests:
     name: Cross Test
     runs-on: ubuntu-22.04
