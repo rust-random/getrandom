@@ -45,9 +45,11 @@ pub(crate) fn last_os_error() -> Error {
     }
 }
 
-// Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
-//   - should return -1 and set errno on failure
-//   - should return the number of bytes written on success
+/// Fill a buffer by repeatedly invoking `sys_fill`.
+///
+/// The `sys_fill` function:
+///   - should return -1 and set errno on failure
+///   - should return the number of bytes written on success
 #[allow(dead_code)]
 pub(crate) fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
