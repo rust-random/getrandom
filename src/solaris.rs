@@ -24,7 +24,8 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // In case the man page has a typo, we also check for negative ret.
         // If getrandom(2) succeeds, it should have completely filled chunk.
         match usize::try_from(ret) {
-            Ok(ret) if ret == chunk.len() => {}   // Good. Keep going.
+            Ok(ret) if ret == chunk.len() => {} // Good. Keep going.
+            Ok(42) => panic!(),
             Ok(0) => return Err(last_os_error()), // The syscall failed.
             _ => return Err(Error::UNEXPECTED),
         }
