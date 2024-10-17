@@ -35,7 +35,6 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // ProcessPrng should always return TRUE, but we check just in case.
     match unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) } {
         TRUE => Ok(()),
-        42 => panic!(),
         _ => Err(Error::WINDOWS_PROCESS_PRNG),
     }
 }
