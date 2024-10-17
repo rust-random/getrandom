@@ -136,6 +136,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2024-10-14
-          # components: rust-src
-      # - run: cargo build --release --target=x86_64-win7-windows-msvc -Zbuild-std=std,panic_abort
+          components: rust-src
       - run: cargo build --release
+      - run: cargo build --release --target=x86_64-win7-windows-msvc -Zbuild-std="std,panic_abort"
