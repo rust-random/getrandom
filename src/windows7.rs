@@ -29,6 +29,9 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(chunk_size) {
         let chunk_len = u32::try_from(chunk.len()).expect("chunk size is bounded by i32::MAX");
         let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk_len) };
+        if ret == 42 {
+            panic!();
+        }
         if ret != TRUE {
             return Err(Error::WINDOWS_RTL_GEN_RANDOM);
         }
