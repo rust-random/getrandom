@@ -216,6 +216,64 @@ jobs:
       - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
       - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
 
+  freebsd:
+    name: FreeBSD VM Test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            pkg install -y rust
+          run: cargo test
+
+  openbsd:
+    name: OpenBSD VM Test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test in OpenBSD
+        uses: vmactions/openbsd-vm@v1
+        with:
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            pkg_add rust
+          run: cargo test
+
+  netbsd:
+    name: NetBSD VM Test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test in NetBSD
+        uses: vmactions/netbsd-vm@v1
+        with:
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            /usr/sbin/pkg_add rust
+          run: cargo test
+
+  # This job currently fails:
+  # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528
+  # dragonflybsd:
+  #   name: DragonflyBSD VM Test
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test in DragonflyBSD
+  #       uses: vmactions/dragonflybsd-vm@v1
+  #       with:
+  #         envs: 'RUSTFLAGS'
+  #         usesh: true
+  #         prepare: |
+  #           pkg install -y rust
+  #         run: cargo test
+
   cross-link:
     name: Cross Build/Link
     runs-on: ubuntu-22.04
