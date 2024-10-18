@@ -216,6 +216,20 @@ jobs:
       - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
       - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
 
+  freebsd:
+    name: FreeBSD Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            pkg install -y rust
+          run: cargo test
+
   cross-link:
     name: Cross Build/Link
     runs-on: ubuntu-22.04
