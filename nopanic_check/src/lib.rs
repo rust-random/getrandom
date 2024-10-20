@@ -19,7 +19,7 @@ pub extern "C" fn getrandom_wrapper(buf_ptr: *mut u8, buf_len: usize) -> u32 {
 
 #[cfg(getrandom_backend = "custom")]
 #[no_mangle]
-unsafe extern "Rust" fn __getrandom_custom(
+unsafe extern "Rust" fn __getrandom_v03_custom(
     dest: *mut u8,
     len: usize,
 ) -> Result<(), getrandom::Error> {

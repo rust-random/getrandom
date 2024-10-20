@@ -206,7 +206,7 @@ mod custom {
     //
     // WARNING: this custom implementation is for testing purposes ONLY!
     #[no_mangle]
-    unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
+    unsafe extern "Rust" fn __getrandom_v03_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         assert_ne!(len, 0);
