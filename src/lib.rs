@@ -110,7 +110,10 @@
 //! use getrandom::Error;
 //!
 //! #[no_mangle]
-//! unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
+//! unsafe extern "Rust" fn __getrandom_v03_custom(
+//!     dest: *mut u8,
+//!     len: usize,
+//! ) -> Result<(), Error> {
 //!     todo!()
 //! }
 //! ```
@@ -133,7 +136,10 @@
 //! use getrandom::Error;
 //!
 //! #[no_mangle]
-//! unsafe extern "Rust" fn __getrandom_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
+//! unsafe extern "Rust" fn __getrandom_v03_custom(
+//!     dest: *mut u8,
+//!     len: usize,
+//! ) -> Result<(), Error> {
 //!     Err(Error::UNSUPPORTED)
 //! }
 //! ```
