@@ -215,7 +215,7 @@
 //!
 //! If your code uses [`fill_uninit`] and you use memory sanitizer
 //! (i.e. `-Zsanitizer=memory`), then you need to pass `getrandom_sanitize`
-//! configuration flag for `getrandom_uninit` to unpoison destination buffer.
+//! configuration flag for `fill_uninit` to unpoison destination buffer.
 //!
 //! For example, it can be done like this (requires Nightly compiler):
 //! ```text
