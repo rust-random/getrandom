@@ -31,7 +31,7 @@ windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *m
 pub type BOOL = i32;
 pub const TRUE: BOOL = 1i32;
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // ProcessPrng should always return TRUE, but we check just in case.
     match unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) } {
         TRUE => Ok(()),

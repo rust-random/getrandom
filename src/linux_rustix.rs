@@ -5,7 +5,7 @@ use rustix::rand::{getrandom_uninit, GetRandomFlags};
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 compile_error!("`linux_rustix` backend can be enabled only for Linux/Android targets!");
 
-pub fn getrandom_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     loop {
         let res = getrandom_uninit(dest, GetRandomFlags::empty()).map(|(res, _)| res.len());
         match res {

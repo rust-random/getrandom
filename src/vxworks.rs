@@ -6,7 +6,7 @@ use core::{
     sync::atomic::{AtomicBool, Ordering::Relaxed},
 };
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RNG_INIT: AtomicBool = AtomicBool::new(false);
     while !RNG_INIT.load(Relaxed) {
         let ret = unsafe { libc::randSecure() };

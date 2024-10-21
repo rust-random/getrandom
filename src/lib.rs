@@ -213,9 +213,9 @@
 //!
 //! ## Sanitizer support
 //!
-//! If your code uses `getrandom_uninit` and you use memory sanitizer
+//! If your code uses [`fill_uninit`] and you use memory sanitizer
 //! (i.e. `-Zsanitizer=memory`), then you need to pass `getrandom_sanitize`
-//! configuration flag for `getrandom_uninit` to unpoison destination buffer.
+//! configuration flag for `fill_uninit` to unpoison destination buffer.
 //!
 //! For example, it can be done like this (requires Nightly compiler):
 //! ```text
@@ -304,8 +304,8 @@ use crate::util::{slice_as_uninit_mut, slice_assume_init_mut};
 
 // System-specific implementations.
 //
-// These should all provide getrandom_inner with the signature
-// `fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
+// These should all provide fill_inner with the signature
+// `fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
 // The function MUST fully initialize `dest` when `Ok(())` is returned.
 // The function MUST NOT ever write uninitialized bytes into `dest`,
 // regardless of what value it returns.
@@ -442,8 +442,7 @@ cfg_if! {
     }
 }
 
-/// Fill `dest` with random bytes from the system's preferred random number
-/// source.
+/// Fill `dest` with random bytes from the system's preferred random number source.
 ///
 /// This function returns an error on any failure, including partial reads. We
 /// make no guarantees regarding the contents of `dest` on error. If `dest` is
@@ -455,17 +454,27 @@ cfg_if! {
 /// In general, `getrandom` will be fast enough for interactive usage, though
 /// significantly slower than a user-space CSPRNG; for the latter consider
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = [0u8; 32];
+/// getrandom::fill(&mut buf)?;
+/// # Ok(()) }
+/// ```
 #[inline]
-pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
-    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape, and
-    // `getrandom_uninit` guarantees it will never de-initialize any part of
-    // `dest`.
-    getrandom_uninit(unsafe { slice_as_uninit_mut(dest) })?;
+pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
+    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape,
+    // and `fill_uninit` guarantees it will never de-initialize
+    // any part of `dest`.
+    fill_uninit(unsafe { slice_as_uninit_mut(dest) })?;
     Ok(())
 }
 
-/// Version of the `getrandom` function which fills `dest` with random bytes
-/// returns a mutable reference to those bytes.
+/// Fill potentially uninitialized buffer `dest` with random bytes from
+/// the system's preferred random number source and return a mutable
+/// reference to those bytes.
 ///
 /// On successful completion this function is guaranteed to return a slice
 /// which points to the same memory as `dest` and has the same length.
@@ -482,13 +491,13 @@ pub fn getrandom(dest: &mut [u8]) -> Result<(), Error> {
 /// #![feature(maybe_uninit_uninit_array)]
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
-/// let buf: &mut [u8] = getrandom::getrandom_uninit(&mut buf)?;
+/// let buf: &mut [u8] = getrandom::fill_uninit(&mut buf)?;
 /// # Ok(()) }
 /// ```
 #[inline]
-pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     if !dest.is_empty() {
-        imp::getrandom_inner(dest)?;
+        imp::fill_inner(dest)?;
     }
 
     #[cfg(getrandom_sanitize)]
@@ -497,7 +506,7 @@ pub fn getrandom_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error
         fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
     }
 
-    // SAFETY: `dest` has been fully initialized by `imp::getrandom_inner`
+    // SAFETY: `dest` has been fully initialized by `imp::fill_inner`
     // since it returned `Ok`.
     Ok(unsafe {
         #[cfg(getrandom_sanitize)]

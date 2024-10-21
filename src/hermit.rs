@@ -6,7 +6,7 @@ extern "C" {
     fn sys_read_entropy(buffer: *mut u8, length: usize, flags: u32) -> isize;
 }
 
-pub fn getrandom_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     while !dest.is_empty() {
         let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };
         match res {

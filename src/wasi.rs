@@ -12,7 +12,7 @@ compile_error!(
 );
 
 #[cfg(target_env = "p1")]
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // This linking is vendored from the wasi crate:
     // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2344-2350
     #[link(wasm_import_module = "wasi_snapshot_preview1")]
@@ -38,7 +38,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 #[cfg(target_env = "p2")]
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use core::ptr::copy_nonoverlapping;
     use wasi::random::random::get_random_u64;
 

@@ -5,17 +5,17 @@ use std::mem::MaybeUninit;
 
 // Call getrandom on a zero-initialized stack buffer
 #[inline(always)]
-fn bench_getrandom<const N: usize>() {
+fn bench_fill<const N: usize>() {
     let mut buf = [0u8; N];
-    getrandom::getrandom(&mut buf).unwrap();
+    getrandom::fill(&mut buf).unwrap();
     test::black_box(&buf[..]);
 }
 
-// Call getrandom_uninit on an uninitialized stack buffer
+// Call fill_uninit on an uninitialized stack buffer
 #[inline(always)]
-fn bench_getrandom_uninit<const N: usize>() {
+fn bench_fill_uninit<const N: usize>() {
     let mut uninit = [MaybeUninit::uninit(); N];
-    let buf: &[u8] = getrandom::getrandom_uninit(&mut uninit).unwrap();
+    let buf: &[u8] = getrandom::fill_uninit(&mut uninit).unwrap();
     test::black_box(buf);
 }
 
@@ -30,20 +30,20 @@ macro_rules! bench {
     ( $name:ident, $size:expr ) => {
         pub mod $name {
             #[bench]
-            pub fn bench_getrandom(b: &mut test::Bencher) {
+            pub fn bench_fill(b: &mut test::Bencher) {
                 #[inline(never)]
                 fn inner() {
-                    super::bench_getrandom::<{ $size }>()
+                    super::bench_fill::<{ $size }>()
                 }
 
                 b.bytes = $size as u64;
                 b.iter(inner);
             }
             #[bench]
-            pub fn bench_getrandom_uninit(b: &mut test::Bencher) {
+            pub fn bench_fill_uninit(b: &mut test::Bencher) {
                 #[inline(never)]
                 fn inner() {
-                    super::bench_getrandom_uninit::<{ $size }>()
+                    super::bench_fill_uninit::<{ $size }>()
                 }
 
                 b.bytes = $size as u64;

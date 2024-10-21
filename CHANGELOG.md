@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Breaking Changes
-- Update MSRV to 1.60 [#472]
+
+#### Changed
+- Bump MSRV to 1.60 [#472]
+- Rename `getrandom` and `getrandom_uninit` functions to `fill` and `fill_uninit` respectively [#532]
 
 #### Removed
 - `wasm32-wasi` target support (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#520]: https://github.com/rust-random/getrandom/pull/520
 [#521]: https://github.com/rust-random/getrandom/pull/521
 [#522]: https://github.com/rust-random/getrandom/pull/522
+[#532]: https://github.com/rust-random/getrandom/pull/532
 
 ## [0.2.15] - 2024-05-06
 ### Added
