@@ -1,6 +1,11 @@
-# getrandom: (operating) system's random number generator
+# getrandom: system's random number generator
 
-[![Build Status]][GitHub Actions] [![Crate]][crates.io] [![Documentation]][docs.rs] [![Dependency Status]][deps.rs] [![Downloads]][crates.io] [![License]][LICENSE-MIT]
+[![Build Status]][GitHub Actions]
+[![Crate]][crates.io]
+[![Documentation]][docs.rs]
+[![Dependency Status]][deps.rs]
+[![Downloads]][crates.io]
+[![License]][LICENSE-MIT]
 
 `getrandom` is a Rust library for retrieving random data from (operating) system sources.
 
@@ -252,7 +257,8 @@ configuration flag for `fill_uninit` to unpoison destination buffer.
 
 For example, it can be done like this (requires Nightly compiler):
 ```sh
-RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" \
+    cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
 ```
 
 ## Minimum Supported Rust Version
