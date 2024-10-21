@@ -458,8 +458,10 @@ cfg_if! {
 /// # Examples
 ///
 /// ```
+/// # fn main() -> Result<(), getrandom::Error> {
 /// let mut buf = [0u8; 32];
 /// getrandom::fill(&mut buf)?;
+/// # Ok(()) }
 /// ```
 #[inline]
 pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
@@ -489,7 +491,7 @@ pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
 /// #![feature(maybe_uninit_uninit_array)]
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
-/// let buf: &mut [u8] = getrandom::getrandom_uninit(&mut buf)?;
+/// let buf: &mut [u8] = getrandom::fill_uninit(&mut buf)?;
 /// # Ok(()) }
 /// ```
 #[inline]
