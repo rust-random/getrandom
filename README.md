@@ -41,7 +41,7 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 | Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
 | Windows 7, 8       | `*-win7‑windows‑*` | [`RtlGenRandom`]
 | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
-| iOS, tvOS, watchOS | `*‑apple‑ios`, `*-apple-tvos`, `*-apple-watchos` | [`CCRandomGenerateBytes`]
+| iOS, tvOS, watchOS | `*‑apple‑{ios,tvos,watchos}` | [`CCRandomGenerateBytes`]
 | FreeBSD            | `*‑freebsd`        | [`getrandom`][5]
 | OpenBSD            | `*‑openbsd`        | [`getentropy`][7]
 | NetBSD             | `*‑netbsd`         | [`getrandom`][16] if available, otherwise [`kern.arandom`][8]
