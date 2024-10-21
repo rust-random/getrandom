@@ -33,11 +33,6 @@ fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
 }
 ```
 
-For more information about supported targets, entropy sources, `no_std` targets,
-crate features, WASM support and Custom RNGs see the
-[`getrandom` documentation](https://docs.rs/getrandom/latest) and
-[`getrandom::Error` documentation](https://docs.rs/getrandom/latest/getrandom/struct.Error.html).
-
 ## Supported targets
 
 | Target             | Target Triple      | Implementation
@@ -339,3 +334,6 @@ dual licensed as above, without any additional terms or conditions.
 
 [LICENSE-APACHE]: https://github.com/rust-random/getrandom/blob/master/LICENSE-APACHE
 [LICENSE-MIT]: https://github.com/rust-random/getrandom/blob/master/LICENSE-MIT
+
+[`Error::UNEXPECTED`]: https://docs.rs/getrandom/latest/getrandom/struct.Error.html#associatedconstant.UNEXPECTED
+[`fill_uninit`]: https://docs.rs/getrandom/latest/getrandom/fn.fill_uninit.html

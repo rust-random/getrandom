@@ -1,3 +1,7 @@
+// Overwrite links to crate items with intra-crate links
+//! [`Error::UNEXPECTED`]: Error::UNEXPECTED
+//! [`fill_uninit`]: fill_uninit
+
 #![no_std]
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
