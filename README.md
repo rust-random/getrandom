@@ -1,4 +1,4 @@
-# getrandom: (operating) system's random number generator
+# getrandom: system's random number generator
 
 [![Build Status]][GitHub Actions] [![Crate]][crates.io] [![Documentation]][docs.rs] [![Dependency Status]][deps.rs] [![Downloads]][crates.io] [![License]][LICENSE-MIT]
 
