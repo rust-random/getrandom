@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 #### Changed
-- Update MSRV to 1.60 [#472]
-- `getrandom` and `getrandom_uninit` functions are renamed to `fill` and `fill_uninit` respectively [#532]
+- Bump MSRV to 1.60 [#472]
+- Rename `getrandom` and `getrandom_uninit` functions to `fill` and `fill_uninit` respectively [#532]
 
 #### Removed
 - `wasm32-wasi` target support (use `wasm32-wasip1` or `wasm32-wasip2` instead) [#499]
