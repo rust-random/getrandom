@@ -13,7 +13,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn getrandom_wrapper(buf_ptr: *mut u8, buf_len: usize) -> u32 {
     let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr.cast(), buf_len) };
-    let res = getrandom::getrandom_uninit(buf).map(|_| ());
+    let res = getrandom::fill_uninit(buf).map(|_| ());
     unsafe { core::mem::transmute(res) }
 }
 
