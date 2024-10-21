@@ -96,7 +96,7 @@ fn is_rdrand_good() -> bool {
     unsafe { self_test() }
 }
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RDRAND_GOOD: LazyBool = LazyBool::new();
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);

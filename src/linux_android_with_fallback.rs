@@ -52,10 +52,10 @@ fn init() -> NonNull<c_void> {
 // prevent inlining of the fallback implementation
 #[inline(never)]
 fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    use_file::getrandom_inner(dest)
+    use_file::fill_inner(dest)
 }
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
     // is "ordered before" any data read through the returned pointer (which

@@ -17,7 +17,7 @@ use core::{ffi::c_void, mem::MaybeUninit};
 
 const MAX_BYTES: usize = 1024;
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(MAX_BYTES) {
         let ptr = chunk.as_mut_ptr().cast::<c_void>();
         let ret = unsafe { libc::getrandom(ptr, chunk.len(), libc::GRND_RANDOM) };

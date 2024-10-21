@@ -23,7 +23,7 @@ extern "system" {
 type BOOLEAN = u8;
 const TRUE: BOOLEAN = 1u8;
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Prevent overflow of u32
     let chunk_size = usize::try_from(i32::MAX).expect("Windows does not support 16-bit targets");
     for chunk in dest.chunks_mut(chunk_size) {

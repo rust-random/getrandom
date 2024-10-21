@@ -101,7 +101,7 @@ fn is_rndr_available() -> bool {
     }
 }
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if is_rndr_available() {
         // SAFETY: after this point, we know the `rand` target feature is enabled
         unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }

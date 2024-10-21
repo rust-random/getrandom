@@ -1,5 +1,5 @@
 use core::mem::MaybeUninit;
-use getrandom::{getrandom, getrandom_uninit};
+use getrandom::{fill, fill_uninit};
 
 #[cfg(getrandom_browser_test)]
 use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -9,8 +9,8 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[test]
 fn test_zero() {
     // Test that APIs are happy with zero-length requests
-    getrandom(&mut [0u8; 0]).unwrap();
-    let res = getrandom_uninit(&mut []).unwrap();
+    fill(&mut [0u8; 0]).unwrap();
+    let res = fill_uninit(&mut []).unwrap();
     assert!(res.is_empty());
 }
 
@@ -35,13 +35,13 @@ fn test_diff() {
     const N: usize = 1000;
     let mut v1 = [0u8; N];
     let mut v2 = [0u8; N];
-    getrandom(&mut v1).unwrap();
-    getrandom(&mut v2).unwrap();
+    fill(&mut v1).unwrap();
+    fill(&mut v2).unwrap();
 
     let mut t1 = uninit_vec(N);
     let mut t2 = uninit_vec(N);
-    let r1 = getrandom_uninit(&mut t1).unwrap();
-    let r2 = getrandom_uninit(&mut t2).unwrap();
+    let r1 = fill_uninit(&mut t1).unwrap();
+    let r2 = fill_uninit(&mut t2).unwrap();
     assert_eq!(r1.len(), N);
     assert_eq!(r2.len(), N);
 
@@ -71,8 +71,8 @@ fn test_small() {
             let s1 = &mut buf1[..size];
             let s2 = &mut buf2[..size];
 
-            getrandom(s1).unwrap();
-            getrandom(s2).unwrap();
+            fill(s1).unwrap();
+            fill(s2).unwrap();
 
             num_bytes += size;
             diff_bits += num_diff_bits(s1, s2);
@@ -99,8 +99,8 @@ fn test_small_uninit() {
             let s1 = &mut buf1[..size];
             let s2 = &mut buf2[..size];
 
-            let r1 = getrandom_uninit(s1).unwrap();
-            let r2 = getrandom_uninit(s2).unwrap();
+            let r1 = fill_uninit(s1).unwrap();
+            let r2 = fill_uninit(s2).unwrap();
             assert_eq!(r1.len(), size);
             assert_eq!(r2.len(), size);
 
@@ -115,14 +115,14 @@ fn test_small_uninit() {
 #[test]
 fn test_huge() {
     let mut huge = [0u8; 100_000];
-    getrandom(&mut huge).unwrap();
+    fill(&mut huge).unwrap();
 }
 
 #[test]
 fn test_huge_uninit() {
     const N: usize = 100_000;
     let mut huge = uninit_vec(N);
-    let res = getrandom_uninit(&mut huge).unwrap();
+    let res = fill_uninit(&mut huge).unwrap();
     assert_eq!(res.len(), N);
 }
 
@@ -146,7 +146,7 @@ fn test_multithreading() {
             let mut v = [0u8; 1000];
 
             for _ in 0..100 {
-                getrandom(&mut v).unwrap();
+                fill(&mut v).unwrap();
                 thread::yield_now();
             }
         });
@@ -236,7 +236,7 @@ mod custom {
     #[test]
     fn test_custom() {
         let mut buf = [0u8; 142];
-        let res = getrandom::getrandom(&mut buf);
+        let res = getrandom::fill(&mut buf);
         assert!(res.is_err());
     }
 }

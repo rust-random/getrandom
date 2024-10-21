@@ -7,7 +7,7 @@ use std::mem::MaybeUninit;
 #[inline(always)]
 fn bench_getrandom<const N: usize>() {
     let mut buf = [0u8; N];
-    getrandom::getrandom(&mut buf).unwrap();
+    getrandom::fill(&mut buf).unwrap();
     test::black_box(&buf[..]);
 }
 
@@ -15,7 +15,7 @@ fn bench_getrandom<const N: usize>() {
 #[inline(always)]
 fn bench_getrandom_uninit<const N: usize>() {
     let mut uninit = [MaybeUninit::uninit(); N];
-    let buf: &[u8] = getrandom::getrandom_uninit(&mut uninit).unwrap();
+    let buf: &[u8] = getrandom::fill_uninit(&mut uninit).unwrap();
     test::black_box(buf);
 }
 
