@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Breaking Changes
-- Update MSRV to 1.60 [#472]
 
 #### Changed
+- Update MSRV to 1.60 [#472]
 - `getrandom` and `getrandom_uninit` functions are renamed to `fill` and `fill_uninit` respectively [#532]
 
 #### Removed
