@@ -9,12 +9,12 @@
 
 `getrandom` is a Rust library for retrieving random data from (operating) system sources.
 
-It is assumed that the system always provides high-quality cryptographically secure random
-data, ideally backed by hardware entropy sources. This crate derives its name
-from Linux's `getrandom` function, but is cross-platform, roughly supporting
-the same set of platforms as Rust's `std` lib.
+It is assumed that the system always provides high-quality, cryptographically secure random
+data, ideally backed by hardware entropy sources. This crate derives its name from
+the Linux `getrandom` syscall but is cross-platform, roughly supporting the same set
+of platforms as Rust's `std` library.
 
-This is a low-level API. Most users should prefer using high-level random-number
+This is a low-level API. Most users should prefer using a higher-level random-number
 library like [`rand`].
 
 [`rand`]: https://crates.io/crates/rand
@@ -73,8 +73,8 @@ Pull Requests that add support for new targets to `getrandom` are always welcome
 
 ### Opt-in backends
 
-`getrandom` also provides optional backends which can be enabled using `getrandom_backend`
-configuration flag:
+`getrandom` also provides optional (opt-in) backends, which allow users to customize the source
+of randomness based on their specific needs:
 
 | Backend name      | Target               | Target Triple        | Implementation
 | ----------------- | -------------------- | -------------------- | --------------
@@ -82,22 +82,24 @@ configuration flag:
 | `linux_rustix`    | Linux, Android       | `*‑linux‑*`          | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`          | [`RNDR`] register
-| `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low quality entropy without proper hardware configuration!
+| `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
 | `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
 | `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
 
-The configuration flag can be enabled either by specifying the `rustflags` field in
+Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
+The flag can be set either by specifying the `rustflags` field in
 [`.cargo/config.toml`] (note that it can be done on a per-target basis), or by using
-`RUSTFLAGS` environment variable:
+the `RUSTFLAGS` environment variable:
 
 ```sh
 RUSTFLAGS='--cfg getrandom_backend="linux_getrandom"' cargo build
 ```
 
-Enabling an opt-in backend will replace backend used by default. Doing it for a wrong target
-(e.g. using `linux_getrandom` while compiling for a Windows target) will result
-in a compilation error. Be extremely carefull while using opt-in backends, since incorrect
-configuration may result in vulnerable or in always panicking applications.
+Enabling an opt-in backend will replace the backend used by default. Doing this for
+an incorrect target (e.g. using `linux_getrandom` while compiling for a Windows target)
+will result in a compilation error. Be extremely careful while using opt-in backends,
+as incorrect configuration may result in vulnerable applications or applications
+that always panic.
 
 Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
 WILL NOT have any effect on its downstream users.
@@ -138,7 +140,7 @@ This crate will then use the provided `webcrypto` implementation.
 
 ### Custom backend
 
-If this crate does not support your target out of box or you have to use
+If this crate does not support your target out of the box or you have to use
 a non-default entropy source, then you can provide a custom implementation.
 You need to enable the custom backend as described in the [configuration flags]
 section. Next, you need to define an `extern` function with the following
@@ -156,20 +158,20 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 }
 ```
 
-This function ideally should be defined in the root crate of your project,
+This function should, ideally, be defined in the root crate of your project,
 e.g. in your `main.rs`. This function MUST be defined only once for your
 project, i.e. upstream library crates SHOULD NOT define it outside of
 tests and benchmarks. Improper configuration of this backend may result
 in linking errors.
 
-The function accepts pointer to buffer which should be filled with random
-data and length in bytes. Note that the buffer MAY be uninitialized.
-On success the function should return 0 and fully fill the input buffer,
-every other return result will be interpreted as an error code.
+The function accepts a pointer to a buffer that should be filled with random
+data and its length in bytes. Note that the buffer MAY be uninitialized.
+On success, the function should return `Ok(())` and fully fill the input buffer;
+otherwise, it should return an error value.
 
 If you are confident that `getrandom` is not used in your project, but
 it gets pulled nevertheless by one of your dependencies, then you can
-use the following custom backend which always returns "unsupported" error:
+use the following custom backend, which always returns the "unsupported" error:
 ```rust
 use getrandom::Error;
 
@@ -183,29 +185,30 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 ```
 
 ### Platform Support
+
 This crate generally supports the same operating system and platform versions
 that the Rust standard library does. Additional targets may be supported using
-pluggable custom implementations.
+the opt-in custom backend.
 
 This means that as Rust drops support for old versions of operating systems
-(such as old Linux kernel versions, Android API levels, etc) in stable releases,
-`getrandom` may create new patch releases (`0.N.x`) that remove support for
+(such as old Linux kernel versions, Android API levels, etc.) in stable releases,
+`getrandom` may create new patch releases that remove support for
 outdated platform versions.
 
 ### `/dev/urandom` fallback on Linux and Android
 
-On Linux targets the fallback is present only if either `target_env` is `musl`,
-or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`, `powerpc64`,
-`s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
-kernel versions which support `getrandom` system call, so fallback is not needed.
+On Linux targets, the `/dev/urandom` fallback is present only if either `target_env`
+is `musl`, or `target_arch` is one of the following: `aarch64`, `arm`, `powerpc`,
+`powerpc64`, `s390x`, `x86`, `x86_64`. Other supported targets [require][platform-support]
+kernel versions that support the `getrandom` system call, so the fallback is not needed.
 
 On Android targets the fallback is present only for the following `target_arch`es:
 `aarch64`, `arm`, `x86`, `x86_64`. Other `target_arch`es (e.g. RISC-V) require
 sufficiently high API levels.
 
 The fallback can be disabled by enabling the `linux_getrandom` opt-in backend.
-Note that doing so will bump minimum supported Linux kernel version to 3.17 and
-Android API level to 23 (Marshmallow).
+Note that doing so will bump minimum supported Linux kernel version to 3.17
+and Android API level to 23 (Marshmallow).
 
 ### Early boot
 
@@ -234,28 +237,29 @@ with few sources of entropy.
 
 ## Error handling
 
-We always choose failure over returning known insecure "random" bytes. In
-general, on supported platforms, failure is highly unlikely, though not
-impossible. If an error does occur, then it is likely that it will occur
-on every call to `getrandom`, hence after the first successful call one
-can be reasonably confident that no errors will occur.
+We always prioritize failure over returning known insecure "random" bytes.
+Generally, on supported platforms, failure is highly unlikely, though not
+impossible. If an error does occur, it is likely that it will occur
+on every call to `getrandom`. Therefore, after the first successful call,
+one can be reasonably confident that no errors will occur.
 
 ## Panic handling
 
-We strive to eliminate all potential panics from our implementation.
-In other words, when compiled with enabled optimizations, generated
-binary code for `getrandom` functions should not contain any panic
-branches. Even if platform misbiheaves and returns an unexpected
-result, our code should correctly handle it and return an error like
+We strive to eliminate all potential panics from our backend implementations.
+In other words, when compiled with optimizations enabled, the generated
+binary code for `getrandom` functions should not contain any panic branches.
+Even if the platform misbehaves and returns an unexpected result,
+our code should correctly handle it and return an error, e.g.
 [`Error::UNEXPECTED`].
 
 ## Sanitizer support
 
-If your code uses [`fill_uninit`] and you use memory sanitizer
-(i.e. `-Zsanitizer=memory`), then you need to pass `getrandom_sanitize`
-configuration flag for `fill_uninit` to unpoison destination buffer.
+If your code uses [`fill_uninit`] and you enable memory sanitization
+(i.e. `-Zsanitizer=memory`), you need to pass the `getrandom_sanitize`
+configuration flag to enable unpoisoning of the destination buffer
+filled by `fill_uninit`.
 
-For example, it can be done like this (requires Nightly compiler):
+For example, this can be done as follows (requires a Nightly compiler):
 ```sh
 RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" \
     cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
