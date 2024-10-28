@@ -31,7 +31,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             Ok(ret) if ret == chunk.len() => {}
             // The syscall failed.
             Ok(0) => return Err(util_libc::last_os_error()),
-            // The system should never return 0 for non-empty buffers
+            // All other cases should be impossible.
             _ => return Err(Error::UNEXPECTED),
         }
     }
