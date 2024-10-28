@@ -34,7 +34,6 @@ cfg_if! {
         target_os = "nto",
         target_os = "aix",
     ))] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod use_file;
         pub use use_file::*;
     } else if #[cfg(any(
@@ -43,7 +42,6 @@ cfg_if! {
         target_os = "vita",
         target_os = "emscripten",
     ))] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod getentropy;
         pub use getentropy::*;
     } else if #[cfg(any(
@@ -55,7 +53,6 @@ cfg_if! {
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
     ))] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod getrandom;
         pub use getrandom::*;
     } else if #[cfg(any(
@@ -99,15 +96,12 @@ cfg_if! {
         mod linux_android_with_fallback;
         pub use linux_android_with_fallback::*;
     } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod linux_android;
         pub use linux_android::*;
     } else if #[cfg(target_os = "solaris")] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod solaris;
         pub use solaris::*;
     } else if #[cfg(target_os = "netbsd")] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod netbsd;
         pub use netbsd::*;
     } else if #[cfg(target_os = "fuchsia")] {
@@ -128,7 +122,6 @@ cfg_if! {
         mod hermit;
         pub use hermit::*;
     } else if #[cfg(target_os = "vxworks")] {
-        #[path = "util_libc.rs"] mod util_libc;
         mod vxworks;
         pub use vxworks::*;
     } else if #[cfg(target_os = "solid_asp3")] {
