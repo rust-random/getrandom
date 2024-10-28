@@ -49,13 +49,12 @@ jobs:
       - name: Check (linux_android.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
-      # TODO: re-enable after https://github.com/bytecodealliance/rustix/pull/1184 is released
-      # - name: Build (linux_rustix.rs)
-      #   env:
-      #     RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-      #   run: cargo build --release
-      # - name: Check (linux_rustix.rs)
-      #   run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
+      - name: Build (linux_rustix.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
+        run: cargo build --release
+      - name: Check (linux_rustix.rs)
+        run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
       - name: Build (rdrand.rs)
         env:
