@@ -17,7 +17,7 @@ env:
 
 jobs:
   macos:
-    name: macOS ARM64
+    name: Apple Other
     # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
     runs-on: macos-14
     steps:
