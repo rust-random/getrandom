@@ -12,8 +12,11 @@
 //! For more information, see the man page linked in lib.rs and this blog post:
 //! https://blogs.oracle.com/solaris/post/solaris-new-system-calls-getentropy2-and-getrandom2
 //! which also explains why this crate should not use getentropy(2).
-use crate::{util_libc::last_os_error, Error};
+use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
+
+#[path = "../util_libc.rs"]
+mod util_libc;
 
 const MAX_BYTES: usize = 1024;
 
@@ -24,8 +27,11 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // In case the man page has a typo, we also check for negative ret.
         // If getrandom(2) succeeds, it should have completely filled chunk.
         match usize::try_from(ret) {
-            Ok(ret) if ret == chunk.len() => {}   // Good. Keep going.
-            Ok(0) => return Err(last_os_error()), // The syscall failed.
+            // Good. Keep going.
+            Ok(ret) if ret == chunk.len() => {}
+            // The syscall failed.
+            Ok(0) => return Err(util_libc::last_os_error()),
+            // The system should never return 0 for non-empty buffers
             _ => return Err(Error::UNEXPECTED),
         }
     }
