@@ -9,8 +9,6 @@ use core::{
 #[path = "../util_libc.rs"]
 mod util_libc;
 
-use util_libc::last_os_error;
-
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RNG_INIT: AtomicBool = AtomicBool::new(false);
     while !RNG_INIT.load(Relaxed) {
@@ -37,7 +35,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         let p: *mut libc::c_uchar = chunk.as_mut_ptr().cast();
         let ret = unsafe { libc::randABytes(p, chunk_len) };
         if ret != 0 {
-            return Err(last_os_error());
+            return Err(util_libc::last_os_error());
         }
     }
     Ok(())
