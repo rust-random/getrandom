@@ -1,4 +1,4 @@
-name: Tests
+name: Test
 
 on:
   push:
@@ -16,8 +16,8 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  main-tests:
-    name: Tier 1 Test
+  tier1:
+    name: Tier 1
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -43,8 +43,8 @@ jobs:
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
-  linux-tests:
-    name: Linux Test
+  linux:
+    name: Linux
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -81,8 +81,8 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo test --features=std
 
-  ios-tests:
-    name: iOS Simulator Test
+  ios:
+    name: iOS Simulator
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -127,8 +127,8 @@ jobs:
       - name: Run tests
         run: cargo dinghy -p ${{ matrix.ios_platform }} -d ${{ env.device }} test
 
-  windows-tests:
-    name: Windows Test
+  windows:
+    name: Windows
     runs-on: windows-2022
     strategy:
       matrix:
@@ -146,7 +146,7 @@ jobs:
       - run: cargo test --features=std
 
   windows7:
-    name: Test Windows 7 impl on Windows 10
+    name: Windows 7 (on Windows 10)
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -159,8 +159,8 @@ jobs:
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
 
-  sanitizer-test:
-    name: Sanitizer Test
+  sanitizer:
+    name: Sanitizer
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -173,8 +173,8 @@ jobs:
         # `--all-targets` is used to skip doc tests which currently fail linking
         run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu --all-targets
 
-  cross-tests:
-    name: Cross Test
+  cross:
+    name: Cross
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -197,27 +197,8 @@ jobs:
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
 
-  macos-link:
-    name: macOS ARM64 Build/Link
-    # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          targets: aarch64-apple-darwin, aarch64-apple-ios
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
-      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
-      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
-      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
-      # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
-      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
-      - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
-
   freebsd:
-    name: FreeBSD VM Test
+    name: FreeBSD VM
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -231,7 +212,7 @@ jobs:
           run: cargo test
 
   openbsd:
-    name: OpenBSD VM Test
+    name: OpenBSD VM
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -245,7 +226,7 @@ jobs:
           run: cargo test
 
   netbsd:
-    name: NetBSD VM Test
+    name: NetBSD VM
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -261,7 +242,7 @@ jobs:
   # This job currently fails:
   # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528
   # dragonflybsd:
-  #   name: DragonflyBSD VM Test
+  #   name: DragonflyBSD VM
   #   runs-on: ubuntu-22.04
   #   steps:
   #     - uses: actions/checkout@v4
@@ -274,30 +255,8 @@ jobs:
   #           pkg install -y rust
   #         run: cargo test
 
-  cross-link:
-    name: Cross Build/Link
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        target: [
-          sparcv9-sun-solaris,
-          x86_64-unknown-illumos,
-          x86_64-unknown-freebsd,
-          x86_64-unknown-netbsd,
-        ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install precompiled cross
-        run: |
-          VERSION=v0.2.5
-          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
-          wget -O - $URL | tar -xz -C ~/.cargo/bin
-          cross --version
-      - name: Build Tests
-        run: cross test --no-run --target=${{ matrix.target }} --features=std
-
-  web-tests:
-    name: Web Test
+  web:
+    name: Web
     strategy:
       fail-fast: false
       matrix:
@@ -347,25 +306,8 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
         run: wasm-pack test --headless --safari
 
-  wasm64-build:
-    name: Wasm64 Build
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - name: Build and Link tests (build-std)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        # This target is Tier 3, so we have to build libstd ourselves.
-        # We currently cannot run these tests because wasm-bindgen-test-runner
-        # does not yet support memory64.
-        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown
-
-  wasi-tests:
-    name: WASI Tests
+  wasi:
+    name: WASI
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -384,124 +326,3 @@ jobs:
         run: cargo test --target wasm32-wasip1
       - name: WASI 0.2 Test
         run: cargo test --target wasm32-wasip2
-
-  build-tier2:
-    name: Tier 2 Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        target: [
-          x86_64-unknown-fuchsia,
-          x86_64-unknown-redox,
-          x86_64-fortanix-unknown-sgx,
-        ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-      - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=std
-
-  build-tier3:
-    name: Tier 3 Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        # Supported tier 3 targets without libstd support
-        target: [
-          x86_64-unknown-hermit,
-          x86_64-wrs-vxworks,
-          aarch64-kmc-solid_asp3,
-          armv6k-nintendo-3ds,
-          armv7-sony-vita-newlibeabihf,
-          aarch64-unknown-nto-qnx710,
-        ]
-        # Supported tier 3 targets with libstd support
-        include:
-          - target: aarch64-unknown-nto-qnx710
-            features: ["std"]
-          - target: x86_64-unknown-openbsd
-            features: ["std"]
-          - target: x86_64-unknown-dragonfly
-            features: ["std"]
-          - target: x86_64-unknown-haiku
-            features: ["std"]
-          - target: i686-unknown-hurd-gnu
-            features: ["std"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
-
-  build-rdrand:
-    name: RDRAND Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        target: [
-          x86_64-unknown-uefi,
-          x86_64-unknown-l4re-uclibc,
-        ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=core --target=${{ matrix.target }}
-
-  build-rndr:
-    name: RNDR Build
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: aarch64-unknown-linux-gnu, aarch64-apple-darwin
-      - uses: Swatinem/rust-cache@v2
-      - name: RNDR enabled at compile time (Linux)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
-        run: cargo build --target=aarch64-unknown-linux-gnu
-      - name: Runtime RNDR detection without std (Linux)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu
-      - name: Runtime RNDR detection with std (macOS)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu --features std
-
-  build-esp-idf:
-    name: ESP-IDF Build
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
-
-  build-no-atomics:
-    name: No Atomics Build
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: riscv32i-unknown-none-elf
-      - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --target riscv32i-unknown-none-elf

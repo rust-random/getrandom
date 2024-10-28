@@ -1,0 +1,196 @@
+name: Build
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  schedule:
+    - cron: "0 12 * * 1"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  macos:
+    name: macOS ARM64
+    # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: aarch64-apple-darwin, aarch64-apple-ios
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
+      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
+      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
+      # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
+      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+      - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
+
+  cross:
+    name: Cross
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        target: [
+          sparcv9-sun-solaris,
+          x86_64-unknown-illumos,
+          x86_64-unknown-freebsd,
+          x86_64-unknown-netbsd,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install precompiled cross
+        run: |
+          VERSION=v0.2.5
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
+      - name: Build Tests
+        run: cross test --no-run --target=${{ matrix.target }} --features=std
+
+  wasm64:
+    name: Wasm64
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - name: Build and Link tests (build-std)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        # This target is Tier 3, so we have to build libstd ourselves.
+        # We currently cannot run these tests because wasm-bindgen-test-runner
+        # does not yet support memory64.
+        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown
+
+  tier2:
+    name: Tier 2
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        target: [
+          x86_64-unknown-fuchsia,
+          x86_64-unknown-redox,
+          x86_64-fortanix-unknown-sgx,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --target=${{ matrix.target }} --features=std
+
+  tier3:
+    name: Tier 3
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        # Supported tier 3 targets without libstd support
+        target: [
+          x86_64-unknown-hermit,
+          x86_64-wrs-vxworks,
+          aarch64-kmc-solid_asp3,
+          armv6k-nintendo-3ds,
+          armv7-sony-vita-newlibeabihf,
+          aarch64-unknown-nto-qnx710,
+        ]
+        # Supported tier 3 targets with libstd support
+        include:
+          - target: aarch64-unknown-nto-qnx710
+            features: ["std"]
+          - target: x86_64-unknown-openbsd
+            features: ["std"]
+          - target: x86_64-unknown-dragonfly
+            features: ["std"]
+          - target: x86_64-unknown-haiku
+            features: ["std"]
+          - target: i686-unknown-hurd-gnu
+            features: ["std"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
+
+  rdrand:
+    name: RDRAND
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        target: [
+          x86_64-unknown-uefi,
+          x86_64-unknown-l4re-uclibc,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+
+  rndr:
+    name: RNDR
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-unknown-linux-gnu, aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: RNDR enabled at compile time (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection without std (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection with std (macOS)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+
+  esp-idf:
+    name: ESP-IDF
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
+        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+
+  no-atomics:
+    name: No Atomics
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: riscv32i-unknown-none-elf
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+        run: cargo build --target riscv32i-unknown-none-elf
