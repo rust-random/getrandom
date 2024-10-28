@@ -24,7 +24,7 @@ libc = { version = "0.2.154", default-features = false }
 
 # linux_rustix
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), any(target_env = "", getrandom_backend = "linux_rustix")))'.dependencies]
-rustix = { version = "0.38", default-features = false, features = ["rand"] }
+rustix = { version = "0.38.38", default-features = false, features = ["rand"] }
 
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
