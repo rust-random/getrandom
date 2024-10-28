@@ -21,20 +21,20 @@ library like [`rand`].
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Add the `getrandom` dependency to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-getrandom = "0.2"
+getrandom = "0.3"
 ```
 
-Then invoke the `fill` function:
+Then invoke the `fill` function on a byte buffer to fill it with random data:
 
 ```rust
-fn get_random_buf() -> Result<[u8; 32], getrandom::Error> {
-    let mut buf = [0u8; 32];
+fn get_random_u128() -> Result<u128, getrandom::Error> {
+    let mut buf = [0u8; 16];
     getrandom::fill(&mut buf)?;
-    Ok(buf)
+    Ok(u128::from_ne_bytes(buf))
 }
 ```
 
@@ -259,7 +259,7 @@ If your code uses [`fill_uninit`] and you enable memory sanitization
 configuration flag to enable unpoisoning of the destination buffer
 filled by `fill_uninit`.
 
-For example, this can be done as follows (requires a Nightly compiler):
+For example, it can be done as follows (requires a Nightly compiler):
 ```sh
 RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" \
     cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
