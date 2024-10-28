@@ -1,6 +1,9 @@
 //! RDRAND backend for x86(-64) targets
-use crate::{lazy::LazyBool, util::slice_as_uninit, Error};
+use crate::{util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
+
+#[path = "../lazy.rs"]
+mod lazy;
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
 compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
@@ -97,7 +100,7 @@ fn is_rdrand_good() -> bool {
 }
 
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    static RDRAND_GOOD: LazyBool = LazyBool::new();
+    static RDRAND_GOOD: lazy::LazyBool = lazy::LazyBool::new();
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }

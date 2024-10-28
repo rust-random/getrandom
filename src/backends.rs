@@ -1,0 +1,152 @@
+//! System-specific implementations.
+//!
+//! This module should provide `fill_inner` with the signature
+//! `fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
+//! The function MUST fully initialize `dest` when `Ok(())` is returned.
+//! The function MUST NOT ever write uninitialized bytes into `dest`,
+//! regardless of what value it returns.
+
+cfg_if! {
+    if #[cfg(getrandom_backend = "custom")] {
+        mod custom;
+        pub use custom::*;
+    } else if #[cfg(getrandom_backend = "linux_getrandom")] {
+        mod linux_android;
+        pub use linux_android::*;
+    } else if #[cfg(getrandom_backend = "linux_rustix")] {
+        mod linux_rustix;
+        pub use linux_rustix::*;
+    } else if #[cfg(getrandom_backend = "rdrand")] {
+        mod rdrand;
+        pub use rdrand::*;
+    } else if #[cfg(getrandom_backend = "rndr")] {
+        mod rndr;
+        pub use rndr::*;
+    } else if #[cfg(getrandom_backend = "wasm_js")] {
+        mod wasm_js;
+        pub use wasm_js::*;
+    } else if #[cfg(getrandom_backend = "esp_idf")] {
+        mod esp_idf;
+        pub use esp_idf::*;
+    } else if #[cfg(any(
+        target_os = "haiku",
+        target_os = "redox",
+        target_os = "nto",
+        target_os = "aix",
+    ))] {
+        mod use_file;
+        pub use use_file::*;
+    } else if #[cfg(any(
+        target_os = "macos",
+        target_os = "openbsd",
+        target_os = "vita",
+        target_os = "emscripten",
+    ))] {
+        mod getentropy;
+        pub use getentropy::*;
+    } else if #[cfg(any(
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "hurd",
+        target_os = "illumos",
+        // Check for target_arch = "arm" to only include the 3DS. Does not
+        // include the Nintendo Switch (which is target_arch = "aarch64").
+        all(target_os = "horizon", target_arch = "arm"),
+    ))] {
+        mod getrandom;
+        pub use getrandom::*;
+    } else if #[cfg(any(
+        // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
+        // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
+        // level 23 (Marshmallow). Note that it applies only to the "old" `target_arch`es,
+        // RISC-V Android targets sufficiently new API level, same will apply for potential
+        // new Android `target_arch`es.
+        // [0]: https://blog.rust-lang.org/2023/01/09/android-ndk-update-r25.html
+        // [1]: https://github.com/rust-lang/rust/pull/120593
+        all(
+            target_os = "android",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+        ),
+        // Only on these `target_arch`es Rust supports Linux kernel versions (3.2+)
+        // that precede the version (3.17) in which `getrandom(2)` was added:
+        // https://doc.rust-lang.org/stable/rustc/platform-support.html
+        all(
+            target_os = "linux",
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "powerpc",
+                target_arch = "powerpc64",
+                target_arch = "s390x",
+                target_arch = "x86",
+                target_arch = "x86_64",
+                // Minimum supported Linux kernel version for MUSL targets
+                // is not specified explicitly (as of Rust 1.77) and they
+                // are used in practice to target pre-3.17 kernels.
+                target_env = "musl",
+            ),
+        )
+    ))] {
+        mod use_file;
+        mod linux_android_with_fallback;
+        pub use linux_android_with_fallback::*;
+    } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
+        mod linux_android;
+        pub use linux_android::*;
+    } else if #[cfg(target_os = "solaris")] {
+        mod solaris;
+        pub use solaris::*;
+    } else if #[cfg(target_os = "netbsd")] {
+        mod netbsd;
+        pub use netbsd::*;
+    } else if #[cfg(target_os = "fuchsia")] {
+        mod fuchsia;
+        pub use fuchsia::*;
+    } else if #[cfg(any(
+        target_os = "ios",
+        target_os = "visionos",
+        target_os = "watchos",
+        target_os = "tvos",
+    ))] {
+        mod apple_other;
+        pub use apple_other::*;
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
+        mod wasi;
+        pub use wasi::*;
+    } else if #[cfg(target_os = "hermit")] {
+        mod hermit;
+        pub use hermit::*;
+    } else if #[cfg(target_os = "vxworks")] {
+        mod vxworks;
+        pub use vxworks::*;
+    } else if #[cfg(target_os = "solid_asp3")] {
+        mod solid;
+        pub use solid::*;
+    } else if #[cfg(all(windows, target_vendor = "win7"))] {
+        mod windows7;
+        pub use windows7::*;
+    } else if #[cfg(windows)] {
+        mod windows;
+        pub use windows::*;
+    } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
+        mod rdrand;
+        pub use rdrand::*;
+    } else if #[cfg(all(
+        any(target_arch = "wasm32", target_arch = "wasm64"),
+        target_os = "unknown",
+    ))] {
+        compile_error!("the wasm*-unknown-unknown targets are not supported by \
+                        default, you may need to enable the \"wasm_js\" \
+                        configuration flag. For more information see: \
+                        https://docs.rs/getrandom/#webassembly-support");
+    } else {
+        compile_error!("target is not supported. You may need to define \
+                        a custom backend see: \
+                        https://docs.rs/getrandom/#custom-backends");
+    }
+}

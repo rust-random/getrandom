@@ -1,11 +1,13 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use crate::{use_file, util_libc, Error};
+use super::use_file;
+use crate::Error;
 use core::{
     ffi::c_void,
     mem::{self, MaybeUninit},
     ptr::{self, NonNull},
     sync::atomic::{AtomicPtr, Ordering},
 };
+use use_file::util_libc;
 
 type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint) -> libc::ssize_t;
 

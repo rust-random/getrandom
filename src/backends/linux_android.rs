@@ -1,6 +1,9 @@
 //! Implementation for Linux / Android without `/dev/urandom` fallback
-use crate::{util_libc, Error};
+use crate::Error;
 use core::mem::MaybeUninit;
+
+#[path = "../util_libc.rs"]
+mod util_libc;
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 compile_error!("`linux_getrandom` backend can be enabled only for Linux/Android targets!");
