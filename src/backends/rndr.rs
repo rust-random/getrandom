@@ -84,12 +84,12 @@ fn is_rndr_available() -> bool {
                 (id_aa64isar0 >> 60) & 0xf >= 1
             }
 
-            #[path = "../src/lazy.rs"] mod lazy;
+            #[path = "../lazy.rs"] mod lazy;
             static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
             RNDR_GOOD.unsync_init(mrs_check)
         } else if #[cfg(feature = "std")] {
             extern crate std;
-            #[path = "../src/lazy.rs"] mod lazy;
+            #[path = "../lazy.rs"] mod lazy;
             static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
             RNDR_GOOD.unsync_init(|| std::arch::is_aarch64_feature_detected!("rand"))
         } else {
