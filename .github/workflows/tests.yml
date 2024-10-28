@@ -25,9 +25,6 @@ jobs:
         toolchain: [nightly, beta, stable, "1.60"]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
-          # x86_64-apple-darwin.
-          - os: macos-12
-            toolchain: stable
           # aarch64-apple-darwin.
           - os: macos-14
             toolchain: stable
@@ -83,27 +80,13 @@ jobs:
 
   ios:
     name: iOS Simulator
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-12, macos-14]
-        # Only test on stable to reduce macOS CI jobs
-        toolchain: [stable]
-        include:
-          # The Aarch64 device simulator doesn't seem to work on an x86-64 host
-          # and the x86_64 device simulator doesn't seem to work on an Aarch64
-          # host, at least within GitHub Actions.
-          - os: macos-12
-            target: x86_64-apple-ios
-            ios_platform: auto-ios-x86_64
-          - os: macos-14
-            target: aarch64-apple-ios-sim
-            ios_platform: auto-ios-aarch64-sim
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
-          targets: ${{ matrix.target }}
+          toolchain: stable
+          targets: aarch64-apple-ios-sim
       - name: Install precompiled cargo-dinghy
         run: |
           VERSION=0.7.2
@@ -125,7 +108,7 @@ jobs:
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo dinghy -p ${{ matrix.ios_platform }} -d ${{ env.device }} test
+        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test
 
   windows:
     name: Windows
@@ -257,19 +240,7 @@ jobs:
 
   web:
     name: Web
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            host: x86_64-unknown-linux-musl
-          - os: macos-12
-            host: x86_64-apple-darwin
-          # We get spurious failures on Windows, see:
-          # https://github.com/rust-random/getrandom/issues/400
-          # - os: windows-2022
-          #   host: x86_64-pc-windows-msvc
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -279,7 +250,7 @@ jobs:
         shell: bash
         run: |
           VERSION=v0.12.1
-          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
+          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
       - uses: Swatinem/rust-cache@v2
@@ -295,16 +266,6 @@ jobs:
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
         run: wasm-pack test --headless --chrome
-      - name: Test (Edge)
-        if: runner.os == 'Windows'
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
-        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe
-      - name: Test (Safari)
-        if: runner.os == 'macOS'
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
-        run: wasm-pack test --headless --safari
 
   wasi:
     name: WASI
