@@ -140,7 +140,6 @@ cfg_if! {
         mod windows;
         pub use windows::*;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        #[path = "lazy.rs"] mod lazy;
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(all(
