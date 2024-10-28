@@ -8,13 +8,14 @@
 
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
-        #[path = "backends/custom.rs"] mod imp;
+        mod custom;
+        pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod linux_android;
         pub use linux_android::*;
     } else if #[cfg(getrandom_backend = "linux_rustix")] {
         mod linux_rustix;
-        use linux_rustix::*;
+        pub use linux_rustix::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
         pub use rdrand::*;
