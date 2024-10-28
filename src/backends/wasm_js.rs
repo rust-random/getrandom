@@ -30,7 +30,7 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub(crate) fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
