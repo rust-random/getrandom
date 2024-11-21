@@ -15,7 +15,7 @@
     all(
         getrandom_backend = "wasm_js",
         target_arch = "wasm32",
-        target_os = "unknown",
+        any(target_os = "unknown", target_os = "none"),
         not(feature = "std"),
         target_feature = "atomics"
     ),
