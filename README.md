@@ -267,7 +267,7 @@ RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" \
 
 ## Minimum Supported Rust Version
 
-This crate requires Rust 1.60.0 or later.
+This crate requires Rust 1.63 or later.
 
 ## License
 
