@@ -23,7 +23,7 @@ jobs:
         # Fixed Nigthly version is used to prevent
         # CI failures which are not relevant to PR changes
         # on introduction of new Clippy lints.
-        toolchain: nightly-2024-10-08
+        toolchain: nightly-2024-10-24
         components: clippy,rust-src
     - name: std feature
       run: cargo clippy --features std
@@ -48,7 +48,15 @@ jobs:
     - name: Web WASM (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown
+      run: cargo clippy --features std -Zbuild-std=panic_abort,std --target wasm32-unknown-unknown
+    - name: Web WASM no_std (wasm_js.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+      run: cargo clippy -Zbuild-std=core,alloc --target wasm32-unknown-unknown
+    - name: Web WASM no_std with atomics (wasm_js.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory
+      run: cargo clippy -Zbuild-std=core,alloc --target wasm32-unknown-unknown
     - name: Linux (linux_android.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"

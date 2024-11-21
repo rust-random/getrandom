@@ -1,8 +1,9 @@
 //! Implementation for WASM based on Web and Node.js
 use crate::Error;
 
+#[cfg(feature = "std")]
 extern crate std;
-use std::{mem::MaybeUninit, thread_local};
+use core::mem::MaybeUninit;
 
 pub use crate::util::{inner_u32, inner_u64};
 
@@ -10,6 +11,8 @@ pub use crate::util::{inner_u32, inner_u64};
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
 use js_sys::{global, Function, Uint8Array};
+#[cfg(not(feature = "std"))]
+use once_cell::unsync::Lazy;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
@@ -25,12 +28,37 @@ enum RngSource {
 
 // JsValues are always per-thread, so we initialize RngSource for each thread.
 //   See: https://github.com/rustwasm/wasm-bindgen/pull/955
-thread_local!(
-    static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
-);
+struct Local;
+
+impl Local {
+    #[cfg(feature = "std")]
+    fn with<R>(f: impl FnOnce(&Result<RngSource, Error>) -> R) -> R {
+        std::thread_local!(
+            static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
+        );
+        RNG_SOURCE.with(f)
+    }
+
+    #[cfg(all(not(feature = "std"), not(target_feature = "atomics")))]
+    fn with<R>(f: impl FnOnce(&Result<RngSource, Error>) -> R) -> R {
+        struct Wrapper<T>(T);
+        unsafe impl<T> Send for Wrapper<T> {}
+        unsafe impl<T> Sync for Wrapper<T> {}
+        static RNG_SOURCE: Wrapper<Lazy<Result<RngSource, Error>>> =
+            Wrapper(Lazy::new(getrandom_init));
+        f(&RNG_SOURCE.0)
+    }
+
+    #[cfg(all(not(feature = "std"), target_feature = "atomics"))]
+    fn with<R>(f: impl FnOnce(&Result<RngSource, Error>) -> R) -> R {
+        #[thread_local]
+        static RNG_SOURCE: Lazy<Result<RngSource, Error>> = Lazy::new(getrandom_init);
+        f(&RNG_SOURCE)
+    }
+}
 
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    RNG_SOURCE.with(|result| {
+    Local::with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 
         match source {

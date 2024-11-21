@@ -11,6 +11,16 @@
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(getrandom_sanitize, feature(cfg_sanitize))]
+#![cfg_attr(
+    all(
+        getrandom_backend = "wasm_js",
+        target_arch = "wasm32",
+        target_os = "unknown",
+        not(feature = "std"),
+        target_feature = "atomics"
+    ),
+    feature(thread_local)
+)]
 #![deny(
     clippy::cast_lossless,
     clippy::cast_possible_truncation,
