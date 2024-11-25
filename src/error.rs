@@ -152,6 +152,8 @@ impl fmt::Display for Error {
     }
 }
 
+impl core::error::Error for Error {}
+
 fn internal_desc(error: Error) -> Option<&'static str> {
     let desc = match error {
         Error::UNSUPPORTED => "getrandom: this target is not supported",

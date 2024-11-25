@@ -11,5 +11,3 @@ impl From<Error> for io::Error {
         }
     }
 }
-
-impl std::error::Error for Error {}
