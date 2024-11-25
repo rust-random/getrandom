@@ -98,7 +98,6 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        # Supported tier 3 targets without libstd support
         target: [
           aarch64-kmc-solid_asp3,
           aarch64-unknown-nto-qnx710,
@@ -107,7 +106,6 @@ jobs:
           i686-unknown-hurd-gnu,
           x86_64-unknown-hermit,
           x86_64-wrs-vxworks,
-          x86_64-unknown-openbsd,
           x86_64-unknown-dragonfly,
           x86_64-unknown-haiku,
         ]
