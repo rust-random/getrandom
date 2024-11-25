@@ -9,6 +9,8 @@ use core::{
 };
 use use_file::util_libc;
 
+pub use crate::util::{inner_u32, inner_u64};
+
 type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
 /// Sentinel value which indicates that `libc::getrandom` either not available,

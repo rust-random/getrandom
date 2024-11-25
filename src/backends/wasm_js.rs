@@ -4,6 +4,8 @@ use crate::Error;
 extern crate std;
 use std::{mem::MaybeUninit, thread_local};
 
+pub use crate::util::{inner_u32, inner_u64};
+
 #[cfg(not(all(
     any(target_arch = "wasm32", target_arch = "wasm64"),
     target_os = "unknown",

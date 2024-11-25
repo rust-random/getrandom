@@ -12,6 +12,8 @@
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
+pub use crate::util::{inner_u32, inner_u64};
+
 // Binding to the Windows.Win32.Security.Authentication.Identity.RtlGenRandom
 // API. Don't use windows-targets as it doesn't support Windows 7 targets.
 #[link(name = "advapi32")]

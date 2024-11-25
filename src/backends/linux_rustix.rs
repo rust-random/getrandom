@@ -2,6 +2,8 @@
 use crate::{Error, MaybeUninit};
 use rustix::rand::{getrandom_uninit, GetRandomFlags};
 
+pub use crate::util::{inner_u32, inner_u64};
+
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 compile_error!("`linux_rustix` backend can be enabled only for Linux/Android targets!");
 

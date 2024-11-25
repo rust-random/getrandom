@@ -2,7 +2,10 @@
 //!
 //! Arm Architecture Reference Manual for A-profile architecture:
 //! ARM DDI 0487K.a, ID032224, D23.2.147 RNDR, Random Number
-use crate::{util::slice_as_uninit, Error};
+use crate::{
+    util::{slice_as_uninit, truncate},
+    Error,
+};
 use core::arch::asm;
 use core::mem::{size_of, MaybeUninit};
 
@@ -98,6 +101,26 @@ fn is_rndr_available() -> bool {
                 Either enable the `std` crate feature, or `rand` target feature at compile time."
             );
         }
+    }
+}
+
+pub fn inner_u32() -> Result<u32, Error> {
+    if is_rndr_available() {
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.map(truncate).ok_or(Error::RNDR_FAILURE)
+    } else {
+        Err(Error::RNDR_NOT_AVAILABLE)
+    }
+}
+
+pub fn inner_u64() -> Result<u64, Error> {
+    if is_rndr_available() {
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.ok_or(Error::RNDR_FAILURE)
+    } else {
+        Err(Error::RNDR_NOT_AVAILABLE)
     }
 }
 
