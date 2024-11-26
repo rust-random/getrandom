@@ -9,6 +9,8 @@ use core::{
 #[path = "../util_libc.rs"]
 mod util_libc;
 
+pub use crate::util::{inner_u32, inner_u64};
+
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     static RNG_INIT: AtomicBool = AtomicBool::new(false);
     while !RNG_INIT.load(Relaxed) {

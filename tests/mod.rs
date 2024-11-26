@@ -14,13 +14,32 @@ fn test_zero() {
     assert!(res.is_empty());
 }
 
+trait DiffBits: Sized {
+    fn diff_bits(ab: (&Self, &Self)) -> usize;
+}
+
+impl DiffBits for u8 {
+    fn diff_bits((a, b): (&Self, &Self)) -> usize {
+        (a ^ b).count_ones() as usize
+    }
+}
+
+impl DiffBits for u32 {
+    fn diff_bits((a, b): (&Self, &Self)) -> usize {
+        (a ^ b).count_ones() as usize
+    }
+}
+
+impl DiffBits for u64 {
+    fn diff_bits((a, b): (&Self, &Self)) -> usize {
+        (a ^ b).count_ones() as usize
+    }
+}
+
 // Return the number of bits in which s1 and s2 differ
-fn num_diff_bits(s1: &[u8], s2: &[u8]) -> usize {
+fn num_diff_bits<T: DiffBits>(s1: &[T], s2: &[T]) -> usize {
     assert_eq!(s1.len(), s2.len());
-    s1.iter()
-        .zip(s2.iter())
-        .map(|(a, b)| (a ^ b).count_ones() as usize)
-        .sum()
+    s1.iter().zip(s2.iter()).map(T::diff_bits).sum()
 }
 
 // TODO: use `[const { MaybeUninit::uninit() }; N]` after MSRV is bumped to 1.79+
@@ -53,6 +72,44 @@ fn test_diff() {
     let d2 = num_diff_bits(r1, r2);
     assert!(d2 > 3500);
     assert!(d2 < 4500);
+}
+
+#[test]
+fn test_diff_u32() {
+    const N: usize = 1000 / 4;
+    let mut v1 = [0u32; N];
+    let mut v2 = [0u32; N];
+    for v in v1.iter_mut() {
+        *v = getrandom::u32().unwrap();
+    }
+    for v in v2.iter_mut() {
+        *v = getrandom::u32().unwrap();
+    }
+
+    // Between 3.5 and 4.5 bits per byte should differ. Probability of failure:
+    // ~ 2^(-94) = 2 * CDF[BinomialDistribution[8000, 0.5], 3500]
+    let d1 = num_diff_bits(&v1, &v2);
+    assert!(d1 > 3500);
+    assert!(d1 < 4500);
+}
+
+#[test]
+fn test_diff_u64() {
+    const N: usize = 1000 / 8;
+    let mut v1 = [0u64; N];
+    let mut v2 = [0u64; N];
+    for v in v1.iter_mut() {
+        *v = getrandom::u64().unwrap();
+    }
+    for v in v2.iter_mut() {
+        *v = getrandom::u64().unwrap();
+    }
+
+    // Between 3.5 and 4.5 bits per byte should differ. Probability of failure:
+    // ~ 2^(-94) = 2 * CDF[BinomialDistribution[8000, 0.5], 3500]
+    let d1 = num_diff_bits(&v1, &v2);
+    assert!(d1 > 3500);
+    assert!(d1 < 4500);
 }
 
 #[test]

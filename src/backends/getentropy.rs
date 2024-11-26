@@ -10,6 +10,8 @@
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
+pub use crate::util::{inner_u32, inner_u64};
+
 #[path = "../util_libc.rs"]
 mod util_libc;
 

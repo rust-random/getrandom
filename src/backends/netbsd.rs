@@ -12,6 +12,8 @@ use core::{
     sync::atomic::{AtomicPtr, Ordering},
 };
 
+pub use crate::util::{inner_u32, inner_u64};
+
 #[path = "../util_libc.rs"]
 mod util_libc;
 

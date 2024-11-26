@@ -6,6 +6,9 @@ use core::{
     sync::atomic::{AtomicI32, Ordering},
 };
 
+#[cfg(not(any(target_os = "android", target_os = "linux")))]
+pub use crate::util::{inner_u32, inner_u64};
+
 #[path = "../util_libc.rs"]
 pub(super) mod util_libc;
 
