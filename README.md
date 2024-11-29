@@ -169,6 +169,31 @@ data and its length in bytes. Note that the buffer MAY be uninitialized.
 On success, the function should return `Ok(())` and fully fill the input buffer;
 otherwise, it should return an error value.
 
+While wrapping functions which work with byte slices you should fully initialize
+the buffer before passing it to the function:
+```rust
+use getrandom::Error;
+
+fn my_entropy_source(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+    // ...
+    Ok(())
+}
+
+#[no_mangle]
+unsafe extern "Rust" fn __getrandom_v03_custom(
+    dest: *mut u8,
+    len: usize,
+) -> Result<(), Error> {
+    let buf = unsafe {
+        // fill the buffer with zeros
+        core::ptr::write_bytes(dest, 0, len);
+        // create mutable byte slice
+        core::slice::from_raw_parts_mut(dest, len)
+    };
+    my_entropy_source()
+}
+```
+
 If you are confident that `getrandom` is not used in your project, but
 it gets pulled nevertheless by one of your dependencies, then you can
 use the following custom backend, which always returns the "unsupported" error:
