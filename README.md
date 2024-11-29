@@ -190,7 +190,7 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
         // create mutable byte slice
         core::slice::from_raw_parts_mut(dest, len)
     };
-    my_entropy_source()
+    my_entropy_source(buf)
 }
 ```
 
