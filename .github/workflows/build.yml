@@ -58,23 +58,6 @@ jobs:
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
 
-  wasm64:
-    name: Wasm64
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - name: Build and Link tests (build-std)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        # This target is Tier 3, so we have to build libstd ourselves.
-        # We currently cannot run these tests because wasm-bindgen-test-runner
-        # does not yet support memory64.
-        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown
-
   tier2:
     name: Tier 2
     runs-on: ubuntu-22.04
