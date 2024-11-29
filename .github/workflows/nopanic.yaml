@@ -93,6 +93,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       # TODO: use pre-compiled cross after a new (post-0.2.5) release
       - name: Install cross
+        env:
+          # Allow compiler warnings during cross installation
+          RUSTFLAGS:
         run: cargo install cross --force --git https://github.com/cross-rs/cross
 
       - name: Build (rndr.rs)

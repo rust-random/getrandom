@@ -33,7 +33,8 @@ jobs:
       - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
       # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
       - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
-      - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
+      # std is broken on visionOS right now
+      #- run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
 
   cross:
     name: Cross
