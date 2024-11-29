@@ -1,10 +1,16 @@
 //! System-specific implementations.
 //!
-//! This module should provide `fill_inner` with the signature
-//! `fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
-//! The function MUST fully initialize `dest` when `Ok(())` is returned.
-//! The function MUST NOT ever write uninitialized bytes into `dest`,
-//! regardless of what value it returns.
+//! This module should provide the following functions:
+//! - `fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`
+//! - `fn insecure_fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`
+//! - `fn u32() -> Result<u32, Error>`
+//! - `fn insecure_u32() -> Result<u32, Error>`
+//! - `fn u64() -> Result<u64, Error>`
+//! - `fn insecure_u64() -> Result<u64, Error>`
+//!
+//! `fill_uninit` and `insecure_fill_uninit` MUST fully initialize `dest`
+//! when `Ok(())` is returned. The functions MUST NOT ever write uninitialized
+//! bytes into `dest`, regardless of what value it returns.
 
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {

@@ -3,16 +3,18 @@ use crate::Error;
 use core::mem::MaybeUninit;
 use wasi::random::random::get_random_u64;
 
-pub fn inner_u32() -> Result<u32, Error> {
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64};
+
+pub fn u32() -> Result<u32, Error> {
     let val = get_random_u64();
     Ok(crate::util::truncate(val))
 }
 
-pub fn inner_u64() -> Result<u64, Error> {
+pub fn u64() -> Result<u64, Error> {
     Ok(get_random_u64())
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use core::ptr::copy_nonoverlapping;
     use wasi::random::random::get_random_u64;
 

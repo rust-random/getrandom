@@ -12,7 +12,7 @@ use core::{
     sync::atomic::{AtomicPtr, Ordering},
 };
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 #[path = "../util_libc.rs"]
 mod util_libc;
@@ -62,7 +62,7 @@ fn init() -> *mut c_void {
     ptr
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
     // is "ordered before" any data read through the returned pointer (which

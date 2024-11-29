@@ -19,7 +19,7 @@ library like [`rand`].
 
 [`rand`]: https://crates.io/crates/rand
 
-## Usage
+## Examples
 
 Add the `getrandom` dependency to your `Cargo.toml` file:
 
@@ -35,6 +35,16 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
     let mut buf = [0u8; 16];
     getrandom::fill(&mut buf)?;
     Ok(u128::from_ne_bytes(buf))
+}
+```
+
+The crate also support direct generation of random `u32` and `u64` values:
+
+```rust
+fn get_rand_u32_u64() -> Result<(u32, u64), getrandom::Error> {
+    let a = getrandom::u32()?;
+    let b = getrandom::u64()?;
+    Ok((a, b))
 }
 ```
 
@@ -105,6 +115,25 @@ Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
 WILL NOT have any effect on its downstream users.
 
 [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
+
+### "Insecure" functions
+
+Sometimes, early in the boot process, the OS has not collected enough
+entropy to securely seed its RNG. This is especially common on virtual
+machines, where standard "random" events are hard to come by.
+
+Some operating system interfaces always block until the RNG is securely
+seeded, which can take anywhere from a few seconds to more than a minute.
+Some platforms offer a choice between blocking and getting potentially less
+secure randomness, i.e. generated data may be less difficult for an attacker
+to predict.
+
+We expose this functionality through two sets of functions. The "secure"
+functions ([`fill`], [`fill_uninit`], [`u32`], and [`u64`]) may block but
+always return "secure" randomness suitable for cryptographic needs.
+Meanwhile, their "insecure" counterparts ([`insecure_fill`],
+[`insecure_fill_uninit`], [`insecure_u32`], and [`insecure_u64`]) may return
+randomness of lesser quality but are less likely to block in entropy-starved scenarios.
 
 ### WebAssembly support
 
@@ -209,31 +238,6 @@ sufficiently high API levels.
 The fallback can be disabled by enabling the `linux_getrandom` opt-in backend.
 Note that doing so will bump minimum supported Linux kernel version to 3.17
 and Android API level to 23 (Marshmallow).
-
-### Early boot
-
-Sometimes, early in the boot process, the OS has not collected enough
-entropy to securely seed its RNG. This is especially common on virtual
-machines, where standard "random" events are hard to come by.
-
-Some operating system interfaces always block until the RNG is securely
-seeded. This can take anywhere from a few seconds to more than a minute.
-A few (Linux, NetBSD and Solaris) offer a choice between blocking and
-getting an error; in these cases, we always choose to block.
-
-On Linux (when the `getrandom` system call is not available), reading from
-`/dev/urandom` never blocks, even when the OS hasn't collected enough
-entropy yet. To avoid returning low-entropy bytes, we first poll
-`/dev/random` and only switch to `/dev/urandom` once this has succeeded.
-
-On OpenBSD, this kind of entropy accounting isn't available, and on
-NetBSD, blocking on it is discouraged. On these platforms, nonblocking
-interfaces are used, even when reliable entropy may not be available.
-On the platforms where it is used, the reliability of entropy accounting
-itself isn't free from controversy. This library provides randomness
-sourced according to the platform's best practices, but each platform has
-its own limits on the grade of randomness it can promise in environments
-with few sources of entropy.
 
 ## Error handling
 
@@ -346,4 +350,11 @@ dual licensed as above, without any additional terms or conditions.
 [LICENSE-MIT]: https://github.com/rust-random/getrandom/blob/master/LICENSE-MIT
 
 [`Error::UNEXPECTED`]: https://docs.rs/getrandom/latest/getrandom/struct.Error.html#associatedconstant.UNEXPECTED
+[`fill`]: https://docs.rs/getrandom/latest/getrandom/fn.fill.html
 [`fill_uninit`]: https://docs.rs/getrandom/latest/getrandom/fn.fill_uninit.html
+[`u32`]: https://docs.rs/getrandom/latest/getrandom/fn.u32.html
+[`u64`]: https://docs.rs/getrandom/latest/getrandom/fn.u64.html
+[`insecure_fill`]: https://docs.rs/getrandom/latest/getrandom/fn.insecure_fill.html
+[`insecure_fill_uninit`]: https://docs.rs/getrandom/latest/getrandom/fn.insecure_fill_uninit.html
+[`insecure_u32`]: https://docs.rs/getrandom/latest/getrandom/fn.insecure_u32.html
+[`insecure_u64`]: https://docs.rs/getrandom/latest/getrandom/fn.insecure_u64.html

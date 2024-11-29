@@ -2,7 +2,7 @@
 use crate::Error;
 use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 // This linking is vendored from the wasi crate:
 // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2344-2350
@@ -11,7 +11,7 @@ extern "C" {
     fn random_get(arg0: i32, arg1: i32) -> i32;
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Based on the wasi code:
     // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2046-2062
     // Note that size of an allocated object can not be bigger than isize::MAX bytes.

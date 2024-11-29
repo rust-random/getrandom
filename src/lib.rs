@@ -1,6 +1,13 @@
 // Overwrite links to crate items with intra-crate links
 //! [`Error::UNEXPECTED`]: Error::UNEXPECTED
+//! [`fill`]: fill
 //! [`fill_uninit`]: fill_uninit
+//! [`u32`]: u32()
+//! [`u64`]: u64()
+//! [`insecure_fill`]: insecure_fill
+//! [`insecure_fill_uninit`]: insecure_fill_uninit
+//! [`insecure_u32`]: insecure_u32
+//! [`insecure_u64`]: insecure_u64
 
 #![no_std]
 #![doc(
@@ -34,6 +41,7 @@ extern crate cfg_if;
 use core::mem::MaybeUninit;
 
 mod backends;
+mod default_impls;
 mod error;
 mod util;
 
@@ -42,10 +50,10 @@ mod error_std_impls;
 
 pub use crate::error::Error;
 
-/// Fill `dest` with random bytes from the system's preferred random number source.
+/// Fill `dst` with random bytes from the system's entropy source.
 ///
 /// This function returns an error on any failure, including partial reads. We
-/// make no guarantees regarding the contents of `dest` on error. If `dest` is
+/// make no guarantees regarding the contents of `dst` on error. If `dst` is
 /// empty, `getrandom` immediately returns success, making no calls to the
 /// underlying operating system.
 ///
@@ -56,7 +64,6 @@ pub use crate::error::Error;
 /// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
 ///
 /// # Examples
-///
 /// ```
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let mut buf = [0u8; 32];
@@ -64,63 +71,101 @@ pub use crate::error::Error;
 /// # Ok(()) }
 /// ```
 #[inline]
-pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
+pub fn fill(dst: &mut [u8]) -> Result<(), Error> {
     // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape,
     // and `fill_uninit` guarantees it will never de-initialize
-    // any part of `dest`.
-    fill_uninit(unsafe { util::slice_as_uninit_mut(dest) })?;
+    // any part of `dst`.
+    fill_uninit(unsafe { util::slice_as_uninit_mut(dst) })?;
     Ok(())
 }
 
-/// Fill potentially uninitialized buffer `dest` with random bytes from
-/// the system's preferred random number source and return a mutable
-/// reference to those bytes.
+/// Fill `dst` with **potentially insecure** random bytes from the system's entropy source.
+///
+/// See the ["insecure" functions][crate#insecure-functions] section for more information.
+///
+/// # Examples
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = [0u8; 32];
+/// getrandom::insecure_fill(&mut buf)?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn insecure_fill(dst: &mut [u8]) -> Result<(), Error> {
+    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape,
+    // and `fill_uninit` guarantees it will never de-initialize
+    // any part of `dst`.
+    insecure_fill_uninit(unsafe { util::slice_as_uninit_mut(dst) })?;
+    Ok(())
+}
+
+/// Fill potentially uninitialized buffer `dst` with random bytes from
+/// the system's entropy source.
 ///
 /// On successful completion this function is guaranteed to return a slice
-/// which points to the same memory as `dest` and has the same length.
-/// In other words, it's safe to assume that `dest` is initialized after
+/// which points to the same memory as `dst` and has the same length.
+/// In other words, it's safe to assume that `dst` is initialized after
 /// this function has returned `Ok`.
 ///
-/// No part of `dest` will ever be de-initialized at any point, regardless
+/// No part of `dst` will ever be de-initialized at any point, regardless
 /// of what is returned.
 ///
 /// # Examples
-///
 /// ```ignore
 /// # // We ignore this test since `uninit_array` is unstable.
 /// #![feature(maybe_uninit_uninit_array)]
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
 /// let buf: &mut [u8] = getrandom::fill_uninit(&mut buf)?;
+/// assert_eq!(buf.len(), 1024);
 /// # Ok(()) }
 /// ```
 #[inline]
-pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
-    if !dest.is_empty() {
-        backends::fill_inner(dest)?;
+pub fn fill_uninit(dst: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+    if !dst.is_empty() {
+        backends::fill_uninit(dst)?;
     }
 
-    #[cfg(getrandom_sanitize)]
-    #[cfg(sanitize = "memory")]
-    extern "C" {
-        fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
-    }
-
-    // SAFETY: `dest` has been fully initialized by `imp::fill_inner`
-    // since it returned `Ok`.
-    Ok(unsafe {
-        #[cfg(getrandom_sanitize)]
-        #[cfg(sanitize = "memory")]
-        __msan_unpoison(dest.as_mut_ptr().cast(), dest.len());
-
-        util::slice_assume_init_mut(dest)
-    })
+    // SAFETY: `dst` has been fully initialized by `imp::fill_inner` since it returned `Ok`
+    Ok(unsafe { util::slice_assume_init_mut(dst) })
 }
 
-/// Get random `u32` from the system's preferred random number source.
+/// Fill potentially uninitialized buffer `dst` with **potentially insecure** random bytes
+/// from the system's entropy source.
+///
+/// On successful completion this function is guaranteed to return a slice
+/// which points to the same memory as `dst` and has the same length.
+/// In other words, it's safe to assume that `dst` is initialized after
+/// this function has returned `Ok`.
+///
+/// No part of `dst` will ever be de-initialized at any point, regardless
+/// of what is returned.
+///
+/// See the ["insecure" functions][crate#insecure-functions] section for more information.
 ///
 /// # Examples
+/// ```ignore
+/// # // We ignore this test since `uninit_array` is unstable.
+/// #![feature(maybe_uninit_uninit_array)]
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = core::mem::MaybeUninit::uninit_array::<1024>();
+/// let buf: &mut [u8] = getrandom::insecure_fill_uninit(&mut buf)?;
+/// assert_eq!(buf.len(), 1024);
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn insecure_fill_uninit(dst: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
+    if !dst.is_empty() {
+        backends::insecure_fill_uninit(dst)?;
+    }
+
+    // SAFETY: `dst` has been fully initialized by `imp::fill_inner` since it returned `Ok`
+    Ok(unsafe { util::slice_assume_init_mut(dst) })
+}
+
+/// Get random `u32` from the system's entropy source.
 ///
+/// # Examples
 /// ```
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let rng_seed = getrandom::u32()?;
@@ -128,13 +173,27 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
 /// ```
 #[inline]
 pub fn u32() -> Result<u32, Error> {
-    backends::inner_u32()
+    backends::u32()
 }
 
-/// Get random `u64` from the system's preferred random number source.
+/// Get **potentially insecure** random `u32` from the system's entropy source.
+///
+/// See the ["insecure" functions][crate#insecure-functions] section for more information.
 ///
 /// # Examples
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let rng_seed = getrandom::insecure_u32()?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn insecure_u32() -> Result<u32, Error> {
+    backends::insecure_u32()
+}
+
+/// Get random `u64` from the system's entropy source.
 ///
+/// # Examples
 /// ```
 /// # fn main() -> Result<(), getrandom::Error> {
 /// let rng_seed = getrandom::u64()?;
@@ -142,5 +201,20 @@ pub fn u32() -> Result<u32, Error> {
 /// ```
 #[inline]
 pub fn u64() -> Result<u64, Error> {
-    backends::inner_u64()
+    backends::u64()
+}
+
+/// Get **potentially insecure** random `u64` from the system's entropy source.
+///
+/// See the ["insecure" functions][crate#insecure-functions] section for more information.
+///
+/// # Examples
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let rng_seed = getrandom::insecure_u64()?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn insecure_u64() -> Result<u64, Error> {
+    backends::insecure_u64()
 }

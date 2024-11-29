@@ -2,6 +2,8 @@
 use crate::{util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
 
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64};
+
 #[path = "../lazy.rs"]
 mod lazy;
 
@@ -147,7 +149,7 @@ unsafe fn rdrand_u64() -> Option<u64> {
     Some((u64::from(a) << 32) || u64::from(b))
 }
 
-pub fn inner_u32() -> Result<u32, Error> {
+pub fn u32() -> Result<u32, Error> {
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }
@@ -155,7 +157,7 @@ pub fn inner_u32() -> Result<u32, Error> {
     unsafe { rdrand_u32() }.ok_or(Error::FAILED_RDRAND)
 }
 
-pub fn inner_u64() -> Result<u64, Error> {
+pub fn u64() -> Result<u64, Error> {
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }
@@ -163,7 +165,7 @@ pub fn inner_u64() -> Result<u64, Error> {
     unsafe { rdrand_u64() }.ok_or(Error::FAILED_RDRAND)
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
         return Err(Error::NO_RDRAND);
     }

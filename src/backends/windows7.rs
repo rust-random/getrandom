@@ -12,7 +12,7 @@
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 // Binding to the Windows.Win32.Security.Authentication.Identity.RtlGenRandom
 // API. Don't use windows-targets as it doesn't support Windows 7 targets.
@@ -25,7 +25,7 @@ extern "system" {
 type BOOLEAN = u8;
 const TRUE: BOOLEAN = 1u8;
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Prevent overflow of u32
     let chunk_size = usize::try_from(i32::MAX).expect("Windows does not support 16-bit targets");
     for chunk in dest.chunks_mut(chunk_size) {
