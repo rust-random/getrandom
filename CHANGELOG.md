@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in favor of configuration flags [#504]
 - `register_custom_getrandom!` macro [#504]
 - Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
+- Internet Explorer 11 support [#554]
 
 ### Changed
 - Use `ProcessPrng` on Windows 10 and up, and use RtlGenRandom on older legacy Windows versions [#415]
@@ -52,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#532]: https://github.com/rust-random/getrandom/pull/532
 [#542]: https://github.com/rust-random/getrandom/pull/542
 [#544]: https://github.com/rust-random/getrandom/pull/544
+[#554]: https://github.com/rust-random/getrandom/pull/554
 
 ## [0.2.15] - 2024-05-06
 ### Added
