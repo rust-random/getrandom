@@ -66,7 +66,7 @@ windows-targets = "0.52"
 [target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.89", default-features = false }
 js-sys = "0.3"
-[target.'cfg(all(getrandom_backend = "wasm_js", getrandom_browser_test, target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = "0.3.39"
 
 [features]

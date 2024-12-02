@@ -1,10 +1,12 @@
 use core::mem::MaybeUninit;
 use getrandom::{fill, fill_uninit};
 
-#[cfg(getrandom_browser_test)]
+#[cfg(all(
+    getrandom_backend = "wasm_js",
+    target_arch = "wasm32",
+    target_os = "unknown"
+))]
 use wasm_bindgen_test::wasm_bindgen_test as test;
-#[cfg(getrandom_browser_test)]
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[test]
 fn test_zero() {

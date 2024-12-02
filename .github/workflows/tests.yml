@@ -240,16 +240,14 @@ jobs:
 
   web:
     name: Web
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: choco install wget
-        if: runner.os == 'Windows'
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.12.1
+          VERSION=v0.13.1
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
@@ -260,11 +258,29 @@ jobs:
         run: wasm-pack test --node
       - name: Test (Firefox)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
         run: wasm-pack test --headless --firefox
       - name: Test (Chrome)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        run: wasm-pack test --headless --chrome
+      - name: Test (dedicated worker)
+        env:
+          WASM_BINDGEN_USE_DEDICATED_WORKER: 1
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        run: wasm-pack test --headless --firefox
+      - name: Test (shared worker)
+        env:
+          WASM_BINDGEN_USE_SHARED_WORKER: 1
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        run: wasm-pack test --headless --firefox
+      - name: Test (service worker)
+        env:
+          WASM_BINDGEN_USE_SERVICE_WORKER: 1
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+        # Firefox doesn't support module service workers and therefor can't import scripts
         run: wasm-pack test --headless --chrome
 
   wasi:
