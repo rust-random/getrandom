@@ -46,31 +46,19 @@ jobs:
     strategy:
       matrix:
         target: [x86_64-unknown-linux-musl, i686-unknown-linux-musl]
-        include:
-          - target: i686-unknown-linux-gnu
-            packages: libc6-dev-i386 lib32gcc-11-dev
-          - target: x86_64-unknown-linux-gnux32
-            packages: gcc-multilib libc6-dev-x32 libx32gcc-11-dev
-            # TODO: Find a Linux image/runner with CONFIG_X86_X32_ABI set
-            cargo_test_opts: --no-run
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install libc and libgcc
-        if: matrix.packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends ${{ matrix.packages }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo test --features=std
