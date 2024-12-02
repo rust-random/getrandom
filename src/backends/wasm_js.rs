@@ -83,29 +83,23 @@ fn getrandom_init() -> Result<RngSource, Error> {
     // Get the Web Crypto interface if we are in a browser, Web Worker, Deno,
     // or another environment that supports the Web Cryptography API. This
     // also allows for user-provided polyfills in unsupported environments.
-    let crypto = match global.crypto() {
-        // Standard Web Crypto interface
-        c if c.is_object() => c,
-        // Node.js CommonJS Crypto module
-        _ if is_node(&global) => {
-            // If module.require isn't a valid function, we are in an ES module.
-            match Module::require_fn().and_then(JsCast::dyn_into::<Function>) {
-                Ok(require_fn) => match require_fn.call1(&global, &JsValue::from_str("crypto")) {
-                    Ok(n) => return Ok(RngSource::Node(n.unchecked_into())),
-                    Err(_) => return Err(Error::NODE_CRYPTO),
-                },
-                Err(_) => return Err(Error::NODE_ES_MODULE),
-            }
-        }
-        // IE 11 Workaround
-        _ => match global.ms_crypto() {
-            c if c.is_object() => c,
-            _ => return Err(Error::WEB_CRYPTO),
-        },
-    };
-
-    let buf = Uint8Array::new_with_length(WEB_CRYPTO_BUFFER_SIZE.into());
-    Ok(RngSource::Web(crypto, buf))
+    let crypto = global.crypto();
+    if crypto.is_object() {
+        let buf = Uint8Array::new_with_length(WEB_CRYPTO_BUFFER_SIZE.into());
+        Ok(RngSource::Web(crypto, buf))
+    } else if is_node(&global) {
+        // If module.require isn't a valid function, we are in an ES module.
+        let require_fn = Module::require_fn()
+            .and_then(JsCast::dyn_into::<Function>)
+            .map_err(|_| Error::NODE_ES_MODULE)?;
+        let n = require_fn
+            .call1(&global, &JsValue::from_str("crypto"))
+            .map_err(|_| Error::NODE_CRYPTO)?
+            .unchecked_into();
+        Ok(RngSource::Node(n))
+    } else {
+        Err(Error::WEB_CRYPTO)
+    }
 }
 
 // Taken from https://www.npmjs.com/package/browser-or-node
