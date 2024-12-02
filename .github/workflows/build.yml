@@ -101,12 +101,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -Z build-std=core --target=${{ matrix.target }}
 
+  # Ubuntu does not support running x32 binaries:
+  # https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1994516/comments/21
   linux-x32:
     name: Linux x32
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        target: x86_64-unknown-linux-gnux32
+        target: [x86_64-unknown-linux-gnux32]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
