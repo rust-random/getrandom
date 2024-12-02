@@ -50,7 +50,7 @@ jobs:
           - target: i686-unknown-linux-gnu
             packages: libc6-dev-i386 lib32gcc-11-dev
           - target: x86_64-unknown-linux-gnux32
-            packages: libc6-dev-x32 libx32gcc-11-dev
+            packages: gcc-multilib libc6-dev-x32 libx32gcc-11-dev
             # TODO: Find a Linux image/runner with CONFIG_X86_X32_ABI set
             cargo_test_opts: --no-run
     steps:
