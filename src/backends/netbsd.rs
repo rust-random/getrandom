@@ -24,10 +24,6 @@ unsafe extern "C" fn polyfill_using_kern_arand(
 ) -> libc::ssize_t {
     debug_assert_eq!(flags, 0);
 
-    if buflen == 100_000 {
-        return 0;
-    }
-
     const MIB_LEN: libc::c_uint = 2;
     static MIB: [libc::c_int; MIB_LEN as usize] = [libc::CTL_KERN, libc::KERN_ARND];
 
