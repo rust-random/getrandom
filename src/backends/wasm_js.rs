@@ -21,7 +21,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if !crypto.is_object() {
         return Err(Error::WEB_CRYPTO);
     }
-    
+
     // getRandomValues does not work with all types of WASM memory,
     // so we initially write to browser memory to avoid exceptions.
     let buf = Uint8Array::new_with_length(CRYPTO_BUFFER_SIZE.into());
