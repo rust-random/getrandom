@@ -336,17 +336,13 @@ dual licensed as above, without any additional terms or conditions.
 [`RNDR`]: https://developer.arm.com/documentation/ddi0601/2024-06/AArch64-Registers/RNDR--Random-Number
 [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
-[`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
 [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
-[WebAssembly support]: #webassembly-support
 [configuration flags]: #configuration-flags
 [custom backend]: #custom-backend
 [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
-[CommonJS modules]: https://nodejs.org/api/modules.html
-[ES modules]: https://nodejs.org/api/esm.html
 [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/CraneStation/wasi
