@@ -115,9 +115,9 @@ which JavaScript interface should be used (or if JavaScript is available at all)
 
 Instead, *if the `wasm_js` backend is enabled*, this crate will assume
 that you are building for an environment containing JavaScript, and will
-call the appropriate methods. Both web browser (main window and Web Workers)
-and Node.js environments are supported, invoking the methods
-[described above](#opt-in-backends) using the [`wasm-bindgen`] toolchain.
+call the appropriate Web Crypto methods [described above](#opt-in-backends)
+the [`wasm-bindgen`] toolchain. Both web browser (main window and Web Workers)
+and Node.js (v19 or later) environments are supported.
 
 To enable the `wasm_js` backend, you can add the following lines to your
 project's `.cargo/config.toml` file:
