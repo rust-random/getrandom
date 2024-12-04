@@ -83,6 +83,7 @@ check-cfg = [
   'cfg(getrandom_sanitize)',
   'cfg(getrandom_browser_test)',
   'cfg(getrandom_test_linux_fallback)',
+  'cfg(getrandom_test_netbsd_fallback)',
 ]
 
 [package.metadata.docs.rs]

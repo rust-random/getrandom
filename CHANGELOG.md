@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memory sanitizer support gated behind `getrandom_sanitize` configuration flag [#521]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
 
+### Fixed
+- NetBSD fallback code based on `KERN_ARND` [#555]
+
 [#415]: https://github.com/rust-random/getrandom/pull/415
 [#440]: https://github.com/rust-random/getrandom/pull/440
 [#442]: https://github.com/rust-random/getrandom/pull/442
@@ -54,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#542]: https://github.com/rust-random/getrandom/pull/542
 [#544]: https://github.com/rust-random/getrandom/pull/544
 [#554]: https://github.com/rust-random/getrandom/pull/554
+[#555]: https://github.com/rust-random/getrandom/pull/555
 
 ## [0.2.15] - 2024-05-06
 ### Added
