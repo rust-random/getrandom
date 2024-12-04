@@ -124,8 +124,6 @@ extern "C" {
     // Getters for the WebCrypto API
     #[wasm_bindgen(method, getter)]
     fn crypto(this: &Global) -> WebCrypto;
-    #[wasm_bindgen(method, getter, js_name = msCrypto)]
-    fn ms_crypto(this: &Global) -> WebCrypto;
     // Crypto.getRandomValues()
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values(this: &WebCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
