@@ -150,7 +150,7 @@ cfg_if! {
         pub use rdrand::*;
     } else if #[cfg(all(
         target_arch = "wasm32",
-        target_os = "unknown",
+        any(target_os = "unknown", target_os = "none")
     ))] {
         compile_error!("the wasm32-unknown-unknown targets are not supported \
                         by default, you may need to enable the \"wasm_js\" \
