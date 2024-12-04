@@ -12,16 +12,20 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
-const WEB_CRYPTO_BUFFER_SIZE: u16 = 256;
+const CRYPTO_BUFFER_SIZE: u16 = 256;
 
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let global: Global = global().unchecked_into();
     let crypto = global.crypto();
 
+    if !crypto.is_object() {
+        return Err(Error::WEB_CRYPTO);
+    }
+    
     // getRandomValues does not work with all types of WASM memory,
     // so we initially write to browser memory to avoid exceptions.
-    let buf = Uint8Array::new_with_length(WEB_CRYPTO_BUFFER_SIZE.into());
-    for chunk in dest.chunks_mut(WEB_CRYPTO_BUFFER_SIZE.into()) {
+    let buf = Uint8Array::new_with_length(CRYPTO_BUFFER_SIZE.into());
+    for chunk in dest.chunks_mut(CRYPTO_BUFFER_SIZE.into()) {
         let chunk_len: u32 = chunk
             .len()
             .try_into()
@@ -45,11 +49,11 @@ extern "C" {
     // Return type of js_sys::global()
     type Global;
     // Web Crypto API: Crypto interface (https://www.w3.org/TR/WebCryptoAPI/)
-    type WebCrypto;
-    // Getters for the WebCrypto API
+    type Crypto;
+    // Getters for the Crypto API
     #[wasm_bindgen(method, getter)]
-    fn crypto(this: &Global) -> WebCrypto;
+    fn crypto(this: &Global) -> Crypto;
     // Crypto.getRandomValues()
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
-    fn get_random_values(this: &WebCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
+    fn get_random_values(this: &Crypto, buf: &Uint8Array) -> Result<(), JsValue>;
 }
