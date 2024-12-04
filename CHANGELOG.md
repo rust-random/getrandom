@@ -28,7 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch from `libpthread`'s mutex to `futex` on Linux and to `nanosleep`-based wait loop
   on other targets in the `use_file` backend [#490]
 - Do not retry on `EAGAIN` while polling `/dev/random` on Linux [#522]
-
+- Remove separate codepath for Node.js in the `wasm_js` backend (bumps minimum supported Node.js
+  version to v19) [#557]
+ 
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 - `getrandom_backend` configuration flag for selection of opt-in backends [#504]
@@ -58,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#544]: https://github.com/rust-random/getrandom/pull/544
 [#554]: https://github.com/rust-random/getrandom/pull/554
 [#555]: https://github.com/rust-random/getrandom/pull/555
+[#557]: https://github.com/rust-random/getrandom/pull/557
 
 ## [0.2.15] - 2024-05-06
 ### Added
