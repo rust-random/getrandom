@@ -29,7 +29,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         let chunk_len: u32 = chunk
             .len()
             .try_into()
-            .expect("chunk length is bounded by WEB_CRYPTO_BUFFER_SIZE");
+            .expect("chunk length is bounded by CRYPTO_BUFFER_SIZE");
         // The chunk can be smaller than buf's length, so we call to
         // JS to create a smaller view of buf without allocation.
         let sub_buf = buf.subarray(0, chunk_len);
