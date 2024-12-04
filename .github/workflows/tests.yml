@@ -208,7 +208,9 @@ jobs:
           usesh: true
           prepare: |
             /usr/sbin/pkg_add rust
-          run: cargo test
+          run: |
+            cargo test
+            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
 
   # This job currently fails:
   # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528

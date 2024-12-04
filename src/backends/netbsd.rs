@@ -30,17 +30,15 @@ unsafe extern "C" fn polyfill_using_kern_arand(
     // NetBSD will only return up to 256 bytes at a time, and
     // older NetBSD kernels will fail on longer buffers.
     let mut len = cmp::min(buflen, 256);
-    let expected_ret = libc::c_int::try_from(len).expect("len is bounded by 256");
-
     let ret = unsafe { libc::sysctl(MIB.as_ptr(), MIB_LEN, buf, &mut len, ptr::null(), 0) };
 
-    if ret == expected_ret {
-        libc::ssize_t::try_from(ret).expect("len is bounded by 256")
-    } else if ret == -1 {
-        -1
-    } else {
+    match ret {
+        0 if len <= 256 => {
+            libc::ssize_t::try_from(len).expect("len is unsigned and smaller than 256")
+        }
+        -1 => -1,
         // Zero return result will be converted into `Error::UNEXPECTED` by `sys_fill_exact`
-        0
+        _ => 0,
     }
 }
 
@@ -53,7 +51,7 @@ fn init() -> *mut c_void {
     static NAME: &[u8] = b"getrandom\0";
     let name_ptr = NAME.as_ptr().cast::<libc::c_char>();
     let mut ptr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, name_ptr) };
-    if ptr.is_null() {
+    if ptr.is_null() || cfg!(getrandom_test_netbsd_fallback) {
         // Verify `polyfill_using_kern_arand` has the right signature.
         const POLYFILL: GetRandomFn = polyfill_using_kern_arand;
         ptr = POLYFILL as *mut c_void;
