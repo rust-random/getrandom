@@ -8,7 +8,7 @@ use core::sync::atomic::{AtomicU8, Ordering};
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown",)))]
+#[cfg(not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"))))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
 use js_sys::{global, Function, Uint8Array};
