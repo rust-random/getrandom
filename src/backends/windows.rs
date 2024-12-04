@@ -23,7 +23,7 @@
 use crate::Error;
 use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 // Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
 // bcryptprimitives.dll lacks an import library, we use the windows-targets
@@ -33,7 +33,7 @@ windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *m
 pub type BOOL = i32;
 pub const TRUE: BOOL = 1i32;
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // ProcessPrng should always return TRUE, but we check just in case.
     match unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) } {
         TRUE => Ok(()),

@@ -7,7 +7,7 @@ use core::{
 };
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 #[path = "../util_libc.rs"]
 pub(super) mod util_libc;
@@ -40,7 +40,7 @@ const FD_ONGOING_INIT: libc::c_int = -2;
 // `Ordering::Acquire` to synchronize with it.
 static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let mut fd = FD.load(Ordering::Acquire);
     if fd == FD_UNINIT || fd == FD_ONGOING_INIT {
         fd = open_or_wait()?;

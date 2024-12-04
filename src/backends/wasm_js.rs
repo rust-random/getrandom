@@ -4,7 +4,7 @@ use crate::Error;
 extern crate std;
 use std::{mem::MaybeUninit, thread_local};
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown",)))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
@@ -29,7 +29,7 @@ thread_local!(
     static RNG_SOURCE: Result<RngSource, Error> = getrandom_init();
 );
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     RNG_SOURCE.with(|result| {
         let source = result.as_ref().map_err(|&e| e)?;
 

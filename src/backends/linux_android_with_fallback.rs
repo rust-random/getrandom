@@ -9,7 +9,7 @@ use core::{
 };
 use use_file::util_libc;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64, u32, u64};
 
 type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
@@ -56,10 +56,10 @@ fn init() -> NonNull<c_void> {
 // prevent inlining of the fallback implementation
 #[inline(never)]
 fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    use_file::fill_inner(dest)
+    use_file::fill_uninit(dest)
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
     // is "ordered before" any data read through the returned pointer (which
