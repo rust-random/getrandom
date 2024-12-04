@@ -43,19 +43,12 @@ impl Error {
     pub const WEB_GET_RANDOM_VALUES: Error = Self::new_internal(8);
     /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
     pub const VXWORKS_RAND_SECURE: Error = Self::new_internal(11);
-    /// Node.js does not have the `crypto` CommonJS module.
-    pub const NODE_CRYPTO: Error = Self::new_internal(12);
-    /// Calling Node.js function `crypto.randomFillSync` failed.
-    pub const NODE_RANDOM_FILL_SYNC: Error = Self::new_internal(13);
-    /// Called from an ES module on Node.js. This is unsupported, see:
-    /// <https://docs.rs/getrandom#nodejs-es-module-support>.
-    pub const NODE_ES_MODULE: Error = Self::new_internal(14);
     /// Calling Windows ProcessPrng failed.
-    pub const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(15);
+    pub const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(12);
     /// RNDR register read failed due to a hardware issue.
-    pub const RNDR_FAILURE: Error = Self::new_internal(16);
+    pub const RNDR_FAILURE: Error = Self::new_internal(13);
     /// RNDR register is not supported on this target.
-    pub const RNDR_NOT_AVAILABLE: Error = Self::new_internal(17);
+    pub const RNDR_NOT_AVAILABLE: Error = Self::new_internal(14);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
