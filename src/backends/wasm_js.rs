@@ -2,7 +2,7 @@
 use crate::Error;
 
 extern crate std;
-use std::{mem::MaybeUninit, thread_local};
+use std::mem::MaybeUninit;
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
@@ -33,7 +33,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             KIND_UNINIT => {
                 let global: Global = global().unchecked_into();
                 let crypto = global.crypto();
-                let val = if crypot.is_object() {
+                let val = if crypto.is_object() {
                     KIND_WEB
                 } else if is_node(&global) {
                     KIND_NODE
@@ -76,12 +76,14 @@ pub fn web_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn web_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn node_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    let global: Global = global().unchecked_into();
+
     // If module.require isn't a valid function, we are in an ES module.
     let require_fn = Module::require_fn()
         .and_then(JsCast::dyn_into::<Function>)
         .map_err(|_| Error::NODE_ES_MODULE)?;
-    let n = require_fn
+    let n: NodeCrypto = require_fn
         .call1(&global, &JsValue::from_str("crypto"))
         .map_err(|_| Error::NODE_CRYPTO)?
         .unchecked_into();
@@ -103,31 +105,6 @@ pub fn web_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         }
     }
     Ok(())
-}
-
-fn getrandom_init() -> Result<RngSource, Error> {
-    let global: Global = global().unchecked_into();
-
-    // Get the Web Crypto interface if we are in a browser, Web Worker, Deno,
-    // or another environment that supports the Web Cryptography API. This
-    // also allows for user-provided polyfills in unsupported environments.
-    let crypto = global.crypto();
-    if crypto.is_object() {
-        let buf = Uint8Array::new_with_length(WEB_CRYPTO_BUFFER_SIZE.into());
-        Ok(RngSource::Web(crypto, buf))
-    } else if is_node(&global) {
-        // If module.require isn't a valid function, we are in an ES module.
-        let require_fn = Module::require_fn()
-            .and_then(JsCast::dyn_into::<Function>)
-            .map_err(|_| Error::NODE_ES_MODULE)?;
-        let n = require_fn
-            .call1(&global, &JsValue::from_str("crypto"))
-            .map_err(|_| Error::NODE_CRYPTO)?
-            .unchecked_into();
-        Ok(RngSource::Node(n))
-    } else {
-        Err(Error::WEB_CRYPTO)
-    }
 }
 
 // Taken from https://www.npmjs.com/package/browser-or-node
