@@ -17,40 +17,8 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
 // Maximum is 65536 bytes see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 const WEB_CRYPTO_BUFFER_SIZE: u16 = 256;
-// Node.js's crypto.randomFillSync requires the size to be less than 2**31.
-const NODE_MAX_BUFFER_SIZE: usize = (1 << 31) - 1;
-
-const KIND_UNINIT: u8 = 0;
-const KIND_WEB: u8 = 1;
-const KIND_NODE: u8 = 2;
-const KIND_NA: u8 = 255;
-
-static KIND: AtomicU8 = AtomicU8::new(KIND_UNINIT);
 
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    loop {
-        break match KIND.load(Ordering::Relaxed) {
-            KIND_UNINIT => {
-                let global: Global = global().unchecked_into();
-                let crypto = global.crypto();
-                let val = if crypto.is_object() {
-                    KIND_WEB
-                } else if is_node(&global) {
-                    KIND_NODE
-                } else {
-                    KIND_NA
-                };
-                KIND.store(val, Ordering::Relaxed);
-                continue;
-            }
-            KIND_WEB => web_fill(dest),
-            KIND_NODE => node_fill(dest),
-            _ => Err(Error::WEB_CRYPTO),
-        };
-    }
-}
-
-pub fn web_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let global: Global = global().unchecked_into();
     let crypto = global.crypto();
 
@@ -76,54 +44,10 @@ pub fn web_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn node_fill(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let global: Global = global().unchecked_into();
-
-    // If module.require isn't a valid function, we are in an ES module.
-    let require_fn = Module::require_fn()
-        .and_then(JsCast::dyn_into::<Function>)
-        .map_err(|_| Error::NODE_ES_MODULE)?;
-    let n: NodeCrypto = require_fn
-        .call1(&global, &JsValue::from_str("crypto"))
-        .map_err(|_| Error::NODE_CRYPTO)?
-        .unchecked_into();
-
-    for chunk in dest.chunks_mut(NODE_MAX_BUFFER_SIZE) {
-        // SAFETY: chunk is never used directly, the memory is only
-        // modified via the Uint8Array view, which is passed
-        // directly to JavaScript. Also, crypto.randomFillSync does
-        // not resize the buffer. We know the length is less than
-        // u32::MAX because of the chunking above.
-        // Note that this uses the fact that JavaScript doesn't
-        // have a notion of "uninitialized memory", this is purely
-        // a Rust/C/C++ concept.
-        let res = n.random_fill_sync(unsafe {
-            Uint8Array::view_mut_raw(chunk.as_mut_ptr().cast::<u8>(), chunk.len())
-        });
-        if res.is_err() {
-            return Err(Error::NODE_RANDOM_FILL_SYNC);
-        }
-    }
-    Ok(())
-}
-
-// Taken from https://www.npmjs.com/package/browser-or-node
-fn is_node(global: &Global) -> bool {
-    let process = global.process();
-    if process.is_object() {
-        let versions = process.versions();
-        if versions.is_object() {
-            return versions.node().is_string();
-        }
-    }
-    false
-}
-
 #[wasm_bindgen]
 extern "C" {
     // Return type of js_sys::global()
     type Global;
-
     // Web Crypto API: Crypto interface (https://www.w3.org/TR/WebCryptoAPI/)
     type WebCrypto;
     // Getters for the WebCrypto API
@@ -132,30 +56,4 @@ extern "C" {
     // Crypto.getRandomValues()
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values(this: &WebCrypto, buf: &Uint8Array) -> Result<(), JsValue>;
-
-    // Node JS crypto module (https://nodejs.org/api/crypto.html)
-    type NodeCrypto;
-    // crypto.randomFillSync()
-    #[wasm_bindgen(method, js_name = randomFillSync, catch)]
-    fn random_fill_sync(this: &NodeCrypto, buf: Uint8Array) -> Result<(), JsValue>;
-
-    // Ideally, we would just use `fn require(s: &str)` here. However, doing
-    // this causes a Webpack warning. So we instead return the function itself
-    // and manually invoke it using call1. This also lets us to check that the
-    // function actually exists, allowing for better error messages. See:
-    //   https://github.com/rust-random/getrandom/issues/224
-    //   https://github.com/rust-random/getrandom/issues/256
-    type Module;
-    #[wasm_bindgen(getter, static_method_of = Module, js_class = module, js_name = require, catch)]
-    fn require_fn() -> Result<JsValue, JsValue>;
-
-    // Node JS process Object (https://nodejs.org/api/process.html)
-    #[wasm_bindgen(method, getter)]
-    fn process(this: &Global) -> Process;
-    type Process;
-    #[wasm_bindgen(method, getter)]
-    fn versions(this: &Process) -> Versions;
-    type Versions;
-    #[wasm_bindgen(method, getter)]
-    fn node(this: &Versions) -> JsValue;
 }
