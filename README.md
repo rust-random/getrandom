@@ -126,18 +126,6 @@ project's `.cargo/config.toml` file:
 rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
 ```
 
-#### Node.js ES module support
-
-Node.js supports both [CommonJS modules] and [ES modules]. Due to
-limitations in wasm-bindgen's [`module`] support, we cannot directly
-support ES Modules running on Node.js. However, on Node v15 and later, the
-module author can add a simple shim to support the Web Cryptography API:
-```js
-import { webcrypto } from 'node:crypto'
-globalThis.crypto = webcrypto
-```
-This crate will then use the provided `webcrypto` implementation.
-
 ### Custom backend
 
 If this crate does not support your target out of the box or you have to use
