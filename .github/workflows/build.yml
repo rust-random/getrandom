@@ -131,6 +131,40 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build --features=std
 
+  web:
+    name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
+    runs-on: ubuntu-24.04
+    env:
+        RUSTFLAGS: --cfg getrandom_backend="wasm_js" ${{ matrix.atomic.flags }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [
+          { description: Web, target: wasm32-unknown-unknown },
+          { description: WasmV1, target: wasm32v1-none },
+        ]
+        feature: [
+          { description: no_std, feature: "", build-std: "core,alloc", std: false },
+          { feature: --features std, build-std: "panic_abort,std", std: true },
+        ]
+        atomic: [
+          { flags: "" },
+          { description: with Atomics, flags: "-Ctarget-feature=+atomics,bulk-memory" },
+        ]
+        exclude:
+          - target: { target: wasm32v1-none }
+            feature: { std: true }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          targets: ${{ matrix.target.target }}
+          toolchain: nightly-2024-10-24
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+
   rdrand:
     name: RDRAND
     runs-on: ubuntu-24.04

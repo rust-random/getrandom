@@ -245,33 +245,33 @@ jobs:
       - name: Test (Node)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --node
+        run: wasm-pack test --node -- --features std
       - name: Test (Firefox)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox -- --features std
       - name: Test (Chrome)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome -- --features std
       - name: Test (dedicated worker)
         env:
           WASM_BINDGEN_USE_DEDICATED_WORKER: 1
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox -- --features std
       - name: Test (shared worker)
         env:
           WASM_BINDGEN_USE_SHARED_WORKER: 1
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox -- --features std
       - name: Test (service worker)
         env:
           WASM_BINDGEN_USE_SERVICE_WORKER: 1
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
         # Firefox doesn't support module service workers and therefor can't import scripts
-        run: wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome -- --features std
 
   wasi:
     name: WASI
