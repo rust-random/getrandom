@@ -5,7 +5,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use crate::Error;
+use crate::{util, Error};
 use core::mem::MaybeUninit;
 #[cfg(feature = "std")]
 use std::thread_local;
@@ -15,7 +15,7 @@ pub use crate::util::{inner_u32, inner_u64};
 #[cfg(not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"))))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
-use js_sys::Uint8Array;
+use js_sys::{JsString, Uint8Array};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 // Size of our temporary Uint8Array buffer used with WebCrypto methods
@@ -26,34 +26,75 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     CRYPTO.with(|crypto| {
         let crypto = crypto.as_ref().ok_or(Error::WEB_CRYPTO)?;
 
-        // getRandomValues does not work with all types of WASM memory,
-        // so we initially write to browser memory to avoid exceptions.
-        let buf = Uint8Array::new_with_length(CRYPTO_BUFFER_SIZE.into());
-        for chunk in dest.chunks_mut(CRYPTO_BUFFER_SIZE.into()) {
-            let chunk_len: u32 = chunk
-                .len()
-                .try_into()
-                .expect("chunk length is bounded by CRYPTO_BUFFER_SIZE");
-            // The chunk can be smaller than buf's length, so we call to
-            // JS to create a smaller view of buf without allocation.
-            let sub_buf = if chunk_len == u32::from(CRYPTO_BUFFER_SIZE) {
-                buf.clone()
-            } else {
-                buf.subarray(0, chunk_len)
-            };
+        if is_sab() {
+            // getRandomValues does not work with all types of WASM memory,
+            // so we initially write to browser memory to avoid exceptions.
+            let buf = Uint8Array::new_with_length(CRYPTO_BUFFER_SIZE.into());
+            for chunk in dest.chunks_mut(CRYPTO_BUFFER_SIZE.into()) {
+                let chunk_len: u32 = chunk
+                    .len()
+                    .try_into()
+                    .expect("chunk length is bounded by CRYPTO_BUFFER_SIZE");
+                // The chunk can be smaller than buf's length, so we call to
+                // JS to create a smaller view of buf without allocation.
+                let sub_buf = if chunk_len == u32::from(CRYPTO_BUFFER_SIZE) {
+                    buf.clone()
+                } else {
+                    buf.subarray(0, chunk_len)
+                };
 
-            if crypto.get_random_values(&sub_buf).is_err() {
-                return Err(Error::WEB_GET_RANDOM_VALUES);
+                if crypto.get_random_values(&sub_buf).is_err() {
+                    return Err(Error::WEB_GET_RANDOM_VALUES);
+                }
+
+                // SAFETY: `sub_buf`'s length is the same length as `chunk`
+                unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
             }
-
-            // SAFETY: `sub_buf`'s length is the same length as `chunk`
-            unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
+        } else {
+            for chunk in dest.chunks_mut(CRYPTO_BUFFER_SIZE.into()) {
+                // SAFETY: this is only safe because on Wasm the issues with unitialized data don't exist
+                if crypto
+                    .get_random_values_ref(unsafe { util::slice_assume_init_mut(chunk) })
+                    .is_err()
+                {
+                    return Err(Error::WEB_GET_RANDOM_VALUES);
+                }
+            }
         }
         Ok(())
     })
 }
 
+#[cfg(not(target_feature = "atomics"))]
+fn is_sab() -> bool {
+    use js_sys::WebAssembly::Memory;
+    use js_sys::{Object, SharedArrayBuffer};
+    use wasm_bindgen::JsCast;
+
+    let buffer: Object = wasm_bindgen::memory()
+        .unchecked_into::<Memory>()
+        .buffer()
+        .unchecked_into();
+
+    // `crossOriginIsolated` is not available on Node.js and Safari <v15.2.
+    if let Some(true) = CROSS_ORIGIN_ISOLATED.with(Option::clone) {
+        buffer.is_instance_of::<SharedArrayBuffer>()
+    } else {
+        // `SharedArrayBuffer` is only available with COOP & COEP. But even
+        // without its possible to create a shared `WebAssembly.Memory`, so we
+        // check for that via the constructor name.
+        let constructor_name = buffer.constructor().name();
+        SHARED_ARRAY_BUFFER_NAME.with(|sab_name| &constructor_name == sab_name)
+    }
+}
+
+#[cfg(target_feature = "atomics")]
+fn is_sab() -> bool {
+    true
+}
+
 #[wasm_bindgen]
+#[rustfmt::skip]
 extern "C" {
     // Web Crypto API: Crypto interface (https://www.w3.org/TR/WebCryptoAPI/)
     type Crypto;
@@ -63,4 +104,12 @@ extern "C" {
     // Crypto.getRandomValues()
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values(this: &Crypto, buf: &Uint8Array) -> Result<(), JsValue>;
+    #[wasm_bindgen(method, js_name = getRandomValues, catch)]
+    fn get_random_values_ref(this: &Crypto, buf: &mut [u8]) -> Result<(), JsValue>;
+    // Holds the `crossOriginIsolated` (https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated) global property.
+    #[wasm_bindgen(thread_local_v2, js_namespace = globalThis, js_name = crossOriginIsolated)]
+    static CROSS_ORIGIN_ISOLATED: Option<bool>;
+    // Holds the constructor name of the `SharedArrayBuffer` class.
+    #[wasm_bindgen(thread_local_v2, static_string)]
+    static SHARED_ARRAY_BUFFER_NAME: JsString = "SharedArrayBuffer";
 }
