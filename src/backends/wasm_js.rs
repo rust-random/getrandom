@@ -67,24 +67,43 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
 #[cfg(not(target_feature = "atomics"))]
 fn is_sab() -> bool {
+    use core::sync::atomic::{AtomicU8, Ordering};
+
+    use js_sys::Object;
     use js_sys::WebAssembly::Memory;
-    use js_sys::{Object, SharedArrayBuffer};
     use wasm_bindgen::JsCast;
 
-    let buffer: Object = wasm_bindgen::memory()
-        .unchecked_into::<Memory>()
-        .buffer()
-        .unchecked_into();
+    const MEMORY_KIND_UNINIT: u8 = 0;
+    const MEMORY_KIND_NOT_SHARED: u8 = 1;
+    const MEMORY_KIND_SHARED: u8 = 2;
 
-    // `crossOriginIsolated` is not available on Node.js and Safari <v15.2.
-    if let Some(true) = CROSS_ORIGIN_ISOLATED.with(Option::clone) {
-        buffer.is_instance_of::<SharedArrayBuffer>()
-    } else {
-        // `SharedArrayBuffer` is only available with COOP & COEP. But even
-        // without its possible to create a shared `WebAssembly.Memory`, so we
-        // check for that via the constructor name.
-        let constructor_name = buffer.constructor().name();
-        SHARED_ARRAY_BUFFER_NAME.with(|sab_name| &constructor_name == sab_name)
+    static MEMORY_KIND: AtomicU8 = AtomicU8::new(0);
+
+    loop {
+        break match MEMORY_KIND.load(Ordering::Relaxed) {
+            MEMORY_KIND_NOT_SHARED => false,
+            MEMORY_KIND_SHARED => true,
+            MEMORY_KIND_UNINIT => {
+                let buffer: Object = wasm_bindgen::memory()
+                    .unchecked_into::<Memory>()
+                    .buffer()
+                    .unchecked_into();
+
+                // `SharedArrayBuffer` is only available with COOP & COEP. But even without its
+                // possible to create a shared `WebAssembly.Memory`, so we check for that via
+                // the constructor name.
+                let constructor_name = buffer.constructor().name();
+                let val = if SHARED_ARRAY_BUFFER_NAME.with(|sab_name| &constructor_name == sab_name)
+                {
+                    MEMORY_KIND_SHARED
+                } else {
+                    MEMORY_KIND_NOT_SHARED
+                };
+                MEMORY_KIND.store(val, Ordering::Relaxed);
+                continue;
+            }
+            _ => unreachable!(),
+        };
     }
 }
 
@@ -106,9 +125,6 @@ extern "C" {
     fn get_random_values(this: &Crypto, buf: &Uint8Array) -> Result<(), JsValue>;
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
     fn get_random_values_ref(this: &Crypto, buf: &mut [u8]) -> Result<(), JsValue>;
-    // Holds the `crossOriginIsolated` (https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated) global property.
-    #[wasm_bindgen(thread_local_v2, js_namespace = globalThis, js_name = crossOriginIsolated)]
-    static CROSS_ORIGIN_ISOLATED: Option<bool>;
     // Holds the constructor name of the `SharedArrayBuffer` class.
     #[wasm_bindgen(thread_local_v2, static_string)]
     static SHARED_ARRAY_BUFFER_NAME: JsString = "SharedArrayBuffer";
