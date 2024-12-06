@@ -36,7 +36,11 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
                 .expect("chunk length is bounded by CRYPTO_BUFFER_SIZE");
             // The chunk can be smaller than buf's length, so we call to
             // JS to create a smaller view of buf without allocation.
-            let sub_buf = buf.subarray(0, chunk_len);
+            let sub_buf = if chunk_len == u32::from(CRYPTO_BUFFER_SIZE) {
+                buf.clone()
+            } else {
+                buf.subarray(0, chunk_len)
+            };
 
             if crypto.get_random_values(&sub_buf).is_err() {
                 return Err(Error::WEB_GET_RANDOM_VALUES);
