@@ -229,19 +229,24 @@ jobs:
   #         run: cargo test
 
   web:
-    name: Web ${{ matrix.rust.description }}
+    name: ${{ matrix.rust.description }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         rust:
-          - { version: stable }
           - {
-              description: with Atomics,
+              description: Web,
+              version: stable,
+              flags: -Dwarnings --cfg getrandom_backend="wasm_js",
+              args: --features=std,
+            }
+          - {
+              description: Web with Atomics,
               version: nightly,
               components: rust-src,
-              flags: '-Ctarget-feature=+atomics,+bulk-memory',
-              args: '-Zbuild-std=panic_abort,std',
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              args: '--features=std -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v4
@@ -259,34 +264,34 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
-        run: wasm-pack test --node -- --features std ${{ matrix.rust.args }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --node -- ${{ matrix.rust.args }}
       - name: Test (Firefox)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- --features std ${{ matrix.rust.args }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (Chrome)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --chrome -- --features std ${{ matrix.rust.args }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
       - name: Test (dedicated worker)
         env:
           WASM_BINDGEN_USE_DEDICATED_WORKER: 1
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- --features std ${{ matrix.rust.args }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (shared worker)
         env:
           WASM_BINDGEN_USE_SHARED_WORKER: 1
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- --features std ${{ matrix.rust.args }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (service worker)
         env:
           WASM_BINDGEN_USE_SERVICE_WORKER: 1
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" ${{ matrix.rust.flags }}
+          RUSTFLAGS: ${{ matrix.rust.flags }}
         # Firefox doesn't support module service workers and therefor can't import scripts
-        run: wasm-pack test --headless --chrome -- --features std ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
   wasi:
     name: WASI
