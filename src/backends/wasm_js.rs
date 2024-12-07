@@ -45,12 +45,12 @@ fn inner(crypto: &Crypto, dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // The chunk can be smaller than buf's length, so we call to
         // JS to create a smaller view of buf without allocation.
         let sub_buf = if chunk_len == u32::from(MAX_BUFFER_SIZE) {
-            buf.clone()
+            &buf
         } else {
-            buf.subarray(0, chunk_len)
+            &buf.subarray(0, chunk_len)
         };
 
-        if crypto.get_random_values(&sub_buf).is_err() {
+        if crypto.get_random_values(sub_buf).is_err() {
             return Err(Error::WEB_GET_RANDOM_VALUES);
         }
 
