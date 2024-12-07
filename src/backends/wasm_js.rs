@@ -18,43 +18,46 @@ const MAX_BUFFER_SIZE: u16 = 256;
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     CRYPTO.with(|crypto| {
         let crypto = crypto.as_ref().ok_or(Error::WEB_CRYPTO)?;
-
-        #[cfg(not(target_feature = "atomics"))]
-        {
-            for chunk in dest.chunks_mut(MAX_BUFFER_SIZE.into()) {
-                if crypto.get_random_values(chunk).is_err() {
-                    return Err(Error::WEB_GET_RANDOM_VALUES);
-                }
-            }
-        }
-        #[cfg(target_feature = "atomics")]
-        {
-            // getRandomValues does not work with all types of WASM memory,
-            // so we initially write to browser memory to avoid exceptions.
-            let buf = Uint8Array::new_with_length(MAX_BUFFER_SIZE.into());
-            for chunk in dest.chunks_mut(MAX_BUFFER_SIZE.into()) {
-                let chunk_len: u32 = chunk
-                    .len()
-                    .try_into()
-                    .expect("chunk length is bounded by MAX_BUFFER_SIZE");
-                // The chunk can be smaller than buf's length, so we call to
-                // JS to create a smaller view of buf without allocation.
-                let sub_buf = if chunk_len == u32::from(MAX_BUFFER_SIZE) {
-                    buf.clone()
-                } else {
-                    buf.subarray(0, chunk_len)
-                };
-
-                if crypto.get_random_values(&sub_buf).is_err() {
-                    return Err(Error::WEB_GET_RANDOM_VALUES);
-                }
-
-                // SAFETY: `sub_buf`'s length is the same length as `chunk`
-                unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
-            }
-        }
-        Ok(())
+        inner(crypto, dest)
     })
+}
+
+#[cfg(not(target_feature = "atomics"))]
+fn inner(crypto: &Crypto, dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    for chunk in dest.chunks_mut(MAX_BUFFER_SIZE.into()) {
+        if crypto.get_random_values(chunk).is_err() {
+            return Err(Error::WEB_GET_RANDOM_VALUES);
+        }
+    }
+    Ok(())
+}
+
+#[cfg(target_feature = "atomics")]
+fn inner(crypto: &Crypto, dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    // getRandomValues does not work with all types of WASM memory,
+    // so we initially write to browser memory to avoid exceptions.
+    let buf = Uint8Array::new_with_length(MAX_BUFFER_SIZE.into());
+    for chunk in dest.chunks_mut(MAX_BUFFER_SIZE.into()) {
+        let chunk_len: u32 = chunk
+            .len()
+            .try_into()
+            .expect("chunk length is bounded by MAX_BUFFER_SIZE");
+        // The chunk can be smaller than buf's length, so we call to
+        // JS to create a smaller view of buf without allocation.
+        let sub_buf = if chunk_len == u32::from(MAX_BUFFER_SIZE) {
+            buf.clone()
+        } else {
+            buf.subarray(0, chunk_len)
+        };
+
+        if crypto.get_random_values(&sub_buf).is_err() {
+            return Err(Error::WEB_GET_RANDOM_VALUES);
+        }
+
+        // SAFETY: `sub_buf`'s length is the same length as `chunk`
+        unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
+    }
+    Ok(())
 }
 
 #[wasm_bindgen]
