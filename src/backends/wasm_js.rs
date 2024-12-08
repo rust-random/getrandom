@@ -69,7 +69,7 @@ extern "C" {
     // Web Crypto API: Crypto interface (https://www.w3.org/TR/WebCryptoAPI/)
     type Crypto;
     // Holds the global `Crypto` object.
-    #[wasm_bindgen(thread_local_v2, js_name = crypto)]
+    #[wasm_bindgen(thread_local_v2, js_namespace = globalThis, js_name = crypto)]
     static CRYPTO: Option<Crypto>;
     // Crypto.getRandomValues()
     #[cfg(not(target_feature = "atomics"))]
