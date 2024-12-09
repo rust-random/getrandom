@@ -7,8 +7,6 @@ pub use crate::util::{inner_u32, inner_u64};
 #[cfg(not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"))))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
-#[cfg(target_feature = "atomics")]
-use js_sys::Uint8Array;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 // Maximum buffer size allowed in `Crypto.getRandomValuesSize` is 65536 bytes.
@@ -40,7 +38,7 @@ fn inner(crypto: &Crypto, dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let buf_len_u32 = buf_len
         .try_into()
         .expect("buffer length is bounded by MAX_BUFFER_SIZE");
-    let buf = Uint8Array::new_with_length(buf_len_u32);
+    let buf = js_sys::Uint8Array::new_with_length(buf_len_u32);
     for chunk in dest.chunks_mut(buf_len) {
         let chunk_len = chunk
             .len()
@@ -77,5 +75,5 @@ extern "C" {
     fn get_random_values(this: &Crypto, buf: &mut [MaybeUninit<u8>]) -> Result<(), JsValue>;
     #[cfg(target_feature = "atomics")]
     #[wasm_bindgen(method, js_name = getRandomValues, catch)]
-    fn get_random_values(this: &Crypto, buf: &Uint8Array) -> Result<(), JsValue>;
+    fn get_random_values(this: &Crypto, buf: &js_sys::Uint8Array) -> Result<(), JsValue>;
 }
