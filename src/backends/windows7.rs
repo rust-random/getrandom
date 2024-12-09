@@ -37,3 +37,8 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     }
     Ok(())
 }
+
+impl Error {
+    /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
+    pub(crate) const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(10);
+}

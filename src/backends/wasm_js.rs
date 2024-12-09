@@ -65,3 +65,8 @@ extern "C" {
     #[wasm_bindgen(js_namespace = ["globalThis", "crypto"], js_name = getRandomValues, catch)]
     fn get_random_values(buf: &js_sys::Uint8Array) -> Result<(), JsValue>;
 }
+
+impl Error {
+    /// The environment does not support the Web Crypto API.
+    pub(crate) const WEB_CRYPTO: Error = Self::new_internal(10);
+}

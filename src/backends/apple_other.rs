@@ -10,6 +10,11 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if ret == libc::kCCSuccess {
         Ok(())
     } else {
-        Err(Error::IOS_SEC_RANDOM)
+        Err(Error::IOS_RANDOM_GEN)
     }
+}
+
+impl Error {
+    /// Call to `CCRandomGenerateBytes` failed.
+    pub(crate) const IOS_RANDOM_GEN: Error = Self::new_internal(10);
 }
