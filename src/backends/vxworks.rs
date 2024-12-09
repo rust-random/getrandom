@@ -42,3 +42,8 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     }
     Ok(())
 }
+
+impl Error {
+    /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
+    pub(crate) const VXWORKS_RAND_SECURE: Error = Self::new_internal(10);
+}
