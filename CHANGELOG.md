@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2024-12-16
 
 ### Breaking Changes
 
@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `register_custom_getrandom!` macro [#504]
 - Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
 - Internet Explorer 11 support [#554]
+- Target-specific assocciated `Error` constants [#562]
 
 ### Changed
 - Use `ProcessPrng` on Windows 10 and up, and use RtlGenRandom on older legacy Windows versions [#415]
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not retry on `EAGAIN` while polling `/dev/random` on Linux [#522]
 - Remove separate codepath for Node.js in the `wasm_js` backend (bumps minimum supported Node.js
   version to v19) [#557]
+- Use `js_namespace` in the `wasm_js` backend [#559]
  
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
@@ -39,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `linux_rustix` opt-in backend [#520]
 - Memory sanitizer support gated behind `getrandom_sanitize` configuration flag [#521]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
+- `wasm32v1-none` support [#560]
 
 ### Fixed
 - NetBSD fallback code based on `KERN_ARND` [#555]
@@ -61,6 +64,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#554]: https://github.com/rust-random/getrandom/pull/554
 [#555]: https://github.com/rust-random/getrandom/pull/555
 [#557]: https://github.com/rust-random/getrandom/pull/557
+[#559]: https://github.com/rust-random/getrandom/pull/559
+[#560]: https://github.com/rust-random/getrandom/pull/560
+[#562]: https://github.com/rust-random/getrandom/pull/562
 
 ## [0.2.15] - 2024-05-06
 ### Added
@@ -512,6 +518,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.3.0]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.3.0
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/rust-random/getrandom/compare/v0.2.12...v0.2.13
