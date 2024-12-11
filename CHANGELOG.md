@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `linux_rustix` opt-in backend [#520]
 - Memory sanitizer support gated behind `getrandom_sanitize` configuration flag [#521]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
-- `wasm32v1-none` support [#560]
+- `wasm32v1-none` support in the `wasm_js` backend [#560]
 
 ### Fixed
 - NetBSD fallback code based on `KERN_ARND` [#555]
