@@ -155,11 +155,11 @@ cfg_if! {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(all(
-        any(target_arch = "wasm32", target_arch = "wasm64"),
-        target_os = "unknown",
+        target_arch = "wasm32",
+        any(target_os = "unknown", target_os = "none")
     ))] {
-        compile_error!("the wasm*-unknown-unknown targets are not supported by \
-                        default, you may need to enable the \"wasm_js\" \
+        compile_error!("the wasm32-unknown-unknown targets are not supported \
+                        by default, you may need to enable the \"wasm_js\" \
                         configuration flag. For more information see: \
                         https://docs.rs/getrandom/#webassembly-support");
     } else {

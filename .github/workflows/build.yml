@@ -38,14 +38,12 @@ jobs:
 
   cross:
     name: Cross
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
           sparcv9-sun-solaris,
           x86_64-unknown-illumos,
-          x86_64-unknown-freebsd,
-          x86_64-unknown-netbsd,
         ]
     steps:
       - uses: actions/checkout@v4
@@ -58,26 +56,9 @@ jobs:
       - name: Build Tests
         run: cross test --no-run --target=${{ matrix.target }} --features=std
 
-  wasm64:
-    name: Wasm64
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - name: Build and Link tests (build-std)
-        env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        # This target is Tier 3, so we have to build libstd ourselves.
-        # We currently cannot run these tests because wasm-bindgen-test-runner
-        # does not yet support memory64.
-        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown
-
   tier2:
     name: Tier 2
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
@@ -96,7 +77,7 @@ jobs:
 
   tier3:
     name: Tier 3
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
@@ -118,9 +99,75 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -Z build-std=core --target=${{ matrix.target }}
 
+  # Ubuntu does not support running x32 binaries:
+  # https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1994516/comments/21
+  linux-x32:
+    name: Linux x32
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnux32]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install libc and libgcc
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends libc6-dev-x32 libx32gcc-11-dev
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+        run: cargo build --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
+        run: cargo build --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
+        run: cargo build --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build --features=std
+
+  web:
+    name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
+    runs-on: ubuntu-24.04
+    env:
+        RUSTFLAGS: --cfg getrandom_backend="wasm_js" ${{ matrix.atomic.flags }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [
+          { description: Web, target: wasm32-unknown-unknown },
+          { description: WasmV1, target: wasm32v1-none },
+        ]
+        feature: [
+          { description: no_std, feature: "", build-std: "core,alloc", std: false },
+          { feature: --features std, build-std: "panic_abort,std", std: true },
+        ]
+        atomic: [
+          { flags: "" },
+          { description: with Atomics, flags: "-Ctarget-feature=+atomics,bulk-memory" },
+        ]
+        exclude:
+          - target: { target: wasm32v1-none }
+            feature: { std: true }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          targets: ${{ matrix.target.target }}
+          toolchain: nightly-2024-10-24
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+
   rdrand:
     name: RDRAND
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
@@ -139,7 +186,7 @@ jobs:
 
   rndr:
     name: RNDR
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
@@ -162,7 +209,7 @@ jobs:
 
   esp-idf:
     name: ESP-IDF
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
@@ -175,7 +222,7 @@ jobs:
 
   no-atomics:
     name: No Atomics
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

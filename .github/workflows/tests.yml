@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-2022]
+        os: [ubuntu-24.04, windows-2022]
         toolchain: [nightly, beta, stable, "1.63"]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
@@ -42,35 +42,23 @@ jobs:
 
   linux:
     name: Linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [x86_64-unknown-linux-musl, i686-unknown-linux-musl]
-        include:
-          - target: i686-unknown-linux-gnu
-            packages: libc6-dev-i386 lib32gcc-11-dev
-          - target: x86_64-unknown-linux-gnux32
-            packages: libc6-dev-x32 libx32gcc-11-dev
-            # TODO: Find a Linux image/runner with CONFIG_X86_X32_ABI set
-            cargo_test_opts: --no-run
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install libc and libgcc
-        if: matrix.packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends ${{ matrix.packages }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo test --features=std
@@ -144,7 +132,7 @@ jobs:
 
   sanitizer:
     name: Sanitizer
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
@@ -158,7 +146,7 @@ jobs:
 
   cross:
     name: Cross
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
@@ -182,7 +170,7 @@ jobs:
 
   freebsd:
     name: FreeBSD VM
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Test in FreeBSD
@@ -196,7 +184,7 @@ jobs:
 
   openbsd:
     name: OpenBSD VM
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Test in OpenBSD
@@ -210,7 +198,7 @@ jobs:
 
   netbsd:
     name: NetBSD VM
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Test in NetBSD
@@ -220,13 +208,15 @@ jobs:
           usesh: true
           prepare: |
             /usr/sbin/pkg_add rust
-          run: cargo test
+          run: |
+            cargo test
+            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
 
   # This job currently fails:
   # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528
   # dragonflybsd:
   #   name: DragonflyBSD VM
-  #   runs-on: ubuntu-22.04
+  #   runs-on: ubuntu-24.04
   #   steps:
   #     - uses: actions/checkout@v4
   #     - name: Test in DragonflyBSD
@@ -239,37 +229,73 @@ jobs:
   #         run: cargo test
 
   web:
-    name: Web
-    runs-on: ubuntu-22.04
+    name: ${{ matrix.rust.description }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - {
+              description: Web,
+              version: stable,
+              flags: -Dwarnings --cfg getrandom_backend="wasm_js",
+              args: --features=std,
+            }
+          - {
+              description: Web with Atomics,
+              version: nightly,
+              components: rust-src,
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              args: '--features=std -Zbuild-std=panic_abort,std',
+            }
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: choco install wget
-        if: runner.os == 'Windows'
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust.version }}
+          components: ${{ matrix.rust.components }}
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.12.1
+          VERSION=v0.13.1
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --node
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --node -- ${{ matrix.rust.args }}
       - name: Test (Firefox)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
-        run: wasm-pack test --headless --firefox
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (Chrome)
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" --cfg getrandom_browser_test
-        run: wasm-pack test --headless --chrome
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
+      - name: Test (dedicated worker)
+        env:
+          WASM_BINDGEN_USE_DEDICATED_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+      - name: Test (shared worker)
+        env:
+          WASM_BINDGEN_USE_SHARED_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+      - name: Test (service worker)
+        env:
+          WASM_BINDGEN_USE_SERVICE_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        # Firefox doesn't support module service workers and therefor can't import scripts
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
   wasi:
     name: WASI
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master

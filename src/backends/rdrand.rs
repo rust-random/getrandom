@@ -172,3 +172,10 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // SAFETY: After this point, we know rdrand is supported.
     unsafe { rdrand_exact(dest) }.ok_or(Error::FAILED_RDRAND)
 }
+
+impl Error {
+    /// RDRAND instruction failed due to a hardware issue.
+    pub(crate) const FAILED_RDRAND: Error = Self::new_internal(10);
+    /// RDRAND instruction unsupported on this target.
+    pub(crate) const NO_RDRAND: Error = Self::new_internal(11);
+}

@@ -1,6 +1,6 @@
 [package]
 name = "getrandom"
-version = "0.2.15" # Also update html_root_url in lib.rs when bumping this
+version = "0.3.0-rc.0"
 edition = "2021"
 rust-version = "1.63" # Sync tests.yml and README.md.
 authors = ["The Rand Project Developers"]
@@ -63,11 +63,12 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 # wasm_js
-[target.'cfg(all(getrandom_backend = "wasm_js", any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-wasm-bindgen = { version = "0.2.89", default-features = false }
-js-sys = "0.3"
-[target.'cfg(all(getrandom_backend = "wasm_js", getrandom_browser_test, target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
-wasm-bindgen-test = "0.3.39"
+[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+wasm-bindgen = { version = "0.2.98", default-features = false }
+[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
+js-sys = { version = "0.3.75", default-features = false }
+[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+wasm-bindgen-test = "0.3"
 
 [features]
 # Implement std::error::Error for getrandom::Error and
@@ -81,8 +82,8 @@ level = "warn"
 check-cfg = [
   'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
   'cfg(getrandom_sanitize)',
-  'cfg(getrandom_browser_test)',
   'cfg(getrandom_test_linux_fallback)',
+  'cfg(getrandom_test_netbsd_fallback)',
 ]
 
 [package.metadata.docs.rs]

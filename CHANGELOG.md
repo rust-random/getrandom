@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 #### Changed
-- Bump MSRV to 1.60 [#472]
+- Bump MSRV to 1.63 [#542]
 - Rename `getrandom` and `getrandom_uninit` functions to `fill` and `fill_uninit` respectively [#532]
 
 #### Removed
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in favor of configuration flags [#504]
 - `register_custom_getrandom!` macro [#504]
 - Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
+- Internet Explorer 11 support [#554]
 
 ### Changed
 - Use `ProcessPrng` on Windows 10 and up, and use RtlGenRandom on older legacy Windows versions [#415]
@@ -27,7 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch from `libpthread`'s mutex to `futex` on Linux and to `nanosleep`-based wait loop
   on other targets in the `use_file` backend [#490]
 - Do not retry on `EAGAIN` while polling `/dev/random` on Linux [#522]
-
+- Remove separate codepath for Node.js in the `wasm_js` backend (bumps minimum supported Node.js
+  version to v19) [#557]
+ 
 ### Added
 - `wasm32-wasip1` and `wasm32-wasip2` support [#499]
 - `getrandom_backend` configuration flag for selection of opt-in backends [#504]
@@ -35,12 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rndr` opt-in backend [#512]
 - `linux_rustix` opt-in backend [#520]
 - Memory sanitizer support gated behind `getrandom_sanitize` configuration flag [#521]
+- `u32` and `u64` functions for generating random values of the respective type [#544]
+
+### Fixed
+- NetBSD fallback code based on `KERN_ARND` [#555]
 
 [#415]: https://github.com/rust-random/getrandom/pull/415
 [#440]: https://github.com/rust-random/getrandom/pull/440
 [#442]: https://github.com/rust-random/getrandom/pull/442
 [#448]: https://github.com/rust-random/getrandom/pull/448
-[#472]: https://github.com/rust-random/getrandom/pull/472
 [#490]: https://github.com/rust-random/getrandom/pull/490
 [#499]: https://github.com/rust-random/getrandom/pull/499
 [#504]: https://github.com/rust-random/getrandom/pull/504
@@ -50,6 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#521]: https://github.com/rust-random/getrandom/pull/521
 [#522]: https://github.com/rust-random/getrandom/pull/522
 [#532]: https://github.com/rust-random/getrandom/pull/532
+[#542]: https://github.com/rust-random/getrandom/pull/542
+[#544]: https://github.com/rust-random/getrandom/pull/544
+[#554]: https://github.com/rust-random/getrandom/pull/554
+[#555]: https://github.com/rust-random/getrandom/pull/555
+[#557]: https://github.com/rust-random/getrandom/pull/557
 
 ## [0.2.15] - 2024-05-06
 ### Added

@@ -27,35 +27,6 @@ impl Error {
     pub const ERRNO_NOT_POSITIVE: Error = Self::new_internal(1);
     /// Encountered an unexpected situation which should not happen in practice.
     pub const UNEXPECTED: Error = Self::new_internal(2);
-    /// Call to [`CCRandomGenerateBytes`](https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html) failed
-    /// on iOS, tvOS, or waatchOS.
-    // TODO: Update this constant name in the next breaking release.
-    pub const IOS_SEC_RANDOM: Error = Self::new_internal(3);
-    /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
-    pub const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(4);
-    /// RDRAND instruction failed due to a hardware issue.
-    pub const FAILED_RDRAND: Error = Self::new_internal(5);
-    /// RDRAND instruction unsupported on this target.
-    pub const NO_RDRAND: Error = Self::new_internal(6);
-    /// The environment does not support the Web Crypto API.
-    pub const WEB_CRYPTO: Error = Self::new_internal(7);
-    /// Calling Web Crypto API `crypto.getRandomValues` failed.
-    pub const WEB_GET_RANDOM_VALUES: Error = Self::new_internal(8);
-    /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
-    pub const VXWORKS_RAND_SECURE: Error = Self::new_internal(11);
-    /// Node.js does not have the `crypto` CommonJS module.
-    pub const NODE_CRYPTO: Error = Self::new_internal(12);
-    /// Calling Node.js function `crypto.randomFillSync` failed.
-    pub const NODE_RANDOM_FILL_SYNC: Error = Self::new_internal(13);
-    /// Called from an ES module on Node.js. This is unsupported, see:
-    /// <https://docs.rs/getrandom#nodejs-es-module-support>.
-    pub const NODE_ES_MODULE: Error = Self::new_internal(14);
-    /// Calling Windows ProcessPrng failed.
-    pub const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(15);
-    /// RNDR register read failed due to a hardware issue.
-    pub const RNDR_FAILURE: Error = Self::new_internal(16);
-    /// RNDR register is not supported on this target.
-    pub const RNDR_NOT_AVAILABLE: Error = Self::new_internal(17);
 
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
@@ -110,10 +81,51 @@ impl Error {
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
-    const fn new_internal(n: u16) -> Error {
+    pub(crate) const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
         let code = Error::INTERNAL_START + (n as u32);
         Error(unsafe { NonZeroU32::new_unchecked(code) })
+    }
+
+    fn internal_desc(&self) -> Option<&'static str> {
+        let desc = match *self {
+            Error::UNSUPPORTED => "getrandom: this target is not supported",
+            Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
+            Error::UNEXPECTED => "unexpected situation",
+            #[cfg(any(
+                target_os = "ios",
+                target_os = "visionos",
+                target_os = "watchos",
+                target_os = "tvos",
+            ))]
+            Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
+            #[cfg(all(windows, not(target_vendor = "win7")))]
+            Error::WINDOWS_PROCESS_PRNG => "ProcessPrng: Windows system function failure",
+            #[cfg(all(windows, target_vendor = "win7"))]
+            Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
+            #[cfg(getrandom_backend = "wasm_js")]
+            Error::WEB_CRYPTO => "Web Crypto API is unavailable",
+            #[cfg(target_os = "vxworks")]
+            Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
+
+            #[cfg(any(
+                getrandom_backend = "rdrand",
+                all(target_arch = "x86_64", target_env = "sgx")
+            ))]
+            Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
+            #[cfg(any(
+                getrandom_backend = "rdrand",
+                all(target_arch = "x86_64", target_env = "sgx")
+            ))]
+            Error::NO_RDRAND => "RDRAND: instruction not supported",
+
+            #[cfg(getrandom_backend = "rndr")]
+            Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
+            #[cfg(getrandom_backend = "rndr")]
+            Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
+            _ => return None,
+        };
+        Some(desc)
     }
 }
 
@@ -124,7 +136,7 @@ impl fmt::Debug for Error {
             dbg.field("os_error", &errno);
             #[cfg(feature = "std")]
             dbg.field("description", &std::io::Error::from_raw_os_error(errno));
-        } else if let Some(desc) = internal_desc(*self) {
+        } else if let Some(desc) = self.internal_desc() {
             dbg.field("internal_code", &self.0.get());
             dbg.field("description", &desc);
         } else {
@@ -144,35 +156,12 @@ impl fmt::Display for Error {
                     write!(f, "OS Error: {}", errno)
                 }
             }
-        } else if let Some(desc) = internal_desc(*self) {
+        } else if let Some(desc) = self.internal_desc() {
             f.write_str(desc)
         } else {
             write!(f, "Unknown Error: {}", self.0.get())
         }
     }
-}
-
-fn internal_desc(error: Error) -> Option<&'static str> {
-    let desc = match error {
-        Error::UNSUPPORTED => "getrandom: this target is not supported",
-        Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
-        Error::UNEXPECTED => "unexpected situation",
-        Error::IOS_SEC_RANDOM => "SecRandomCopyBytes: iOS Security framework failure",
-        Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
-        Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
-        Error::NO_RDRAND => "RDRAND: instruction not supported",
-        Error::WEB_CRYPTO => "Web Crypto API is unavailable",
-        Error::WEB_GET_RANDOM_VALUES => "Calling Web API crypto.getRandomValues failed",
-        Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
-        Error::NODE_CRYPTO => "Node.js crypto CommonJS module is unavailable",
-        Error::NODE_RANDOM_FILL_SYNC => "Calling Node.js API crypto.randomFillSync failed",
-        Error::NODE_ES_MODULE => "Node.js ES modules are not directly supported, see https://docs.rs/getrandom#nodejs-es-module-support",
-        Error::WINDOWS_PROCESS_PRNG => "ProcessPrng: Windows system function failure",
-        Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
-        Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
-        _ => return None,
-    };
-    Some(desc)
 }
 
 #[cfg(test)]

@@ -40,3 +40,8 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         _ => Err(Error::WINDOWS_PROCESS_PRNG),
     }
 }
+
+impl Error {
+    /// Calling Windows ProcessPrng failed.
+    pub(crate) const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(10);
+}

@@ -86,15 +86,15 @@ Pull Requests that add support for new targets to `getrandom` are always welcome
 `getrandom` also provides optional (opt-in) backends, which allow users to customize the source
 of randomness based on their specific needs:
 
-| Backend name      | Target               | Target Triple        | Implementation
-| ----------------- | -------------------- | -------------------- | --------------
-| `linux_getrandom` | Linux, Android       | `*‑linux‑*`          | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_rustix`    | Linux, Android       | `*‑linux‑*`          | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
-| `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*` | [`RDRAND`] instruction
-| `rndr`            | AArch64              | `aarch64-*`          | [`RNDR`] register
-| `esp_idf`         | ESP-IDF              | `*‑espidf`           | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
-| `wasm_js`         | Web Browser, Node.js | `wasm*‑*‑unknown`    | [`Crypto.getRandomValues`] if available, then [`crypto.randomFillSync`] if on Node.js (see [WebAssembly support])
-| `custom`          | All targets          | `*`                  | User-provided custom implementation (see [custom backend])
+| Backend name      | Target               | Target Triple            | Implementation
+| ----------------- | -------------------- | ------------------------ | --------------
+| `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
+| `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
+| `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
+| `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
+| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]
+| `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
 The flag can be set either by specifying the `rustflags` field in
@@ -144,9 +144,9 @@ which JavaScript interface should be used (or if JavaScript is available at all)
 
 Instead, *if the `wasm_js` backend is enabled*, this crate will assume
 that you are building for an environment containing JavaScript, and will
-call the appropriate methods. Both web browser (main window and Web Workers)
-and Node.js environments are supported, invoking the methods
-[described above](#opt-in-backends) using the [`wasm-bindgen`] toolchain.
+call the appropriate Web Crypto methods [described above](#opt-in-backends) using
+the [`wasm-bindgen`] toolchain. Both web browser (main window and Web Workers)
+and Node.js (v19 or later) environments are supported.
 
 To enable the `wasm_js` backend, you can add the following lines to your
 project's `.cargo/config.toml` file:
@@ -154,18 +154,6 @@ project's `.cargo/config.toml` file:
 [target.wasm32-unknown-unknown]
 rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
 ```
-
-#### Node.js ES module support
-
-Node.js supports both [CommonJS modules] and [ES modules]. Due to
-limitations in wasm-bindgen's [`module`] support, we cannot directly
-support ES Modules running on Node.js. However, on Node v15 and later, the
-module author can add a simple shim to support the Web Cryptography API:
-```js
-import { webcrypto } from 'node:crypto'
-globalThis.crypto = webcrypto
-```
-This crate will then use the provided `webcrypto` implementation.
 
 ### Custom backend
 
@@ -197,6 +185,31 @@ The function accepts a pointer to a buffer that should be filled with random
 data and its length in bytes. Note that the buffer MAY be uninitialized.
 On success, the function should return `Ok(())` and fully fill the input buffer;
 otherwise, it should return an error value.
+
+While wrapping functions which work with byte slices you should fully initialize
+the buffer before passing it to the function:
+```rust
+use getrandom::Error;
+
+fn my_entropy_source(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+    // ...
+    Ok(())
+}
+
+#[no_mangle]
+unsafe extern "Rust" fn __getrandom_v03_custom(
+    dest: *mut u8,
+    len: usize,
+) -> Result<(), Error> {
+    let buf = unsafe {
+        // fill the buffer with zeros
+        core::ptr::write_bytes(dest, 0, len);
+        // create mutable byte slice
+        core::slice::from_raw_parts_mut(dest, len)
+    };
+    my_entropy_source(buf)
+}
+```
 
 If you are confident that `getrandom` is not used in your project, but
 it gets pulled nevertheless by one of your dependencies, then you can
@@ -327,17 +340,13 @@ dual licensed as above, without any additional terms or conditions.
 [`RNDR`]: https://developer.arm.com/documentation/ddi0601/2024-06/AArch64-Registers/RNDR--Random-Number
 [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
-[`crypto.randomFillSync`]: https://nodejs.org/api/crypto.html#cryptorandomfillsyncbuffer-offset-size
 [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
 [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
-[WebAssembly support]: #webassembly-support
 [configuration flags]: #configuration-flags
 [custom backend]: #custom-backend
 [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
-[CommonJS modules]: https://nodejs.org/api/modules.html
-[ES modules]: https://nodejs.org/api/esm.html
 [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/CraneStation/wasi
