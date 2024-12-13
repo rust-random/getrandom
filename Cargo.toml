@@ -75,7 +75,7 @@ wasm-bindgen-test = "0.3"
 # use std to retrieve OS error descriptions
 std = []
 # Unstable feature to support being a libstd dependency
-rustc-dep-of-std = ["compiler_builtins", "core"]
+rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
