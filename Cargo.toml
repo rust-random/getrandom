@@ -88,7 +88,6 @@ check-cfg = [
 
 [package.metadata.docs.rs]
 features = ["std"]
-rustdoc-args = ["--cfg", "docsrs"]
 
 # workaround for https://github.com/cross-rs/cross/issues/1345
 [package.metadata.cross.target.x86_64-unknown-netbsd]
