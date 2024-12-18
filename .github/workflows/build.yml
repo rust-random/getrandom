@@ -165,14 +165,13 @@ jobs:
       - name: Build
         run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
 
-  rdrand:
-    name: RDRAND
+  rdrand-uefi:
+    name: RDRAND UEFI
     runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
           x86_64-unknown-uefi,
-          x86_64-unknown-l4re-uclibc,
           i686-unknown-uefi,
         ]
     steps:
@@ -184,6 +183,9 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build -Z build-std=core --target=${{ matrix.target }}
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
 
   rndr:
     name: RNDR
