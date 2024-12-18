@@ -79,15 +79,13 @@ impl Error {
     #[inline]
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
-        if code < Self::INTERNAL_START {
-            let res = RawOsError::try_from(code).ok();
-            // On SOLID, negate the error code again to obtain the original error code.
-            #[cfg(target_os = "solid_asp3")]
-            let res = res.map(|errno| -errno);
-            res
-        } else {
-            None
+        if code >= Self::INTERNAL_START {
+            return None;
         }
+        let errno = RawOsError::try_from(code).ok()?;
+        #[cfg(target_os = "solid_asp3")]
+        let errno = -errno;
+        Some(errno)
     }
 
     /// Creates a new instance of an `Error` from a particular custom error code.
