@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Error::new_custom` method [#507]
 - `rndr` opt-in backend [#512]
 - `linux_rustix` opt-in backend [#520]
-- Memory sanitizer support gated behind `getrandom_sanitize` configuration flag [#521]
+- Automatic MemorySanitizer support [#521] [#571]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
 
 ### Fixed
@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#554]: https://github.com/rust-random/getrandom/pull/554
 [#555]: https://github.com/rust-random/getrandom/pull/555
 [#557]: https://github.com/rust-random/getrandom/pull/557
+[#571]: https://github.com/rust-random/getrandom/pull/571
 
 ## [0.2.15] - 2024-05-06
 ### Added
