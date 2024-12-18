@@ -134,7 +134,7 @@ impl fmt::Debug for Error {
         let mut dbg = f.debug_struct("Error");
         if let Some(errno) = self.raw_os_error() {
             dbg.field("os_error", &errno);
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", not(target_os = "uefi")))]
             dbg.field("description", &std::io::Error::from_raw_os_error(errno));
         } else if let Some(desc) = self.internal_desc() {
             dbg.field("internal_code", &self.0.get());
@@ -150,7 +150,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(errno) = self.raw_os_error() {
             cfg_if! {
-                if #[cfg(feature = "std")] {
+                if #[cfg(all(feature = "std", not(target_os = "uefi")))] {
                     std::io::Error::from_raw_os_error(errno).fmt(f)
                 } else {
                     write!(f, "OS Error: {}", errno)

@@ -144,7 +144,7 @@ unsafe fn rdrand_u32() -> Option<u32> {
 unsafe fn rdrand_u64() -> Option<u64> {
     let a = rdrand()?;
     let b = rdrand()?;
-    Some((u64::from(a) << 32) || u64::from(b))
+    Some((u64::from(a) << 32) | u64::from(b))
 }
 
 pub fn inner_u32() -> Result<u32, Error> {

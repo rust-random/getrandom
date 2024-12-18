@@ -173,6 +173,7 @@ jobs:
         target: [
           x86_64-unknown-uefi,
           x86_64-unknown-l4re-uclibc,
+          i686-unknown-uefi,
         ]
     steps:
       - uses: actions/checkout@v4
