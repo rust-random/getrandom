@@ -3,6 +3,16 @@ extern crate std;
 
 use core::{fmt, num::NonZeroU32};
 
+// This private alias mirrors `std::io::RawOsError`:
+// https://doc.rust-lang.org/std/io/type.RawOsError.html)
+cfg_if::cfg_if!(
+    if #[cfg(target_os = "uefi")] {
+        type RawOsError = usize;
+    } else {
+        type RawOsError = i32;
+    }
+);
+
 /// A small and `no_std` compatible error type
 ///
 /// The [`Error::raw_os_error()`] will indicate if the error is from the OS, and
@@ -57,20 +67,30 @@ impl Error {
     /// Extract the raw OS error code (if this error came from the OS)
     ///
     /// This method is identical to [`std::io::Error::raw_os_error()`][1], except
-    /// that it works in `no_std` contexts. If this method returns `None`, the
-    /// error value can still be formatted via the `Display` implementation.
+    /// that it works in `no_std` contexts. On most targets this method returns
+    /// `Option<i32>`, but some platforms (e.g. UEFI) may use a different primitive
+    /// type like `usize`. Consult with the [`RawOsError`] docs for more information.
+    ///
+    /// If this method returns `None`, the error value can still be formatted via
+    /// the `Display` implementation.
     ///
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error
+    /// [`RawOsError`]: https://doc.rust-lang.org/std/io/type.RawOsError.html
     #[inline]
-    pub fn raw_os_error(self) -> Option<i32> {
-        i32::try_from(self.0.get()).ok().map(|errno| {
-            // On SOLID, negate the error code again to obtain the original error code.
-            if cfg!(target_os = "solid_asp3") {
-                -errno
-            } else {
-                errno
-            }
-        })
+    pub fn raw_os_error(self) -> Option<RawOsError> {
+        let code = self.0.get();
+        if code < Self::INTERNAL_START {
+            RawOsError::try_from(code).ok().map(|errno| {
+                // On SOLID, negate the error code again to obtain the original error code.
+                if cfg!(target_os = "solid_asp3") {
+                    -errno
+                } else {
+                    errno
+                }
+            })
+        } else {
+            None
+        }
     }
 
     /// Creates a new instance of an `Error` from a particular custom error code.
@@ -134,7 +154,7 @@ impl fmt::Debug for Error {
         let mut dbg = f.debug_struct("Error");
         if let Some(errno) = self.raw_os_error() {
             dbg.field("os_error", &errno);
-            #[cfg(all(feature = "std", not(target_os = "uefi")))]
+            #[cfg(feature = "std")]
             dbg.field("description", &std::io::Error::from_raw_os_error(errno));
         } else if let Some(desc) = self.internal_desc() {
             dbg.field("internal_code", &self.0.get());
@@ -150,7 +170,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(errno) = self.raw_os_error() {
             cfg_if! {
-                if #[cfg(all(feature = "std", not(target_os = "uefi")))] {
+                if #[cfg(feature = "std")] {
                     std::io::Error::from_raw_os_error(errno).fmt(f)
                 } else {
                     write!(f, "OS Error: {}", errno)
