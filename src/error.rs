@@ -1,35 +1,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::fmt;
-
-#[cfg(not(target_os = "uefi"))]
-pub type RawOsError = i32;
-
-#[cfg(target_os = "uefi")]
-pub type RawOsError = usize;
-
-#[cfg(not(target_os = "uefi"))]
-type InternalError = u32;
-
-#[cfg(target_os = "uefi")]
-#[cfg(target_pointer_width = "32")]
-type InternalError = u64;
-
-#[cfg(target_os = "uefi")]
-#[cfg(target_pointer_width = "64")]
-type InternalError = u128;
-
-#[cfg(not(target_os = "uefi"))]
-type NonZeroInternalError = core::num::NonZeroU32;
-
-#[cfg(target_os = "uefi")]
-#[cfg(target_pointer_width = "32")]
-type NonZeroInternalError = core::num::NonZeroU64;
-
-#[cfg(target_os = "uefi")]
-#[cfg(target_pointer_width = "64")]
-type NonZeroInternalError = core::num::NonZeroU128;
+use core::{fmt, num::NonZeroU32};
 
 /// A small and `no_std` compatible error type
 ///
@@ -46,7 +18,7 @@ type NonZeroInternalError = core::num::NonZeroU128;
 /// - [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html) implements
 ///   [`From<getrandom::Error>`](https://doc.rust-lang.org/std/convert/trait.From.html).
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Error(NonZeroInternalError);
+pub struct Error(NonZeroU32);
 
 impl Error {
     /// This target/platform is not supported by `getrandom`.
@@ -59,11 +31,11 @@ impl Error {
     /// Codes below this point represent OS Errors (i.e. positive i32 values).
     /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
     /// reserved for use by the `rand` and `getrandom` crates.
-    pub const INTERNAL_START: InternalError = 0b10 << (InternalError::BITS - 2);
+    pub const INTERNAL_START: u32 = 1 << 31;
 
     /// Codes at or above this point can be used by users to define their own
     /// custom errors.
-    pub const CUSTOM_START: InternalError = 0b11 << (InternalError::BITS - 2);
+    pub const CUSTOM_START: u32 = (1 << 31) + (1 << 30);
 
     /// Creates a new instance of an `Error` from a particular OS error code.
     ///
@@ -76,10 +48,7 @@ impl Error {
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
     pub(super) fn from_os_error(code: u32) -> Self {
-        match InternalError::try_from(code)
-            .ok()
-            .and_then(NonZeroInternalError::new)
-        {
+        match NonZeroU32::new(code) {
             Some(code) if code.get() < Self::INTERNAL_START => Self(code),
             _ => Self::UNEXPECTED,
         }
@@ -93,30 +62,29 @@ impl Error {
     ///
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error
     #[inline]
-    pub fn raw_os_error(self) -> Option<RawOsError> {
-        #[cfg(not(target_os = "solid_asp3"))]
-        {
-            RawOsError::try_from(self.0.get()).ok()
-        }
-        // On SOLID, negate the error code again to obtain the original error code.
-        #[cfg(target_os = "solid_asp3")]
-        {
-            RawOsError::try_from(self.0.get()).ok().map(|errno| -errno)
-        }
+    pub fn raw_os_error(self) -> Option<i32> {
+        i32::try_from(self.0.get()).ok().map(|errno| {
+            // On SOLID, negate the error code again to obtain the original error code.
+            if cfg!(target_os = "solid_asp3") {
+                -errno
+            } else {
+                errno
+            }
+        })
     }
 
     /// Creates a new instance of an `Error` from a particular custom error code.
     pub const fn new_custom(n: u16) -> Error {
         // SAFETY: code > 0 as CUSTOM_START > 0 and adding n won't overflow a u32.
-        let code = Error::CUSTOM_START + (n as InternalError);
-        Error(unsafe { NonZeroInternalError::new_unchecked(code) })
+        let code = Error::CUSTOM_START + (n as u32);
+        Error(unsafe { NonZeroU32::new_unchecked(code) })
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
     pub(crate) const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
-        let code = Error::INTERNAL_START + (n as InternalError);
-        Error(unsafe { NonZeroInternalError::new_unchecked(code) })
+        let code = Error::INTERNAL_START + (n as u32);
+        Error(unsafe { NonZeroU32::new_unchecked(code) })
     }
 
     fn internal_desc(&self) -> Option<&'static str> {
