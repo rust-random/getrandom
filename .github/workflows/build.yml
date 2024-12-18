@@ -184,6 +184,9 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build -Z build-std=core --target=${{ matrix.target }}
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
 
   rndr:
     name: RNDR
