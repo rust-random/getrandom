@@ -140,9 +140,9 @@ jobs:
           toolchain: nightly-2024-10-08
           components: rust-src
       - env:
-          RUSTFLAGS: -Dwarnings -Zsanitizer=memory --cfg getrandom_sanitize
-        # `--all-targets` is used to skip doc tests which currently fail linking
-        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu --all-targets
+          RUSTFLAGS: -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
 
   cross:
     name: Cross

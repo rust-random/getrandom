@@ -10,7 +10,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![cfg_attr(getrandom_sanitize, feature(cfg_sanitize))]
 #![deny(
     clippy::cast_lossless,
     clippy::cast_possible_truncation,
@@ -99,8 +98,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
         backends::fill_inner(dest)?;
     }
 
-    #[cfg(getrandom_sanitize)]
-    #[cfg(sanitize = "memory")]
+    #[cfg(getrandom_msan)]
     extern "C" {
         fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
     }
@@ -108,8 +106,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     // SAFETY: `dest` has been fully initialized by `imp::fill_inner`
     // since it returned `Ok`.
     Ok(unsafe {
-        #[cfg(getrandom_sanitize)]
-        #[cfg(sanitize = "memory")]
+        #[cfg(getrandom_msan)]
         __msan_unpoison(dest.as_mut_ptr().cast(), dest.len());
 
         util::slice_assume_init_mut(dest)
