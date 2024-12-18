@@ -9,6 +9,8 @@ use crate::{
 use core::arch::asm;
 use core::mem::{size_of, MaybeUninit};
 
+pub use crate::default_impls::{insecure_fill_uninit, insecure_u32, insecure_u64};
+
 #[cfg(not(target_arch = "aarch64"))]
 compile_error!("the `rndr` backend can be enabled only for AArch64 targets!");
 
@@ -104,7 +106,7 @@ fn is_rndr_available() -> bool {
     }
 }
 
-pub fn inner_u32() -> Result<u32, Error> {
+pub fn u32() -> Result<u32, Error> {
     if is_rndr_available() {
         // SAFETY: after this point, we know the `rand` target feature is enabled
         let res = unsafe { rndr() };
@@ -114,7 +116,7 @@ pub fn inner_u32() -> Result<u32, Error> {
     }
 }
 
-pub fn inner_u64() -> Result<u64, Error> {
+pub fn u64() -> Result<u64, Error> {
     if is_rndr_available() {
         // SAFETY: after this point, we know the `rand` target feature is enabled
         let res = unsafe { rndr() };
@@ -124,7 +126,7 @@ pub fn inner_u64() -> Result<u64, Error> {
     }
 }
 
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if is_rndr_available() {
         // SAFETY: after this point, we know the `rand` target feature is enabled
         unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }

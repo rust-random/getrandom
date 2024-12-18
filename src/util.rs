@@ -1,14 +1,23 @@
 #![allow(dead_code)]
-use crate::Error;
-use core::{mem::MaybeUninit, ptr, slice};
+use core::{mem::MaybeUninit, ptr};
 
 /// Polyfill for `maybe_uninit_slice` feature's
 /// `MaybeUninit::slice_assume_init_mut`. Every element of `slice` must have
 /// been initialized.
 #[inline(always)]
 #[allow(unused_unsafe)] // TODO(MSRV 1.65): Remove this.
-pub unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &mut [T] {
-    let ptr = ptr_from_mut::<[MaybeUninit<T>]>(slice) as *mut [T];
+pub unsafe fn slice_assume_init_mut(slice: &mut [MaybeUninit<u8>]) -> &mut [u8] {
+    #[cfg(getrandom_sanitize)]
+    #[cfg(sanitize = "memory")]
+    extern "C" {
+        fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
+    }
+
+    #[cfg(getrandom_sanitize)]
+    #[cfg(sanitize = "memory")]
+    __msan_unpoison(slice.as_mut_ptr().cast(), slice.len());
+
+    let ptr = ptr_from_mut::<[MaybeUninit<u8>]>(slice) as *mut [u8];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     unsafe { &mut *ptr }
 }
@@ -46,34 +55,6 @@ fn ptr_from_mut<T: ?Sized>(r: &mut T) -> *mut T {
 // TODO: MSRV(1.76.0): Replace with `core::ptr::from_ref`.
 fn ptr_from_ref<T: ?Sized>(r: &T) -> *const T {
     r
-}
-
-/// Default implementation of `inner_u32` on top of `fill_uninit`
-pub fn inner_u32() -> Result<u32, Error> {
-    let mut res = MaybeUninit::<u32>::uninit();
-    // SAFETY: the created slice has the same size as `res`
-    let dst = unsafe {
-        let p: *mut MaybeUninit<u8> = res.as_mut_ptr().cast();
-        slice::from_raw_parts_mut(p, core::mem::size_of::<u32>())
-    };
-    crate::fill_uninit(dst)?;
-    // SAFETY: `dst` has been fully initialized by `imp::fill_inner`
-    // since it returned `Ok`.
-    Ok(unsafe { res.assume_init() })
-}
-
-/// Default implementation of `inner_u64` on top of `fill_uninit`
-pub fn inner_u64() -> Result<u64, Error> {
-    let mut res = MaybeUninit::<u64>::uninit();
-    // SAFETY: the created slice has the same size as `res`
-    let dst = unsafe {
-        let p: *mut MaybeUninit<u8> = res.as_mut_ptr().cast();
-        slice::from_raw_parts_mut(p, core::mem::size_of::<u64>())
-    };
-    crate::fill_uninit(dst)?;
-    // SAFETY: `dst` has been fully initialized by `imp::fill_inner`
-    // since it returned `Ok`.
-    Ok(unsafe { res.assume_init() })
 }
 
 /// Truncates `u64` and returns the lower 32 bits as `u32`
