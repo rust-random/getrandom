@@ -80,14 +80,11 @@ impl Error {
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
         if code < Self::INTERNAL_START {
-            RawOsError::try_from(code).ok().map(|errno| {
-                // On SOLID, negate the error code again to obtain the original error code.
-                if cfg!(target_os = "solid_asp3") {
-                    -errno
-                } else {
-                    errno
-                }
-            })
+            let res = RawOsError::try_from(code).ok();
+            // On SOLID, negate the error code again to obtain the original error code.
+            #[cfg(target_os = "solid_asp3")]
+            let res = res.map(|errno| -errno);
+            res
         } else {
             None
         }
