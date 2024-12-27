@@ -267,15 +267,14 @@ our code should correctly handle it and return an error, e.g.
 
 ## Sanitizer support
 
-If your code uses [`fill_uninit`] and you enable memory sanitization
-(i.e. `-Zsanitizer=memory`), you need to pass the `getrandom_sanitize`
-configuration flag to enable unpoisoning of the destination buffer
-filled by `fill_uninit`.
+If your code uses [`fill_uninit`] and you enable
+[MemorySanitizer](https://doc.rust-lang.org/beta/unstable-book/compiler-flags/sanitizer.html#memorysanitizer)
+(i.e. `-Zsanitizer=memory`), we will automatically handle unpoisoning
+of the destination buffer filled by `fill_uninit`.
 
-For example, it can be done as follows (requires a Nightly compiler):
+You can run sanitizer tests for your crate dependent on `getrandom` like this:
 ```sh
-RUSTFLAGS="-Zsanitizer=memory --cfg getrandom_sanitize" \
-    cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+RUSTFLAGS="-Zsanitizer=memory" cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
 ```
 
 ## Minimum Supported Rust Version
