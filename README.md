@@ -79,7 +79,7 @@ of randomness based on their specific needs:
 | Backend name      | Target               | Target Triple            | Implementation
 | ----------------- | -------------------- | ------------------------ | --------------
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
+| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`. Requires feature `rustix`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!

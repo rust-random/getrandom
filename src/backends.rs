@@ -13,7 +13,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod linux_android;
         pub use linux_android::*;
-    } else if #[cfg(getrandom_backend = "linux_rustix")] {
+    } else if #[cfg(all(feature = "rustix", getrandom_backend = "linux_rustix"))] {
         mod linux_rustix;
         pub use linux_rustix::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
