@@ -23,6 +23,11 @@ rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 # The backend may still be overridden by setting getrandom_backend.
 rustix = ["dep:rustix"]
 
+# Optional backend: wasm_js
+# This flag enables the backend and uses it by default on wasm32 with unknown OS.
+# The backend may still be overridden by setting getrandom_backend.
+js = ["dep:wasm-bindgen", "dep:js-sys"]
+
 [dependencies]
 cfg-if = "1"
 
@@ -75,11 +80,11 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 # wasm_js
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
-wasm-bindgen = { version = "0.2.98", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
-js-sys = { version = "0.3.75", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
+js-sys = { version = "0.3.75", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
 [lints.rust.unexpected_cfgs]

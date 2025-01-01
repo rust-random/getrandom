@@ -2,7 +2,7 @@ use core::mem::MaybeUninit;
 use getrandom::{fill, fill_uninit};
 
 #[cfg(all(
-    getrandom_backend = "wasm_js",
+    feature = "js",
     target_arch = "wasm32",
     target_os = "unknown"
 ))]

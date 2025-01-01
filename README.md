@@ -83,7 +83,7 @@ of randomness based on their specific needs:
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
-| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]
+| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `js`.
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
@@ -113,17 +113,18 @@ the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
 is not automatically supported since, from the target name alone, we cannot deduce
 which JavaScript interface should be used (or if JavaScript is available at all).
 
-Instead, *if the `wasm_js` backend is enabled*, this crate will assume
+Instead, *if the `js` feature is enabled*, this crate will assume
 that you are building for an environment containing JavaScript, and will
 call the appropriate Web Crypto methods [described above](#opt-in-backends) using
-the [`wasm-bindgen`] toolchain. Both web browser (main window and Web Workers)
+the [`wasm-bindgen`] toolchain (with or without using `getrandom_backend=wasm_js`).
+Both web browser (main window and Web Workers)
 and Node.js (v19 or later) environments are supported.
 
 To enable the `wasm_js` backend, you can add the following lines to your
 project's `.cargo/config.toml` file:
 ```toml
-[target.wasm32-unknown-unknown]
-rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+[dependencies]
+getrandom = { version = "0.3", features = ["js"] }
 ```
 
 ### Custom backend
