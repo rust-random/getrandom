@@ -11,6 +11,13 @@ repository = "https://github.com/rust-random/getrandom"
 categories = ["os", "no-std"]
 exclude = [".*"]
 
+[features]
+# Implement std::error::Error for getrandom::Error and
+# use std to retrieve OS error descriptions
+std = []
+# Unstable feature to support being a libstd dependency
+rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
+
 [dependencies]
 cfg-if = "1"
 
@@ -69,13 +76,6 @@ wasm-bindgen = { version = "0.2.98", default-features = false }
 js-sys = { version = "0.3.75", default-features = false }
 [target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-
-[features]
-# Implement std::error::Error for getrandom::Error and
-# use std to retrieve OS error descriptions
-std = []
-# Unstable feature to support being a libstd dependency
-rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
