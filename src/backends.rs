@@ -55,6 +55,9 @@ cfg_if! {
     ))] {
         mod getrandom;
         pub use getrandom::*;
+    } else if #[cfg(all(feature = "rustix", any(target_os = "android", target_os = "linux")))] {
+        mod linux_rustix;
+        pub use linux_rustix::*;
     } else if #[cfg(any(
         // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
         // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
