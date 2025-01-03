@@ -26,6 +26,10 @@ libc = { version = "0.2.154", default-features = false }
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), any(target_env = "", getrandom_backend = "linux_rustix")))'.dependencies]
 rustix = { version = "0.38.38", default-features = false, features = ["rand"] }
 
+# efi_rng
+[target.'cfg(all(target_os = "uefi", getrandom_backend = "efi_rng"))'.dependencies]
+r-efi = { version = "5.1", default-features = false }
+
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
@@ -80,7 +84,7 @@ rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "efi_rng", "esp_idf"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
