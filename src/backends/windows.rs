@@ -1,7 +1,7 @@
 //! Implementation for Windows 10 and later
 //!
 //! On Windows 10 and later, ProcessPrng "is the primary interface to the
-//! user-mode per-processer PRNGs" and only requires bcryptprimitives.dll,
+//! user-mode per-processor PRNGs" and only requires bcryptprimitives.dll,
 //! making it a better option than the other Windows RNG APIs:
 //!   - BCryptGenRandom: https://learn.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
 //!     - Requires bcrypt.dll (which loads bcryptprimitives.dll anyway)
@@ -27,21 +27,21 @@ pub use crate::util::{inner_u32, inner_u64};
 
 // Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
 // bcryptprimitives.dll lacks an import library, we use the windows-targets
-// crate to link to it.
-windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL);
-#[allow(clippy::upper_case_acronyms)]
-pub type BOOL = i32;
-pub const TRUE: BOOL = 1i32;
-
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // ProcessPrng should always return TRUE, but we check just in case.
-    match unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) } {
-        TRUE => Ok(()),
-        _ => Err(Error::WINDOWS_PROCESS_PRNG),
-    }
+// crate to link to it. The link! macro always declares external functions
+// as pub, so we wrap it in a private module to keep it local.
+//
+// TODO(MSRV 1.71): Migrate to linking as raw-dylib directly.
+// https://github.com/joboet/rust/blob/5c1c72572479afe98734d5f78fa862abe662c41a/library/std/src/sys/pal/windows/c.rs#L119
+// https://github.com/microsoft/windows-rs/blob/0.60.0/crates/libs/targets/src/lib.rs
+mod internal {
+    windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> i32);
 }
 
-impl Error {
-    /// Calling Windows ProcessPrng failed.
-    pub(crate) const WINDOWS_PROCESS_PRNG: Error = Self::new_internal(10);
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    // Since Windows 10, calls to the user-mode RNG are guaranteed
+    // to never fail during runtime (rare windows W).
+    // See the bottom of page 6 of the aforementioned Windows RNG
+    // whitepaper for more information.
+    unsafe { internal::ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
+    Ok(())
 }
