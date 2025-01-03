@@ -140,8 +140,8 @@ jobs:
       fail-fast: false
       matrix:
         target: [
-          { description: Web, target: wasm32-unknown-unknown },
-          { description: WasmV1, target: wasm32v1-none },
+          { description: Web, target: wasm32-unknown-unknown, feature: "--features js" },
+          { description: WasmV1, target: wasm32v1-none, feature: "" },
         ]
         feature: [
           { description: no_std, feature: "", build-std: "core,alloc", std: false },
@@ -163,7 +163,7 @@ jobs:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.target.feature }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
 
   rdrand-uefi:
     name: RDRAND UEFI
