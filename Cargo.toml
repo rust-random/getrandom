@@ -18,11 +18,6 @@ std = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
-# Optional backend: linux_rustix
-# This flag enables the backend and uses it by default on Linux/Android.
-# The backend may still be overridden by setting getrandom_backend.
-rustix = ["dep:rustix"]
-
 # Optional backend: wasm_js
 # This flag enables the backend and uses it by default on wasm32 with unknown OS.
 # The backend may still be overridden by setting getrandom_backend.
