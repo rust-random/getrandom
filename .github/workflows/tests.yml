@@ -58,9 +58,6 @@ jobs:
         run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo test --target=${{ matrix.target }} --features=std
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
         run: cargo test --target=${{ matrix.target }} --features=rustix,std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
@@ -199,21 +196,23 @@ jobs:
             pkg_add rust
           run: cargo test
 
-  netbsd:
-    name: NetBSD VM
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test in NetBSD
-        uses: vmactions/netbsd-vm@v1
-        with:
-          envs: 'RUSTFLAGS'
-          usesh: true
-          prepare: |
-            /usr/sbin/pkg_add rust
-          run: |
-            cargo test
-            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
+  # Rust installation currently fails:
+  # https://github.com/rust-random/getrandom/actions/runs/12590976993/job/35093395247
+  # netbsd:
+  #   name: NetBSD VM
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test in NetBSD
+  #       uses: vmactions/netbsd-vm@v1
+  #       with:
+  #         envs: 'RUSTFLAGS'
+  #         usesh: true
+  #         prepare: |
+  #           /usr/sbin/pkg_add rust
+  #         run: |
+  #           cargo test
+  #           RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
 
   # This job currently fails:
   # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528

@@ -65,7 +65,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
-| PS Vita            | `*-vita-*`         | [`getentropy`][13]
+| PS Vita            | `*-vita-*`         | [`getentropy`][19]
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 
@@ -79,7 +79,6 @@ of randomness based on their specific needs:
 | Backend name      | Target               | Target Triple            | Implementation
 | ----------------- | -------------------- | ------------------------ | --------------
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`. Requires feature `rustix`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
@@ -328,6 +327,7 @@ dual licensed as above, without any additional terms or conditions.
 [16]: https://man.netbsd.org/getrandom.2
 [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
+[19]: https://github.com/vitasdk/newlib/blob/2d869fe47aaf02b8e52d04e9a2b79d5b210fd016/newlib/libc/sys/vita/getentropy.c
 
 [`ProcessPrng`]: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
 [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
@@ -347,7 +347,6 @@ dual licensed as above, without any additional terms or conditions.
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/CraneStation/wasi
 [Emscripten]: https://www.hellorust.com/setup/emscripten/
-[`rustix`]: https://docs.rs/rustix
 
 [//]: # (licenses)
 

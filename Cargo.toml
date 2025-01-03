@@ -39,10 +39,6 @@ core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" 
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(target_env = "", getrandom_backend = "custom"))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
-# linux_rustix
-[target.'cfg(all(any(target_os = "linux", target_os = "android")))'.dependencies]
-rustix = { version = "0.38.38", default-features = false, features = ["rand"], optional = true }
-
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
@@ -90,7 +86,7 @@ wasm-bindgen-test = "0.3"
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js", "esp_idf"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
@@ -103,7 +99,7 @@ features = ["std"]
 [package.metadata.cross.target.x86_64-unknown-netbsd]
 pre-build = [
   "mkdir -p /tmp/netbsd",
-  "curl https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.2/amd64/binary/sets/base.tar.xz -O",
+  "curl -fO https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.3/amd64/binary/sets/base.tar.xz",
   "tar -C /tmp/netbsd -xJf base.tar.xz",
   "cp /tmp/netbsd/usr/lib/libexecinfo.so /usr/local/x86_64-unknown-netbsd/lib",
   "rm base.tar.xz",

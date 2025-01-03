@@ -122,9 +122,6 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
         run: cargo build --target=${{ matrix.target }} --features=std
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo build --target=${{ matrix.target }} --features=std
-      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo build --features=std
       - env:
