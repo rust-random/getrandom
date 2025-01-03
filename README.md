@@ -65,7 +65,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
-| PS Vita            | `*-vita-*`         | `getentropy`
+| PS Vita            | `*-vita-*`         | [`getentropy`][19]
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 
@@ -326,6 +326,7 @@ dual licensed as above, without any additional terms or conditions.
 [16]: https://man.netbsd.org/getrandom.2
 [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
+[19]: https://github.com/vitasdk/newlib/commit/4cfcefc86f63e16354fa1efbe89a7b895b5bdf63
 
 [`ProcessPrng`]: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
 [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
