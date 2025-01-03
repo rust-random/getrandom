@@ -79,7 +79,7 @@ of randomness based on their specific needs:
 | Backend name      | Target               | Target Triple            | Implementation
 | ----------------- | -------------------- | ------------------------ | --------------
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
+| `linux_raw`       | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses raw `asm!`-based syscalls instead of `libc`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
@@ -105,6 +105,13 @@ Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
 WILL NOT have any effect on its downstream users.
 
 [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
+
+### Raw Linux syscall support
+
+Currently the `linux_raw` backend supports only targets with stabilized `asm!` macro, i.e. `arm`, `aarch64`, `loongarch64`, `riscv32`, `riscv64`, `x86`, and `x86_64`.
+
+Note that on `x86` we use the famously slow `int 0x80` to perform syscall.
+We recommend to avoid `linux_raw` on this target arch.
 
 ### WebAssembly support
 
