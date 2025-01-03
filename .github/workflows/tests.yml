@@ -244,7 +244,7 @@ jobs:
               version: nightly,
               components: rust-src,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std -Zbuild-std=panic_abort,std,js',
+              args: '--features=std,js -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v4
