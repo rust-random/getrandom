@@ -65,7 +65,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
-| PS Vita            | `*-vita-*`         | [`getentropy`][13]
+| PS Vita            | `*-vita-*`         | `getentropy`
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 
