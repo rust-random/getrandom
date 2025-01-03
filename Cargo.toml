@@ -1,6 +1,6 @@
 [package]
 name = "getrandom"
-version = "0.3.0-rc.0"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.63" # Sync tests.yml and README.md.
 authors = ["The Rand Project Developers"]
