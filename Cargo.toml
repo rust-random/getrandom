@@ -19,7 +19,7 @@ compiler_builtins = { version = "0.1", optional = true }
 core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
 # linux_android / linux_android_with_fallback
-[target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(target_env = "", getrandom_backend = "custom"))))'.dependencies]
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
 # apple-other
@@ -59,17 +59,19 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 # wasm_js
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+[target.'cfg(all(feature = "opt_in", getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.98", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
+[target.'cfg(all(feature = "opt_in", getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
 js-sys = { version = "0.3.75", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+[target.'cfg(all(feature = "opt_in", getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
 [features]
 # Implement std::error::Error for getrandom::Error and
 # use std to retrieve OS error descriptions
 std = []
+# Enable opt-in backends
+opt_in = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
