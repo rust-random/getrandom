@@ -1,4 +1,5 @@
-//! Helpers built around pointer-sized atomics.
+//! Helpers built around pointer-sized atomics. Not used for all targets.
+#![allow(dead_code)]
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 // This structure represents a lazily initialized static usize value. Useful
