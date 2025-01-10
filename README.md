@@ -65,6 +65,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
+| ESP-IDF            | `*‑espidf`         | [`esp_fill_random`] WARNING: see "Early Boot" section below
 | PS Vita            | `*-vita-*`         | [`getentropy`][19]
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
@@ -81,7 +82,6 @@ of randomness based on their specific needs:
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
-| `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
@@ -247,6 +247,13 @@ sourced according to the platform's best practices, but each platform has
 its own limits on the grade of randomness it can promise in environments
 with few sources of entropy.
 
+On ESP-IDF, if `esp_fill_random` is used before enabling WiFi, BT, or the
+voltage noise entropy source (SAR ADC), the Hardware RNG will only be seeded
+via RC_FAST_CLK. This can occur during early boot unless
+`bootloader_random_enable()` is called. For more information see the
+[ESP-IDF RNG Docs][esp-idf-rng] or the
+[RNG section of the ESP32 Technical Reference Manual][esp-trng-docs].
+
 ## Error handling
 
 We always prioritize failure over returning known insecure "random" bytes.
@@ -335,7 +342,9 @@ dual licensed as above, without any additional terms or conditions.
 [`RNDR`]: https://developer.arm.com/documentation/ddi0601/2024-06/AArch64-Registers/RNDR--Random-Number
 [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
-[`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
+[`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html#functions
+[esp-idf-rng]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html
+[esp-trng-docs]: https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf#rng
 [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 [configuration flags]: #configuration-flags

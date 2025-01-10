@@ -22,7 +22,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "wasm_js")] {
         mod wasm_js;
         pub use wasm_js::*;
-    } else if #[cfg(getrandom_backend = "esp_idf")] {
+    } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
         pub use esp_idf::*;
     } else if #[cfg(any(
