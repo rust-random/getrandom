@@ -120,13 +120,13 @@ jobs:
       - run: cargo build --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo build --target=${{ matrix.target }} --features=std,opt_in
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo build --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build --features=std
+        run: cargo build --features=std,opt_in
 
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
@@ -160,7 +160,7 @@ jobs:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+        run: cargo build --features=opt_in --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
 
   rdrand-uefi:
     name: RDRAND UEFI
@@ -179,10 +179,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+        run: cargo build --features=opt_in -Z build-std=core --target=${{ matrix.target }}
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+        run: cargo build --features=opt_in -Z build-std=std --target=${{ matrix.target }} --features std
 
   rndr:
     name: RNDR
@@ -197,15 +197,15 @@ jobs:
       - name: RNDR enabled at compile time (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --features=opt_in --target=aarch64-unknown-linux-gnu
       - name: Runtime RNDR detection without std (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --features=opt_in --target=aarch64-unknown-linux-gnu
       - name: Runtime RNDR detection with std (macOS)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+        run: cargo build --features=opt_in --target=aarch64-unknown-linux-gnu --features std
 
   esp-idf:
     name: ESP-IDF
@@ -218,7 +218,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
+        run: cargo build --features=opt_in -Z build-std=core --target=riscv32imc-esp-espidf
 
   no-atomics:
     name: No Atomics
@@ -231,4 +231,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --target riscv32i-unknown-none-elf
+        run: cargo build --features=opt_in --target riscv32i-unknown-none-elf

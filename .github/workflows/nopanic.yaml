@@ -45,21 +45,21 @@ jobs:
       - name: Build (linux_android.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo build --release
+        run: cargo build --release --features=opt_in
       - name: Check (linux_android.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
       - name: Build (rdrand.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build --release
+        run: cargo build --release --features=opt_in
       - name: Check (rdrand.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
       - name: Build (custom.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --release
+        run: cargo build --release --features=opt_in
       - name: Check (custom.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
@@ -94,7 +94,7 @@ jobs:
       - name: Build (rndr.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cross build --release --target=aarch64-unknown-linux-gnu
+        run: cross build --release --features=opt_in --target=aarch64-unknown-linux-gnu
       - name: Check (rndr.rs)
         run: (exit $( grep -c panic target/aarch64-unknown-linux-gnu/release/libgetrandom_wrapper.so ))
 
