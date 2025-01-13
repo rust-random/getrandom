@@ -33,6 +33,8 @@ use core::mem::MaybeUninit;
 
 mod backends;
 mod error;
+#[cfg(target_has_atomic = "ptr")]
+mod lazy;
 mod util;
 
 #[cfg(feature = "std")]

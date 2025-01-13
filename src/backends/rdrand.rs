@@ -1,9 +1,6 @@
 //! RDRAND backend for x86(-64) targets
-use crate::{util::slice_as_uninit, Error};
+use crate::{lazy::LazyBool, util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
-
-#[path = "../lazy.rs"]
-mod lazy;
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
 compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
@@ -20,7 +17,7 @@ cfg_if! {
     }
 }
 
-static RDRAND_GOOD: lazy::LazyBool = lazy::LazyBool::new();
+static RDRAND_GOOD: LazyBool = LazyBool::new();
 
 // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
