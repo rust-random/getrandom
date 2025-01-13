@@ -1,7 +1,10 @@
 #![feature(test, maybe_uninit_uninit_array_transpose)]
 extern crate test;
 
-use std::mem::MaybeUninit;
+use std::{
+    mem::{size_of, MaybeUninit},
+    slice,
+};
 
 // Call getrandom on a zero-initialized stack buffer
 #[inline(always)]
@@ -17,6 +20,53 @@ fn bench_fill_uninit<const N: usize>() {
     let mut uninit = [MaybeUninit::uninit(); N];
     let buf: &[u8] = getrandom::fill_uninit(&mut uninit).unwrap();
     test::black_box(buf);
+}
+
+#[bench]
+pub fn bench_u32(b: &mut test::Bencher) {
+    #[inline(never)]
+    fn inner() -> u32 {
+        getrandom::u32().unwrap()
+    }
+    b.bytes = 4;
+    b.iter(inner);
+}
+#[bench]
+pub fn bench_u32_via_fill(b: &mut test::Bencher) {
+    #[inline(never)]
+    fn inner() -> u32 {
+        let mut res = MaybeUninit::<u32>::uninit();
+        let dst: &mut [MaybeUninit<u8>] =
+            unsafe { slice::from_raw_parts_mut(res.as_mut_ptr().cast(), size_of::<u32>()) };
+        getrandom::fill_uninit(dst).unwrap();
+        unsafe { res.assume_init() }
+    }
+    b.bytes = 4;
+    b.iter(inner);
+}
+
+#[bench]
+pub fn bench_u64(b: &mut test::Bencher) {
+    #[inline(never)]
+    fn inner() -> u64 {
+        getrandom::u64().unwrap()
+    }
+    b.bytes = 8;
+    b.iter(inner);
+}
+
+#[bench]
+pub fn bench_u64_via_fill(b: &mut test::Bencher) {
+    #[inline(never)]
+    fn inner() -> u64 {
+        let mut res = MaybeUninit::<u64>::uninit();
+        let dst: &mut [MaybeUninit<u8>] =
+            unsafe { slice::from_raw_parts_mut(res.as_mut_ptr().cast(), size_of::<u64>()) };
+        getrandom::fill_uninit(dst).unwrap();
+        unsafe { res.assume_init() }
+    }
+    b.bytes = 8;
+    b.iter(inner);
 }
 
 // We benchmark using #[inline(never)] "inner" functions for two reasons:
