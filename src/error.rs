@@ -114,8 +114,6 @@ impl Error {
                 target_os = "tvos",
             ))]
             Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
-            #[cfg(all(windows, not(target_vendor = "win7")))]
-            Error::WINDOWS_PROCESS_PRNG => "ProcessPrng: Windows system function failure",
             #[cfg(all(windows, target_vendor = "win7"))]
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
             #[cfg(all(feature = "js", getrandom_backend = "wasm_js"))]

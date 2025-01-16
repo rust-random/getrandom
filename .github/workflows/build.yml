@@ -86,6 +86,7 @@ jobs:
           armv6k-nintendo-3ds,
           armv7-sony-vita-newlibeabihf,
           i686-unknown-hurd-gnu,
+          riscv32imc-esp-espidf,
           x86_64-unknown-hermit,
           x86_64-wrs-vxworks,
           x86_64-unknown-dragonfly,
@@ -206,19 +207,6 @@ jobs:
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
         run: cargo build --target=aarch64-unknown-linux-gnu --features std
-
-  esp-idf:
-    name: ESP-IDF
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
 
   no-atomics:
     name: No Atomics
