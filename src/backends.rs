@@ -7,19 +7,19 @@
 //! regardless of what value it returns.
 
 cfg_if! {
-    if #[cfg(getrandom_backend = "custom")] {
+    if #[cfg(all(feature = "opt_in",getrandom_backend = "custom"))] {
         mod custom;
         pub use custom::*;
-    } else if #[cfg(getrandom_backend = "linux_getrandom")] {
+    } else if #[cfg(all(feature = "opt_in", getrandom_backend = "linux_getrandom"))] {
         mod linux_android;
         pub use linux_android::*;
-    } else if #[cfg(getrandom_backend = "rdrand")] {
+    } else if #[cfg(all(feature = "opt_in", getrandom_backend = "rdrand"))] {
         mod rdrand;
         pub use rdrand::*;
-    } else if #[cfg(getrandom_backend = "rndr")] {
+    } else if #[cfg(all(feature = "opt_in", getrandom_backend = "rndr"))] {
         mod rndr;
         pub use rndr::*;
-    } else if #[cfg(getrandom_backend = "wasm_js")] {
+    } else if #[cfg(all(feature = "opt_in", getrandom_backend = "wasm_js"))] {
         mod wasm_js;
         pub use wasm_js::*;
     } else if #[cfg(target_os = "espidf")] {

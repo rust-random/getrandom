@@ -121,13 +121,13 @@ jobs:
       - run: cargo build --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo build --target=${{ matrix.target }} --features=std,opt_in
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo build --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build --features=std
+        run: cargo build --features=std,opt_in
 
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
@@ -142,8 +142,8 @@ jobs:
           { description: WasmV1, target: wasm32v1-none },
         ]
         feature: [
-          { description: no_std, feature: "", build-std: "core,alloc", std: false },
-          { feature: --features std, build-std: "panic_abort,std", std: true },
+          { description: no_std, feature: "--features opt_in", build-std: "core,alloc", std: false },
+          { feature: "--features std,opt_in", build-std: "panic_abort,std", std: true },
         ]
         atomic: [
           { flags: "" },
@@ -180,10 +180,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+        run: cargo build -Z build-std=core --target=${{ matrix.target }} --features opt_in
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std,opt_in
 
   rndr:
     name: RNDR
@@ -198,15 +198,15 @@ jobs:
       - name: RNDR enabled at compile time (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --target=aarch64-unknown-linux-gnu --features opt_in
       - name: Runtime RNDR detection without std (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --target=aarch64-unknown-linux-gnu --features opt_in
       - name: Runtime RNDR detection with std (macOS)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+        run: cargo build --target=aarch64-unknown-linux-gnu --features std,opt_in
 
   no-atomics:
     name: No Atomics
@@ -219,4 +219,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --target riscv32i-unknown-none-elf
+        run: cargo build --target riscv32i-unknown-none-elf --features opt_in

@@ -55,13 +55,13 @@ jobs:
       - run: cargo test --target=${{ matrix.target }} --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std,opt_in
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo test --features=std
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std
+        run: cargo test --features=std,opt_in
 
   ios:
     name: iOS Simulator
@@ -238,14 +238,14 @@ jobs:
               description: Web,
               version: stable,
               flags: -Dwarnings --cfg getrandom_backend="wasm_js",
-              args: --features=std,
+              args: '--features=std,opt_in',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std -Zbuild-std=panic_abort,std',
+              args: '--features=std,opt_in -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v4

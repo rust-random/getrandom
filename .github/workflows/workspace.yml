@@ -30,7 +30,7 @@ jobs:
     - name: custom backend
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf
+      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf --features=opt_in
     - name: iOS (apple-other.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
     - name: ESP-IDF (espidf.rs)
@@ -48,15 +48,15 @@ jobs:
     - name: Web WASM (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features=opt_in
     - name: Web WASM with atomics (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features=opt_in
     - name: Linux (linux_android.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-      run: cargo clippy --target x86_64-unknown-linux-gnu
+      run: cargo clippy --target x86_64-unknown-linux-gnu --features=opt_in
     - name: Linux (linux_android_with_fallback.rs)
       run: cargo clippy --target x86_64-unknown-linux-gnu
     - name: NetBSD (netbsd.rs)
@@ -66,7 +66,7 @@ jobs:
     - name: RNDR (rndr.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-      run: cargo clippy -Zbuild-std=core --target aarch64-unknown-linux-gnu
+      run: cargo clippy -Zbuild-std=core --target aarch64-unknown-linux-gnu --features=opt_in
     - name: Solaris (solaris.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-pc-solaris
     - name: SOLID (solid.rs)
