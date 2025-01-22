@@ -19,7 +19,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "rndr")] {
         mod rndr;
         pub use rndr::*;
-    } else if #[cfg(all(feature = "js", getrandom_backend = "wasm_js"))] {
+    } else if #[cfg(all(feature = "wasm_js", getrandom_backend = "wasm_js"))] {
         mod wasm_js;
         pub use wasm_js::*;
     } else if #[cfg(target_os = "espidf")] {
@@ -127,18 +127,6 @@ cfg_if! {
                 );
             }
         }
-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
-        cfg_if! {
-            if #[cfg(feature = "js")] {
-                mod wasm_js;
-                pub use wasm_js::*;
-            } else {
-                compile_error!("the wasm32-unknown-unknown targets are not supported \
-                                by default, you may need to enable the \"js\" \
-                                feature flag. For more information see: \
-                                https://docs.rs/getrandom/#webassembly-support");
-            }
-        }
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::*;
@@ -157,6 +145,14 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
+    } else if #[cfg(all(
+        target_arch = "wasm32",
+        any(target_os = "unknown", target_os = "none")
+    ))] {
+        compile_error!("the wasm32-unknown-unknown targets are not supported \
+                        by default, you may need to enable the \"wasm_js\" \
+                        configuration flag. For more information see: \
+                        https://docs.rs/getrandom/#webassembly-support");
     } else {
         compile_error!("target is not supported. You may need to define \
                         a custom backend see: \

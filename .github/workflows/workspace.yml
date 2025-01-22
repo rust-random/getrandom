@@ -48,11 +48,11 @@ jobs:
     - name: Web WASM (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features js
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features wasm_js
     - name: Web WASM with atomics (wasm_js.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features js
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features wasm_js
     - name: Linux (linux_android.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"

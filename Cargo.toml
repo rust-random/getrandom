@@ -19,9 +19,9 @@ std = []
 rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
 # Optional backend: wasm_js
-# This flag enables the backend and uses it by default on wasm32 with unknown OS.
-# The backend may still be overridden by setting getrandom_backend.
-js = ["dep:wasm-bindgen", "dep:js-sys"]
+# This flag enables the backend but does not select it. To use the backend, use
+# this flag *and* set getrandom_backend=wasm_js (see README).
+wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [dependencies]
 cfg-if = "1"

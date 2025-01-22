@@ -82,7 +82,7 @@ of randomness based on their specific needs:
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
-| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `js`.
+| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
@@ -112,19 +112,19 @@ the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
 is not automatically supported since, from the target name alone, we cannot deduce
 which JavaScript interface should be used (or if JavaScript is available at all).
 
-Instead, *if the `js` feature is enabled*, this crate will assume
-that you are building for an environment containing JavaScript, and will
-call the appropriate Web Crypto methods [described above](#opt-in-backends) using
-the [`wasm-bindgen`] toolchain (with or without using `getrandom_backend=wasm_js`).
-Both web browser (main window and Web Workers)
-and Node.js (v19 or later) environments are supported.
+To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using the Web
+Crypto methods [described above](#opt-in-backends) via [`wasm-bindgen`], do
+*both* of the following:
 
-To enable the `wasm_js` backend, you can add the following lines to your
-project's `.cargo/config.toml` file:
-```toml
-[dependencies]
-getrandom = { version = "0.3", features = ["js"] }
-```
+-   Use the `wasm_js` feature flag, i.e.
+    `getrandom = { version = "0.3", features = ["wasm_js"] }`.
+    On its own, this only makes the backend available. (As a side effect this
+    will make your `Cargo.lock` significantly larger if you are not already
+    using [`wasm-bindgen`], but otherwise enabling this feature is harmless.)
+-   Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` ([see above](#opt-in-backends)).
+
+This backend supports both web browsers (main window and Web Workers)
+and Node.js (v19 or later) environments.
 
 ### Custom backend
 

@@ -142,8 +142,8 @@ jobs:
           { description: WasmV1, target: wasm32v1-none },
         ]
         feature: [
-          { description: no_std, feature: "--features js", build-std: "core,alloc", std: false },
-          { feature: "--features js,std", build-std: "panic_abort,std", std: true },
+          { description: no_std, feature: "--features wasm_js", build-std: "core,alloc", std: false },
+          { feature: "--features wasm_js,std", build-std: "panic_abort,std", std: true },
         ]
         atomic: [
           { flags: "" },
