@@ -237,6 +237,7 @@ jobs:
           - {
               description: Web,
               version: stable,
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
               args: '--features=std,wasm_js',
             }
           - {
