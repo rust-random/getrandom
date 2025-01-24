@@ -42,7 +42,9 @@ jobs:
     strategy:
       matrix:
         target: [
-          sparcv9-sun-solaris,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235456/job/36119544880
+          # sparcv9-sun-solaris,
           x86_64-unknown-illumos,
         ]
     steps:

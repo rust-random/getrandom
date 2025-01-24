@@ -152,7 +152,9 @@ jobs:
           # See: https://github.com/cross-rs/cross/issues/1222
           # aarch64-linux-android,
           powerpc-unknown-linux-gnu,
-          wasm32-unknown-emscripten,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235459/job/36119546920
+          #wasm32-unknown-emscripten,
         ]
     steps:
       - uses: actions/checkout@v4
