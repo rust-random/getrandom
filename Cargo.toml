@@ -11,6 +11,18 @@ repository = "https://github.com/rust-random/getrandom"
 categories = ["os", "no-std"]
 exclude = [".*"]
 
+[features]
+# Implement std::error::Error for getrandom::Error and
+# use std to retrieve OS error descriptions
+std = []
+# Unstable feature to support being a libstd dependency
+rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
+
+# Optional backend: wasm_js
+# This flag enables the backend but does not select it. To use the backend, use
+# this flag *and* set getrandom_backend=wasm_js (see README).
+wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
+
 [dependencies]
 cfg-if = "1"
 
@@ -59,19 +71,12 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 # wasm_js
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
-wasm-bindgen = { version = "0.2.98", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
-js-sys = { version = "0.3.77", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
+js-sys = { version = "0.3.77", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-
-[features]
-# Implement std::error::Error for getrandom::Error and
-# use std to retrieve OS error descriptions
-std = []
-# Unstable feature to support being a libstd dependency
-rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
