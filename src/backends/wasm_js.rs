@@ -49,8 +49,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             return Err(Error::WEB_CRYPTO);
         }
 
-        // SAFETY: `sub_buf`'s length is the same length as `chunk`
-        unsafe { sub_buf.raw_copy_to_ptr(chunk.as_mut_ptr().cast::<u8>()) };
+        sub_buf.copy_to_uninit(chunk);
     }
     Ok(())
 }

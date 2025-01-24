@@ -57,9 +57,6 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
         run: cargo test --target=${{ matrix.target }} --features=std
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo test --target=${{ matrix.target }} --features=std
-      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo test --features=std
       - env:
@@ -155,7 +152,9 @@ jobs:
           # See: https://github.com/cross-rs/cross/issues/1222
           # aarch64-linux-android,
           powerpc-unknown-linux-gnu,
-          wasm32-unknown-emscripten,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235459/job/36119546920
+          #wasm32-unknown-emscripten,
         ]
     steps:
       - uses: actions/checkout@v4
@@ -196,21 +195,23 @@ jobs:
             pkg_add rust
           run: cargo test
 
-  netbsd:
-    name: NetBSD VM
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test in NetBSD
-        uses: vmactions/netbsd-vm@v1
-        with:
-          envs: 'RUSTFLAGS'
-          usesh: true
-          prepare: |
-            /usr/sbin/pkg_add rust
-          run: |
-            cargo test
-            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
+  # Rust installation currently fails:
+  # https://github.com/rust-random/getrandom/actions/runs/12590976993/job/35093395247
+  # netbsd:
+  #   name: NetBSD VM
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test in NetBSD
+  #       uses: vmactions/netbsd-vm@v1
+  #       with:
+  #         envs: 'RUSTFLAGS'
+  #         usesh: true
+  #         prepare: |
+  #           /usr/sbin/pkg_add rust
+  #         run: |
+  #           cargo test
+  #           RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
 
   # This job currently fails:
   # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528
@@ -238,15 +239,15 @@ jobs:
           - {
               description: Web,
               version: stable,
-              flags: -Dwarnings --cfg getrandom_backend="wasm_js",
-              args: --features=std,
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
+              args: '--features=std,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std -Zbuild-std=panic_abort,std',
+              args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v4

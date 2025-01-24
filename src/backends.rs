@@ -13,19 +13,26 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod linux_android;
         pub use linux_android::*;
-    } else if #[cfg(getrandom_backend = "linux_rustix")] {
-        mod linux_rustix;
-        pub use linux_rustix::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(getrandom_backend = "rndr")] {
         mod rndr;
         pub use rndr::*;
-    } else if #[cfg(getrandom_backend = "wasm_js")] {
-        mod wasm_js;
-        pub use wasm_js::*;
-    } else if #[cfg(getrandom_backend = "esp_idf")] {
+    } else if #[cfg(all(getrandom_backend = "wasm_js"))] {
+        cfg_if! {
+            if #[cfg(feature = "wasm_js")] {
+                mod wasm_js;
+                pub use wasm_js::*;
+            } else {
+                compile_error!(
+                    "The \"wasm_js\" backend requires the `wasm_js` feature \
+                    for `getrandom`. For more information see: \
+                    https://docs.rs/getrandom/#webassembly-support"
+                );
+            }
+        }
+    } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
         pub use esp_idf::*;
     } else if #[cfg(any(
@@ -148,14 +155,14 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
-    } else if #[cfg(all(
-        target_arch = "wasm32",
-        any(target_os = "unknown", target_os = "none")
-    ))] {
-        compile_error!("the wasm32-unknown-unknown targets are not supported \
-                        by default, you may need to enable the \"wasm_js\" \
-                        configuration flag. For more information see: \
-                        https://docs.rs/getrandom/#webassembly-support");
+    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
+        compile_error!(
+            "The wasm32-unknown-unknown targets are not supported by default; \
+            you may need to enable the \"wasm_js\" configuration flag. Note \
+            that enabling the `wasm_js` feature flag alone is insufficient. \
+            For more information see: \
+            https://docs.rs/getrandom/#webassembly-support"
+        );
     } else {
         compile_error!("target is not supported. You may need to define \
                         a custom backend see: \

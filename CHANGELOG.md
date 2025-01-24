@@ -38,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getrandom_backend` configuration flag for selection of opt-in backends [#504]
 - `Error::new_custom` method [#507]
 - `rndr` opt-in backend [#512]
-- `linux_rustix` opt-in backend [#520]
 - Automatic MemorySanitizer support [#521] [#571]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
 - `wasm32v1-none` support in the `wasm_js` backend [#560]
@@ -55,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#504]: https://github.com/rust-random/getrandom/pull/504
 [#507]: https://github.com/rust-random/getrandom/pull/507
 [#512]: https://github.com/rust-random/getrandom/pull/512
-[#520]: https://github.com/rust-random/getrandom/pull/520
 [#521]: https://github.com/rust-random/getrandom/pull/521
 [#522]: https://github.com/rust-random/getrandom/pull/522
 [#532]: https://github.com/rust-random/getrandom/pull/532

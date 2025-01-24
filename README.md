@@ -65,7 +65,8 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
-| PS Vita            | `*-vita-*`         | [`getentropy`][13]
+| ESP-IDF            | `*‑espidf`         | [`esp_fill_random`] WARNING: see "Early Boot" section below
+| PS Vita            | `*-vita-*`         | [`getentropy`][19]
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 
@@ -79,11 +80,9 @@ of randomness based on their specific needs:
 | Backend name      | Target               | Target Triple            | Implementation
 | ----------------- | -------------------- | ------------------------ | --------------
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_rustix`    | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses [`rustix`] instead of `libc`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
-| `esp_idf`         | ESP-IDF              | `*‑espidf`               | [`esp_fill_random`]. WARNING: can return low-quality entropy without proper hardware configuration!
-| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]
+| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
@@ -113,18 +112,19 @@ the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
 is not automatically supported since, from the target name alone, we cannot deduce
 which JavaScript interface should be used (or if JavaScript is available at all).
 
-Instead, *if the `wasm_js` backend is enabled*, this crate will assume
-that you are building for an environment containing JavaScript, and will
-call the appropriate Web Crypto methods [described above](#opt-in-backends) using
-the [`wasm-bindgen`] toolchain. Both web browser (main window and Web Workers)
-and Node.js (v19 or later) environments are supported.
+To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using the Web
+Crypto methods [described above](#opt-in-backends) via [`wasm-bindgen`], do
+*both* of the following:
 
-To enable the `wasm_js` backend, you can add the following lines to your
-project's `.cargo/config.toml` file:
-```toml
-[target.wasm32-unknown-unknown]
-rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
-```
+-   Use the `wasm_js` feature flag, i.e.
+    `getrandom = { version = "0.3", features = ["wasm_js"] }`.
+    On its own, this only makes the backend available. (As a side effect this
+    will make your `Cargo.lock` significantly larger if you are not already
+    using [`wasm-bindgen`], but otherwise enabling this feature is harmless.)
+-   Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` ([see above](#opt-in-backends)).
+
+This backend supports both web browsers (main window and Web Workers)
+and Node.js (v19 or later) environments.
 
 ### Custom backend
 
@@ -248,6 +248,13 @@ sourced according to the platform's best practices, but each platform has
 its own limits on the grade of randomness it can promise in environments
 with few sources of entropy.
 
+On ESP-IDF, if `esp_fill_random` is used before enabling WiFi, BT, or the
+voltage noise entropy source (SAR ADC), the Hardware RNG will only be seeded
+via RC_FAST_CLK. This can occur during early boot unless
+`bootloader_random_enable()` is called. For more information see the
+[ESP-IDF RNG Docs][esp-idf-rng] or the
+[RNG section of the ESP32 Technical Reference Manual][esp-trng-docs].
+
 ## Error handling
 
 We always prioritize failure over returning known insecure "random" bytes.
@@ -327,6 +334,7 @@ dual licensed as above, without any additional terms or conditions.
 [16]: https://man.netbsd.org/getrandom.2
 [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
+[19]: https://github.com/vitasdk/newlib/blob/2d869fe47aaf02b8e52d04e9a2b79d5b210fd016/newlib/libc/sys/vita/getentropy.c
 
 [`ProcessPrng`]: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
 [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
@@ -335,7 +343,9 @@ dual licensed as above, without any additional terms or conditions.
 [`RNDR`]: https://developer.arm.com/documentation/ddi0601/2024-06/AArch64-Registers/RNDR--Random-Number
 [`CCRandomGenerateBytes`]: https://opensource.apple.com/source/CommonCrypto/CommonCrypto-60074/include/CommonRandom.h.auto.html
 [`cprng_draw`]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw
-[`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/random.html#_CPPv415esp_fill_randomPv6size_t
+[`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html#functions
+[esp-idf-rng]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html
+[esp-trng-docs]: https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf#rng
 [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 [configuration flags]: #configuration-flags
@@ -346,7 +356,6 @@ dual licensed as above, without any additional terms or conditions.
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/CraneStation/wasi
 [Emscripten]: https://www.hellorust.com/setup/emscripten/
-[`rustix`]: https://docs.rs/rustix
 
 [//]: # (licenses)
 

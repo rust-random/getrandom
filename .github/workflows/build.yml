@@ -42,7 +42,9 @@ jobs:
     strategy:
       matrix:
         target: [
-          sparcv9-sun-solaris,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235456/job/36119544880
+          # sparcv9-sun-solaris,
           x86_64-unknown-illumos,
         ]
     steps:
@@ -86,6 +88,7 @@ jobs:
           armv6k-nintendo-3ds,
           armv7-sony-vita-newlibeabihf,
           i686-unknown-hurd-gnu,
+          riscv32imc-esp-espidf,
           x86_64-unknown-hermit,
           x86_64-wrs-vxworks,
           x86_64-unknown-dragonfly,
@@ -122,9 +125,6 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
         run: cargo build --target=${{ matrix.target }} --features=std
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_rustix"
-        run: cargo build --target=${{ matrix.target }} --features=std
-      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo build --features=std
       - env:
@@ -144,8 +144,8 @@ jobs:
           { description: WasmV1, target: wasm32v1-none },
         ]
         feature: [
-          { description: no_std, feature: "", build-std: "core,alloc", std: false },
-          { feature: --features std, build-std: "panic_abort,std", std: true },
+          { description: no_std, feature: "--features wasm_js", build-std: "core,alloc", std: false },
+          { feature: "--features wasm_js,std", build-std: "panic_abort,std", std: true },
         ]
         atomic: [
           { flags: "" },
@@ -209,19 +209,6 @@ jobs:
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
         run: cargo build --target=aarch64-unknown-linux-gnu --features std
-
-  esp-idf:
-    name: ESP-IDF
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
-        run: cargo build -Z build-std=core --target=riscv32imc-esp-espidf
 
   no-atomics:
     name: No Atomics

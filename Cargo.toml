@@ -11,6 +11,18 @@ repository = "https://github.com/rust-random/getrandom"
 categories = ["os", "no-std"]
 exclude = [".*"]
 
+[features]
+# Implement std::error::Error for getrandom::Error and
+# use std to retrieve OS error descriptions
+std = []
+# Unstable feature to support being a libstd dependency
+rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
+
+# Optional backend: wasm_js
+# This flag enables the backend but does not select it. To use the backend, use
+# this flag *and* set getrandom_backend=wasm_js (see README).
+wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
+
 [dependencies]
 cfg-if = "1"
 
@@ -19,12 +31,8 @@ compiler_builtins = { version = "0.1", optional = true }
 core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
 # linux_android / linux_android_with_fallback
-[target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(target_env = "", getrandom_backend = "linux_rustix", getrandom_backend = "custom"))))'.dependencies]
+[target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(target_env = "", getrandom_backend = "custom"))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
-
-# linux_rustix
-[target.'cfg(all(any(target_os = "linux", target_os = "android"), any(target_env = "", getrandom_backend = "linux_rustix")))'.dependencies]
-rustix = { version = "0.38.38", default-features = false, features = ["rand"] }
 
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
@@ -63,24 +71,17 @@ wasi = { version = "0.13", default-features = false }
 windows-targets = "0.52"
 
 # wasm_js
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
-wasm-bindgen = { version = "0.2.98", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
-js-sys = { version = "0.3.75", default-features = false }
-[target.'cfg(all(getrandom_backend = "wasm_js", target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
+js-sys = { version = "0.3.77", default-features = false, optional = true }
+[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-
-[features]
-# Implement std::error::Error for getrandom::Error and
-# use std to retrieve OS error descriptions
-std = []
-# Unstable feature to support being a libstd dependency
-rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_rustix", "wasm_js", "esp_idf"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
@@ -93,7 +94,7 @@ features = ["std"]
 [package.metadata.cross.target.x86_64-unknown-netbsd]
 pre-build = [
   "mkdir -p /tmp/netbsd",
-  "curl https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.2/amd64/binary/sets/base.tar.xz -O",
+  "curl -fO https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.3/amd64/binary/sets/base.tar.xz",
   "tar -C /tmp/netbsd -xJf base.tar.xz",
   "cp /tmp/netbsd/usr/lib/libexecinfo.so /usr/local/x86_64-unknown-netbsd/lib",
   "rm base.tar.xz",
