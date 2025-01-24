@@ -60,10 +60,20 @@ unsafe fn rndr_fill(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     Some(())
 }
 
+#[cfg(target_feature = "rand")]
 fn is_rndr_available() -> bool {
+    true
+}
+
+#[cfg(not(target_feature = "rand"))]
+fn is_rndr_available() -> bool {
+    use crate::lazy::LazyBool;
+    static RNDR_GOOD: LazyBool = LazyBool::new();
+
     cfg_if::cfg_if! {
-        if #[cfg(target_feature = "rand")] {
-            true
+        if #[cfg(feature = "std")] {
+            extern crate std;
+            RNDR_GOOD.unsync_init(|| std::arch::is_aarch64_feature_detected!("rand"))
         } else if #[cfg(target_os = "linux")] {
             /// Check whether FEAT_RNG is available on the system
             ///
@@ -87,14 +97,7 @@ fn is_rndr_available() -> bool {
                 (id_aa64isar0 >> 60) & 0xf >= 1
             }
 
-            #[path = "../lazy.rs"] mod lazy;
-            static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
             RNDR_GOOD.unsync_init(mrs_check)
-        } else if #[cfg(feature = "std")] {
-            extern crate std;
-            #[path = "../lazy.rs"] mod lazy;
-            static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
-            RNDR_GOOD.unsync_init(|| std::arch::is_aarch64_feature_detected!("rand"))
         } else {
             compile_error!(
                 "RNDR `no_std` runtime detection is currently supported only on Linux targets. \
@@ -105,32 +108,29 @@ fn is_rndr_available() -> bool {
 }
 
 pub fn inner_u32() -> Result<u32, Error> {
-    if is_rndr_available() {
-        // SAFETY: after this point, we know the `rand` target feature is enabled
-        let res = unsafe { rndr() };
-        res.map(truncate).ok_or(Error::RNDR_FAILURE)
-    } else {
-        Err(Error::RNDR_NOT_AVAILABLE)
+    if !is_rndr_available() {
+        return Err(Error::RNDR_NOT_AVAILABLE);
     }
+    // SAFETY: after this point, we know the `rand` target feature is enabled
+    let res = unsafe { rndr() };
+    res.map(truncate).ok_or(Error::RNDR_FAILURE)
 }
 
 pub fn inner_u64() -> Result<u64, Error> {
-    if is_rndr_available() {
-        // SAFETY: after this point, we know the `rand` target feature is enabled
-        let res = unsafe { rndr() };
-        res.ok_or(Error::RNDR_FAILURE)
-    } else {
-        Err(Error::RNDR_NOT_AVAILABLE)
+    if !is_rndr_available() {
+        return Err(Error::RNDR_NOT_AVAILABLE);
     }
+    // SAFETY: after this point, we know the `rand` target feature is enabled
+    let res = unsafe { rndr() };
+    res.ok_or(Error::RNDR_FAILURE)
 }
 
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    if is_rndr_available() {
-        // SAFETY: after this point, we know the `rand` target feature is enabled
-        unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
-    } else {
-        Err(Error::RNDR_NOT_AVAILABLE)
+    if !is_rndr_available() {
+        return Err(Error::RNDR_NOT_AVAILABLE);
     }
+    // SAFETY: after this point, we know the `rand` target feature is enabled
+    unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
 }
 
 impl Error {
