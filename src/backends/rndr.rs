@@ -67,8 +67,9 @@ fn is_rndr_available() -> bool {
 
 #[cfg(not(target_feature = "rand"))]
 fn is_rndr_available() -> bool {
-    use crate::lazy::LazyBool;
-    static RNDR_GOOD: LazyBool = LazyBool::new();
+    #[path = "../lazy.rs"]
+    mod lazy;
+    static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "std")] {
