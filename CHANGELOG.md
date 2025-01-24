@@ -22,15 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Target-specific assocciated `Error` constants [#562]
 
 ### Changed
-- Use `ProcessPrng` on Windows 10 and up, and use RtlGenRandom on older legacy Windows versions [#415]
+- Use `ProcessPrng` on Windows 10 and up, and use `RtlGenRandom` on older Windows versions [#415]
 - Do not use locale-specific `strerror_r` for retrieving error code descriptions [#440]
-- Avoid assuming usize is the native word size in the `rdrand` backend [#442]
+- Avoid assuming `usize` is the native word size in the `rdrand` backend [#442]
 - Do not read from `errno` when `libc` did not indicate error on Solaris [#448]
 - Switch from `libpthread`'s mutex to `futex` on Linux and to `nanosleep`-based wait loop
   on other targets in the `use_file` backend [#490]
 - Do not retry on `EAGAIN` while polling `/dev/random` on Linux [#522]
-- Remove separate codepath for Node.js in the `wasm_js` backend (bumps minimum supported Node.js
-  version to v19) [#557]
+- Remove separate codepath for Node.js in the `wasm_js` backend
+  (bumps minimum supported Node.js version to v19) [#557]
 - Use `js_namespace` in the `wasm_js` backend [#559]
  
 ### Added
@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic MemorySanitizer support [#521] [#571]
 - `u32` and `u64` functions for generating random values of the respective type [#544]
 - `wasm32v1-none` support in the `wasm_js` backend [#560]
+- `wasm_js` crate feature which allows users to enable the `wasm_js` opt-in backend [#574]
 
 ### Fixed
 - NetBSD fallback code based on `KERN_ARND` [#555]
@@ -66,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#560]: https://github.com/rust-random/getrandom/pull/560
 [#562]: https://github.com/rust-random/getrandom/pull/562
 [#571]: https://github.com/rust-random/getrandom/pull/571
+[#574]: https://github.com/rust-random/getrandom/pull/574
 
 ## [0.2.15] - 2024-05-06
 ### Added
