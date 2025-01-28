@@ -86,9 +86,14 @@ of randomness based on their specific needs:
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
-The flag can be set either by specifying the `rustflags` field in
-[`.cargo/config.toml`] (note that it can be done on a per-target basis), or by using
-the `RUSTFLAGS` environment variable:
+The flag can be set either by specifying the `rustflags` field in [`.cargo/config.toml`]:
+```toml
+# It's recommended to set the flag on a per-target basis:
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+```
+
+Or by using the `RUSTFLAGS` environment variable:
 
 ```sh
 RUSTFLAGS='--cfg getrandom_backend="linux_getrandom"' cargo build
