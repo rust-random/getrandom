@@ -64,7 +64,7 @@ libc = { version = "0.2.154", default-features = false }
 
 # wasi (0.2 only)
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies]
-wasi = { version = "0.13", default-features = false }
+wasi = { version = "0.14", default-features = false }
 
 # windows7
 [target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
