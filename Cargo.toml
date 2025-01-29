@@ -68,7 +68,7 @@ wasi = { version = "0.13", default-features = false }
 
 # windows7
 [target.'cfg(all(windows, not(target_vendor = "win7")))'.dependencies]
-windows-targets = "0.52"
+windows-targets = "0.53"
 
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
