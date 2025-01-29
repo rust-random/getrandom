@@ -11,6 +11,7 @@ extern "C" {
     fn random_get(arg0: i32, arg1: i32) -> i32;
 }
 
+#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Based on the wasi code:
     // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2046-2062

@@ -59,6 +59,7 @@ fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use_file::fill_inner(dest)
 }
 
+#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
