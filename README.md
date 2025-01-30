@@ -359,8 +359,8 @@ dual licensed as above, without any additional terms or conditions.
 [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
-[WASI]: https://github.com/CraneStation/wasi
-[Emscripten]: https://www.hellorust.com/setup/emscripten/
+[WASI]: https://github.com/WebAssembly/WASI
+[Emscripten]: https://emscripten.org
 
 [//]: # (licenses)
 
