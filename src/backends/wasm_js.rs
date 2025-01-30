@@ -25,7 +25,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 #[cfg(target_feature = "atomics")]
-#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getRandomValues does not work with all types of WASM memory,
     // so we initially write to browser memory to avoid exceptions.
