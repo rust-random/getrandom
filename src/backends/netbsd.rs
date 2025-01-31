@@ -45,6 +45,7 @@ type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint)
 static GETRANDOM: AtomicPtr<c_void> = AtomicPtr::new(ptr::null_mut());
 
 #[cold]
+#[inline(never)]
 fn init() -> *mut c_void {
     static NAME: &[u8] = b"getrandom\0";
     let name_ptr = NAME.as_ptr().cast::<libc::c_char>();
