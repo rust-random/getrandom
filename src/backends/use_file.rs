@@ -78,6 +78,7 @@ fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
 }
 
 #[cold]
+#[inline(never)]
 fn open_or_wait() -> Result<libc::c_int, Error> {
     loop {
         match FD.load(Ordering::Acquire) {
