@@ -12,6 +12,7 @@ extern "C" {
     fn sys_secure_rand64(value: *mut u64) -> i32;
 }
 
+#[inline]
 pub fn inner_u32() -> Result<u32, Error> {
     let mut res = MaybeUninit::uninit();
     let ret = unsafe { sys_secure_rand32(res.as_mut_ptr()) };
@@ -22,6 +23,7 @@ pub fn inner_u32() -> Result<u32, Error> {
     }
 }
 
+#[inline]
 pub fn inner_u64() -> Result<u64, Error> {
     let mut res = MaybeUninit::uninit();
     let ret = unsafe { sys_secure_rand64(res.as_mut_ptr()) };
@@ -32,6 +34,7 @@ pub fn inner_u64() -> Result<u64, Error> {
     }
 }
 
+#[inline]
 pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     while !dest.is_empty() {
         let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };

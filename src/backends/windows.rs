@@ -34,6 +34,7 @@ pub use crate::util::{inner_u32, inner_u64};
 // https://github.com/microsoft/windows-rs/blob/0.60.0/crates/libs/targets/src/lib.rs
 windows_targets::link!("bcryptprimitives.dll" "system" fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> i32);
 
+#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let result = unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
     // Since Windows 10, calls to the user-mode RNG are guaranteed to never

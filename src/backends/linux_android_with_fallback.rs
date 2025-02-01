@@ -20,6 +20,7 @@ const NOT_AVAILABLE: NonNull<c_void> = unsafe { NonNull::new_unchecked(usize::MA
 static GETRANDOM_FN: AtomicPtr<c_void> = AtomicPtr::new(ptr::null_mut());
 
 #[cold]
+#[inline(never)]
 fn init() -> NonNull<c_void> {
     static NAME: &[u8] = b"getrandom\0";
     let name_ptr = NAME.as_ptr().cast::<libc::c_char>();
@@ -59,6 +60,7 @@ fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use_file::fill_inner(dest)
 }
 
+#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Despite being only a single atomic variable, we still cannot always use
     // Ordering::Relaxed, as we need to make sure a successful call to `init`
@@ -75,7 +77,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if fptr == NOT_AVAILABLE {
         use_file_fallback(dest)
     } else {
-        // note: `transume` is currently the only way to convert pointer into function reference
+        // note: `transmute` is currently the only way to convert a pointer into a function reference
         let getrandom_fn = unsafe { mem::transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
         util_libc::sys_fill_exact(dest, |buf| unsafe {
             getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
