@@ -23,6 +23,9 @@ rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 # this flag *and* set getrandom_backend=wasm_js (see README).
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
+[build-dependencies]
+cc = "1.2.12"
+
 [dependencies]
 cfg-if = "1"
 
@@ -85,6 +88,7 @@ check-cfg = [
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
+  'cfg(has_libc_getrandom)',
 ]
 
 [package.metadata.docs.rs]
