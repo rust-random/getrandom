@@ -132,6 +132,31 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo build --features=std
 
+  linux-raw:
+    name: Build Raw Linux
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          arm-unknown-linux-gnueabihf,
+          aarch64-unknown-linux-gnu,
+          loongarch64-unknown-linux-gnu,
+          riscv32gc-unknown-linux-gnu,
+          riscv64gc-unknown-linux-gnu,
+          i686-unknown-linux-gnu,
+          x86_64-unknown-linux-gnu,
+          x86_64-unknown-linux-gnux32,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-10-24
+          components: rust-src
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
+        run: cargo build -Zbuild-std=core --target=${{ matrix.target }}
+
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
     runs-on: ubuntu-24.04

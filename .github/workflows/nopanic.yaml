@@ -49,6 +49,13 @@ jobs:
       - name: Check (linux_android.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
+      - name: Build (linux_raw.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
+        run: cargo build --release
+      - name: Check (linux_raw.rs)
+        run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
+
       - name: Build (rdrand.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
