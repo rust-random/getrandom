@@ -83,6 +83,7 @@ of randomness based on their specific needs:
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
+| `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nigthly compiler)
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
@@ -351,6 +352,7 @@ dual licensed as above, without any additional terms or conditions.
 [`esp_fill_random`]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html#functions
 [esp-idf-rng]: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/random.html
 [esp-trng-docs]: https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf#rng
+[`EFI_RNG_PROTOCOL`]: https://uefi.org/specs/UEFI/2.10/37_Secure_Technologies.html#efi-rng-protocol
 [`random_get`]: https://github.com/WebAssembly/WASI/blob/snapshot-01/phases/snapshot/docs.md#-random_getbuf-pointeru8-buf_len-size---errno
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 [configuration flags]: #configuration-flags

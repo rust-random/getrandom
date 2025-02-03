@@ -166,6 +166,26 @@ jobs:
       - name: Build
         run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
 
+  efi-rng:
+    name: UEFI RNG Protocol
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          aarch64-unknown-uefi,
+          x86_64-unknown-uefi,
+          i686-unknown-uefi,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libstd
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="efi_rng"
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+
   rdrand-uefi:
     name: RDRAND UEFI
     runs-on: ubuntu-24.04
