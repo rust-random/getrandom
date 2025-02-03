@@ -67,6 +67,10 @@ jobs:
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
       run: cargo clippy -Zbuild-std=core --target aarch64-unknown-linux-gnu
+    - name: EFI RNG (efi_rng.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="efi_rng"
+      run: cargo clippy -Zbuild-std=std --target x86_64-unknown-uefi
     - name: Solaris (solaris.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-pc-solaris
     - name: SOLID (solid.rs)
