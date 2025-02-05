@@ -65,6 +65,7 @@ fn init() -> NonNull<c_void> {
 }
 
 // Prevent inlining of the fallback implementation
+#[cold]
 #[inline(never)]
 fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use_file::fill_inner(dest)
