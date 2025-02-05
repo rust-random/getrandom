@@ -99,6 +99,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
     r0
 }
 
+#[inline]
 pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Value of this error code is stable across all target arches.
     const EINTR: isize = -4;
