@@ -19,6 +19,8 @@ compile_error!("`efi_rng` backend can be enabled only for UEFI targets!");
 
 static RNG_PROTOCOL: AtomicPtr<rng::Protocol> = AtomicPtr::new(null_mut());
 
+#[cold]
+#[inline(never)]
 fn init() -> Result<NonNull<rng::Protocol>, Error> {
     const HANDLE_SIZE: usize = size_of::<Handle>();
 
@@ -92,6 +94,7 @@ fn init() -> Result<NonNull<rng::Protocol>, Error> {
     Err(Error::NO_RNG_HANDLE)
 }
 
+#[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let protocol = match NonNull::new(RNG_PROTOCOL.load(Relaxed)) {
         Some(p) => p,
