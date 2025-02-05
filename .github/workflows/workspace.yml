@@ -41,8 +41,6 @@ jobs:
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
     - name: OpenBSD (getentropy.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-openbsd
-    - name: FreeBSD (getrandom.rs)
-      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-freebsd
     - name: Hermit (hermit.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-hermit
     - name: Web WASM (wasm_js.rs)
@@ -53,7 +51,7 @@ jobs:
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory
       run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features wasm_js
-    - name: Linux (linux_android.rs)
+    - name: Linux (getrandom.rs)
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
       run: cargo clippy --target x86_64-unknown-linux-gnu

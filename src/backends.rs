@@ -11,8 +11,8 @@ cfg_if! {
         mod custom;
         pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
-        mod linux_android;
-        pub use linux_android::*;
+        mod getrandom;
+        pub use getrandom::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
         pub use rdrand::*;
@@ -51,17 +51,6 @@ cfg_if! {
     ))] {
         mod getentropy;
         pub use getentropy::*;
-    } else if #[cfg(any(
-        target_os = "dragonfly",
-        target_os = "freebsd",
-        target_os = "hurd",
-        target_os = "illumos",
-        // Check for target_arch = "arm" to only include the 3DS. Does not
-        // include the Nintendo Switch (which is target_arch = "aarch64").
-        all(target_os = "horizon", target_arch = "arm"),
-    ))] {
-        mod getrandom;
-        pub use getrandom::*;
     } else if #[cfg(any(
         // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
         // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
@@ -102,9 +91,19 @@ cfg_if! {
         mod use_file;
         mod linux_android_with_fallback;
         pub use linux_android_with_fallback::*;
-    } else if #[cfg(any(target_os = "android", target_os = "linux"))] {
-        mod linux_android;
-        pub use linux_android::*;
+    } else if #[cfg(any(
+        target_os = "android",
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "hurd",
+        target_os = "illumos",
+        // Check for target_arch = "arm" to only include the 3DS. Does not
+        // include the Nintendo Switch (which is target_arch = "aarch64").
+        all(target_os = "horizon", target_arch = "arm"),
+    ))] {
+        mod getrandom;
+        pub use getrandom::*;
     } else if #[cfg(target_os = "solaris")] {
         mod solaris;
         pub use solaris::*;
