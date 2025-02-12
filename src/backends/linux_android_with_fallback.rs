@@ -60,6 +60,11 @@ fn init() -> NonNull<c_void> {
         None => NOT_AVAILABLE,
     };
 
+    #[cfg(getrandom_test_linux_without_fallback)]
+    if res_ptr == NOT_AVAILABLE {
+        panic!("Fallback is triggered with enabled `getrandom_test_linux_without_fallback`")
+    }
+
     GETRANDOM_FN.store(res_ptr.as_ptr(), Ordering::Release);
     res_ptr
 }

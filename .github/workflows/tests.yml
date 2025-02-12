@@ -62,6 +62,10 @@ jobs:
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
         run: cargo test --features=std
       - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
+        run: cargo test --features=std
+      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo test --features=std
