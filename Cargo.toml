@@ -30,7 +30,7 @@ cfg-if = "1"
 compiler_builtins = { version = "0.1", optional = true }
 core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" }
 
-# linux_android / linux_android_with_fallback
+# getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
@@ -84,6 +84,7 @@ check-cfg = [
   'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "linux_raw", "wasm_js"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
+  'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
 ]
 
