@@ -1,0 +1,31 @@
+name: Update Cargo.lock
+
+on:
+  schedule:
+    # Run every Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  update-cargo-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Update dependencies
+        run: cargo update
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          title: "Update Cargo.lock"
+          commit-message: "Update Cargo.lock"
+          base: master
+          branch: update-cargo-lock
+          path: Cargo.lock
