@@ -79,7 +79,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             #[cfg(target_pointer_width = "64")]
             const __NR_getrandom: isize = 318;
             #[cfg(target_pointer_width = "32")]
-            const __NR_getrandom: isize = 1073742142;
+            const __NR_getrandom: isize = (1 << 30) + 318;
 
             core::arch::asm!(
                 "syscall",
