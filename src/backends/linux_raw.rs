@@ -64,7 +64,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             );
         } else if #[cfg(target_arch = "s390x")] {
             const __NR_getrandom: u32 = 349;
-            asm!(
+            core::arch::asm!(
                 "svc 0",
                 in("r1") __NR_getrandom,
                 inlateout("r2") buf => r0,
