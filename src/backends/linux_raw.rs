@@ -63,30 +63,32 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                 options(nostack, preserves_flags)
             );
         } else if #[cfg(target_arch = "x86")] {
-            const __NR_getrandom: isize = 355;
+            const __NR_getrandom: u32 = 355;
             // `int 0x80` is famously slow, but implementing vDSO is too complex
             // and `sysenter`/`syscall` have their own portability issues,
             // so we use the simple "legacy" way of doing syscalls.
             core::arch::asm!(
                 "int $$0x80",
-                inlateout("eax") __NR_getrandom => r0,
+                in("eax") __NR_getrandom,
                 in("ebx") buf,
                 in("ecx") buflen,
                 in("edx") flags,
+                lateout("eax") r0,
                 options(nostack, preserves_flags)
             );
         } else if #[cfg(target_arch = "x86_64")] {
             #[cfg(target_pointer_width = "64")]
-            const __NR_getrandom: isize = 318;
+            const __NR_getrandom: u32 = 318;
             #[cfg(target_pointer_width = "32")]
-            const __NR_getrandom: isize = (1 << 30) + 318;
+            const __NR_getrandom: u32 = (1 << 30) + 318;
 
             core::arch::asm!(
                 "syscall",
-                inlateout("rax") __NR_getrandom => r0,
+                in("rax") __NR_getrandom,
                 in("rdi") buf,
                 in("rsi") buflen,
                 in("rdx") flags,
+                lateout("rax") r0,
                 lateout("rcx") _,
                 lateout("r11") _,
                 options(nostack, preserves_flags)
