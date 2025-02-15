@@ -114,7 +114,7 @@ WILL NOT have any effect on its downstream users.
 ### Raw Linux syscall support
 
 Currently the `linux_raw` backend supports only targets with stabilized `asm!` macro,
-i.e. `arm`, `aarch64`, `loongarch64`, `riscv32`, `riscv64`, `x86`, and `x86_64`.
+i.e. `arm`, `aarch64`, `loongarch64`, `riscv32`, `riscv64`, `s390x`, `x86`, and `x86_64`.
 
 Note that the raw syscall backend may be slower than backends based on `libc::getrandom`,
 e.g. it does not implement vDSO optimizations and on `x86` it uses the infamously slow
