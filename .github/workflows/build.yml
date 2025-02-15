@@ -143,6 +143,7 @@ jobs:
           loongarch64-unknown-linux-gnu,
           riscv32gc-unknown-linux-gnu,
           riscv64gc-unknown-linux-gnu,
+          s390x-unknown-linux-gnu,
           i686-unknown-linux-gnu,
           x86_64-unknown-linux-gnu,
           x86_64-unknown-linux-gnux32,

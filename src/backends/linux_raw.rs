@@ -62,6 +62,16 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                 in("a2") flags,
                 options(nostack, preserves_flags)
             );
+        } else if #[cfg(target_arch = "s390x")] {
+            const __NR_getrandom: u32 = 349;
+            asm!(
+                "svc 0",
+                in("r1") __NR_getrandom,
+                inlateout("r2") buf => r0,
+                in("r3") buflen,
+                in("r4") flags,
+                options(nostack, preserves_flags)
+            );
         } else if #[cfg(target_arch = "x86")] {
             const __NR_getrandom: u32 = 355;
             // `int 0x80` is famously slow, but implementing vDSO is too complex
