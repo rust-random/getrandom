@@ -28,4 +28,3 @@ jobs:
           commit-message: "Update Cargo.lock"
           base: master
           branch: update-cargo-lock
-          path: Cargo.lock
