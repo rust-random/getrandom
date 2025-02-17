@@ -13,6 +13,9 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod getrandom;
         pub use getrandom::*;
+    } else if #[cfg(getrandom_backend = "linux_raw")] {
+        mod linux_raw;
+        pub use linux_raw::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
         pub use rdrand::*;
