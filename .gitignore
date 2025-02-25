@@ -1,6 +1,4 @@
 /target
 **/*.rs.bk
-Cargo.lock
-*.ts
-*.js
-*.wasm
+nopanic_check/Cargo.lock
+nopanic_check/target/

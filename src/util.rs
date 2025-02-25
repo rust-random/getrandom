@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use core::{mem::MaybeUninit, ptr};
+use crate::Error;
+use core::{mem::MaybeUninit, ptr, slice};
 
 /// Polyfill for `maybe_uninit_slice` feature's
 /// `MaybeUninit::slice_assume_init_mut`. Every element of `slice` must have
@@ -45,4 +46,39 @@ fn ptr_from_mut<T: ?Sized>(r: &mut T) -> *mut T {
 // TODO: MSRV(1.76.0): Replace with `core::ptr::from_ref`.
 fn ptr_from_ref<T: ?Sized>(r: &T) -> *const T {
     r
+}
+
+/// Default implementation of `inner_u32` on top of `fill_uninit`
+#[inline]
+pub fn inner_u32() -> Result<u32, Error> {
+    let mut res = MaybeUninit::<u32>::uninit();
+    // SAFETY: the created slice has the same size as `res`
+    let dst = unsafe {
+        let p: *mut MaybeUninit<u8> = res.as_mut_ptr().cast();
+        slice::from_raw_parts_mut(p, core::mem::size_of::<u32>())
+    };
+    crate::fill_uninit(dst)?;
+    // SAFETY: `dst` has been fully initialized by `imp::fill_inner`
+    // since it returned `Ok`.
+    Ok(unsafe { res.assume_init() })
+}
+
+/// Default implementation of `inner_u64` on top of `fill_uninit`
+#[inline]
+pub fn inner_u64() -> Result<u64, Error> {
+    let mut res = MaybeUninit::<u64>::uninit();
+    // SAFETY: the created slice has the same size as `res`
+    let dst = unsafe {
+        let p: *mut MaybeUninit<u8> = res.as_mut_ptr().cast();
+        slice::from_raw_parts_mut(p, core::mem::size_of::<u64>())
+    };
+    crate::fill_uninit(dst)?;
+    // SAFETY: `dst` has been fully initialized by `imp::fill_inner`
+    // since it returned `Ok`.
+    Ok(unsafe { res.assume_init() })
+}
+
+/// Truncates `u64` and returns the lower 32 bits as `u32`
+pub(crate) fn truncate(val: u64) -> u32 {
+    u32::try_from(val & u64::from(u32::MAX)).expect("The higher 32 bits are masked")
 }

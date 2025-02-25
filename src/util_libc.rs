@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::Error;
 use core::mem::MaybeUninit;
 
@@ -34,7 +33,7 @@ cfg_if! {
     }
 }
 
-pub fn last_os_error() -> Error {
+pub(crate) fn last_os_error() -> Error {
     let errno: libc::c_int = unsafe { get_errno() };
 
     // c_int-to-u32 conversion is lossless for nonnegative values if they are the same size.
@@ -46,17 +45,23 @@ pub fn last_os_error() -> Error {
     }
 }
 
-// Fill a buffer by repeatedly invoking a system call. The `sys_fill` function:
-//   - should return -1 and set errno on failure
-//   - should return the number of bytes written on success
-pub fn sys_fill_exact(
+/// Fill a buffer by repeatedly invoking `sys_fill`.
+///
+/// The `sys_fill` function:
+///   - should return -1 and set errno on failure
+///   - should return the number of bytes written on success
+#[allow(dead_code)]
+pub(crate) fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
     sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> libc::ssize_t,
 ) -> Result<(), Error> {
     while !buf.is_empty() {
         let res = sys_fill(buf);
         match res {
-            res if res > 0 => buf = buf.get_mut(res as usize..).ok_or(Error::UNEXPECTED)?,
+            res if res > 0 => {
+                let len = usize::try_from(res).map_err(|_| Error::UNEXPECTED)?;
+                buf = buf.get_mut(len..).ok_or(Error::UNEXPECTED)?;
+            }
             -1 => {
                 let err = last_os_error();
                 // We should try again if the call was interrupted.
@@ -71,31 +76,4 @@ pub fn sys_fill_exact(
         }
     }
     Ok(())
-}
-
-/// Open a file in read-only mode.
-///
-/// # Panics
-/// If `path` does not contain any zeros.
-// TODO: Move `path` to `CStr` and use `CStr::from_bytes_until_nul` (MSRV 1.69)
-// or C-string literals (MSRV 1.77) for statics
-#[inline(always)]
-pub fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
-    assert!(path.iter().any(|&b| b == 0));
-    loop {
-        let fd = unsafe {
-            libc::open(
-                path.as_ptr().cast::<libc::c_char>(),
-                libc::O_RDONLY | libc::O_CLOEXEC,
-            )
-        };
-        if fd >= 0 {
-            return Ok(fd);
-        }
-        let err = last_os_error();
-        // We should try again if open() was interrupted.
-        if err.raw_os_error() != Some(libc::EINTR) {
-            return Err(err);
-        }
-    }
 }

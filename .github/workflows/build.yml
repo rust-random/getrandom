@@ -1,0 +1,225 @@
+name: Build
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  schedule:
+    - cron: "0 12 * * 1"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  macos:
+    name: Apple Other
+    # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: aarch64-apple-darwin, aarch64-apple-ios
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
+      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
+      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
+      # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
+      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+      # std is broken on visionOS right now
+      #- run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
+
+  cross:
+    name: Cross
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235456/job/36119544880
+          # sparcv9-sun-solaris,
+          x86_64-unknown-illumos,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install precompiled cross
+        run: |
+          VERSION=v0.2.5
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
+      - name: Build Tests
+        run: cross test --no-run --target=${{ matrix.target }} --features=std
+
+  tier2:
+    name: Tier 2
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          aarch64-linux-android,
+          x86_64-unknown-fuchsia,
+          x86_64-unknown-redox,
+          x86_64-fortanix-unknown-sgx,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --target=${{ matrix.target }} --features=std
+
+  tier3:
+    name: Tier 3
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          aarch64-kmc-solid_asp3,
+          aarch64-unknown-nto-qnx710,
+          armv6k-nintendo-3ds,
+          armv7-sony-vita-newlibeabihf,
+          i686-unknown-hurd-gnu,
+          riscv32imc-esp-espidf,
+          x86_64-unknown-hermit,
+          x86_64-wrs-vxworks,
+          x86_64-unknown-dragonfly,
+          x86_64-unknown-haiku,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -Z build-std=core --target=${{ matrix.target }}
+
+  # Ubuntu does not support running x32 binaries:
+  # https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1994516/comments/21
+  linux-x32:
+    name: Linux x32
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnux32]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install libc and libgcc
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends libc6-dev-x32 libx32gcc-11-dev
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+        run: cargo build --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
+        run: cargo build --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build --features=std
+
+  web:
+    name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
+    runs-on: ubuntu-24.04
+    env:
+        RUSTFLAGS: --cfg getrandom_backend="wasm_js" ${{ matrix.atomic.flags }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [
+          { description: Web, target: wasm32-unknown-unknown },
+          { description: WasmV1, target: wasm32v1-none },
+        ]
+        feature: [
+          { description: no_std, feature: "--features wasm_js", build-std: "core,alloc", std: false },
+          { feature: "--features wasm_js,std", build-std: "panic_abort,std", std: true },
+        ]
+        atomic: [
+          { flags: "" },
+          { description: with Atomics, flags: "-Ctarget-feature=+atomics,bulk-memory" },
+        ]
+        exclude:
+          - target: { target: wasm32v1-none }
+            feature: { std: true }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          targets: ${{ matrix.target.target }}
+          toolchain: nightly-2024-10-24
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+
+  rdrand-uefi:
+    name: RDRAND UEFI
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          x86_64-unknown-uefi,
+          i686-unknown-uefi,
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+
+  rndr:
+    name: RNDR
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-unknown-linux-gnu, aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: RNDR enabled at compile time (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection without std (Linux)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu
+      - name: Runtime RNDR detection with std (macOS)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+
+  no-atomics:
+    name: No Atomics
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: riscv32i-unknown-none-elf
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+        run: cargo build --target riscv32i-unknown-none-elf

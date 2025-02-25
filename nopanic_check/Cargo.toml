@@ -1,0 +1,26 @@
+[package]
+name = "nopanic_check"
+description = "Helper crate for checking that getrandom implementation does not contain potential panics"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[lib]
+name = "getrandom_wrapper"
+crate-type = ["cdylib"]
+
+[dependencies]
+getrandom = { path = ".." }
+
+[profile.release]
+panic = "abort"
+strip = true
+lto = "fat"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+  'cfg(getrandom_backend, values("custom"))',
+]

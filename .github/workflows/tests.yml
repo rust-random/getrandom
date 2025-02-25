@@ -1,4 +1,4 @@
-name: Tests
+name: Test
 
 on:
   push:
@@ -16,18 +16,15 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  main-tests:
-    name: Tier 1 Test
+  tier1:
+    name: Tier 1
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-2022]
-        toolchain: [nightly, beta, stable, "1.60"]
+        os: [ubuntu-24.04, windows-2022]
+        toolchain: [nightly, beta, stable, "1.63"]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
-          # x86_64-apple-darwin.
-          - os: macos-12
-            toolchain: stable
           # aarch64-apple-darwin.
           - os: macos-14
             toolchain: stable
@@ -38,61 +35,50 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
-      # Make sure enabling the std and custom features don't break anything
-      - run: cargo test --features=std,custom
-      - run: cargo test --features=linux_disable_fallback
+      # Make sure enabling the std feature doesn't break anything
+      - run: cargo test --features=std
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
-  linux-tests:
-    name: Linux Test
-    runs-on: ubuntu-22.04
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [x86_64-unknown-linux-musl, i686-unknown-linux-musl]
-        include:
-          - target: i686-unknown-linux-gnu
-            packages: libc6-dev-i386 lib32gcc-11-dev
-          - target: x86_64-unknown-linux-gnux32
-            packages: libc6-dev-x32 libx32gcc-11-dev
-            # TODO: Find a Linux image/runner with CONFIG_X86_X32_ABI set
-            cargo_test_opts: --no-run
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install libc and libgcc
-        if: matrix.packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends ${{ matrix.packages }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test ${{ matrix.cargo_test_opts }} --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+        run: cargo test --target=${{ matrix.target }} --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
+        run: cargo test --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
+        run: cargo test --features=std
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
+        run: cargo test --features=std
 
-  ios-tests:
-    name: iOS Simulator Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-12, macos-14]
-        # Only test on stable to reduce macOS CI jobs
-        toolchain: [stable]
-        include:
-          # The Aarch64 device simulator doesn't seem to work on an x86-64 host
-          # and the x86_64 device simulator doesn't seem to work on an Aarch64
-          # host, at least within GitHub Actions.
-          - os: macos-12
-            target: x86_64-apple-ios
-            ios_platform: auto-ios-x86_64
-          - os: macos-14
-            target: aarch64-apple-ios-sim
-            ios_platform: auto-ios-aarch64-sim
+  ios:
+    name: iOS Simulator
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
-          targets: ${{ matrix.target }}
+          toolchain: stable
+          targets: aarch64-apple-ios-sim
       - name: Install precompiled cargo-dinghy
         run: |
           VERSION=0.7.2
@@ -114,10 +100,10 @@ jobs:
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo dinghy -p ${{ matrix.ios_platform }} -d ${{ env.device }} test
+        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test
 
-  windows-tests:
-    name: Windows Test
+  windows:
+    name: Windows
     runs-on: windows-2022
     strategy:
       matrix:
@@ -135,7 +121,7 @@ jobs:
       - run: cargo test --features=std
 
   windows7:
-    name: Test Windows 7 impl on Windows 10
+    name: Windows 7 (on Windows 10)
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -148,9 +134,23 @@ jobs:
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
 
-  cross-tests:
-    name: Cross Test
-    runs-on: ubuntu-22.04
+  sanitizer:
+    name: Sanitizer
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-10-08
+          components: rust-src
+      - env:
+          RUSTFLAGS: -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+
+  cross:
+    name: Cross
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         target: [
@@ -159,7 +159,9 @@ jobs:
           # See: https://github.com/cross-rs/cross/issues/1222
           # aarch64-linux-android,
           powerpc-unknown-linux-gnu,
-          wasm32-unknown-emscripten,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/12949235459/job/36119546920
+          #wasm32-unknown-emscripten,
         ]
     steps:
       - uses: actions/checkout@v4
@@ -172,190 +174,150 @@ jobs:
       - name: Test
         run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
 
-  macos-link:
-    name: macOS ARM64 Build/Link
-    # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
-    runs-on: macos-14
+  freebsd:
+    name: FreeBSD VM
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@v1
         with:
-          targets: aarch64-apple-darwin, aarch64-apple-ios
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
-      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
-      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
-      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
-      # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
-      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
-      - run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            pkg install -y rust
+          run: cargo test
 
-  cross-link:
-    name: Cross Build/Link
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        target: [
-          sparcv9-sun-solaris,
-          x86_64-unknown-illumos,
-          x86_64-unknown-freebsd,
-          x86_64-unknown-netbsd,
-        ]
+  openbsd:
+    name: OpenBSD VM
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install precompiled cross
-        run: |
-          VERSION=v0.2.5
-          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
-          wget -O - $URL | tar -xz -C ~/.cargo/bin
-          cross --version
-      - name: Build Tests
-        run: cross test --no-run --target=${{ matrix.target }} --features=std
+      - name: Test in OpenBSD
+        uses: vmactions/openbsd-vm@v1
+        with:
+          envs: 'RUSTFLAGS'
+          usesh: true
+          prepare: |
+            pkg_add rust
+          run: cargo test
 
-  web-tests:
-    name: Web Test
+  # Rust installation currently fails:
+  # https://github.com/rust-random/getrandom/actions/runs/12590976993/job/35093395247
+  # netbsd:
+  #   name: NetBSD VM
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test in NetBSD
+  #       uses: vmactions/netbsd-vm@v1
+  #       with:
+  #         envs: 'RUSTFLAGS'
+  #         usesh: true
+  #         prepare: |
+  #           /usr/sbin/pkg_add rust
+  #         run: |
+  #           cargo test
+  #           RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
+
+  # This job currently fails:
+  # https://github.com/rust-random/getrandom/actions/runs/11405005618/job/31735653874?pr=528
+  # dragonflybsd:
+  #   name: DragonflyBSD VM
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test in DragonflyBSD
+  #       uses: vmactions/dragonflybsd-vm@v1
+  #       with:
+  #         envs: 'RUSTFLAGS'
+  #         usesh: true
+  #         prepare: |
+  #           pkg install -y rust
+  #         run: cargo test
+
+  web:
+    name: ${{ matrix.rust.description }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-22.04
-            host: x86_64-unknown-linux-musl
-          - os: macos-12
-            host: x86_64-apple-darwin
-          # We get spurious failures on Windows, see:
-          # https://github.com/rust-random/getrandom/issues/400
-          # - os: windows-2022
-          #   host: x86_64-pc-windows-msvc
-    runs-on: ${{ matrix.os }}
+        rust:
+          - {
+              description: Web,
+              version: stable,
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
+              args: '--features=std,wasm_js',
+            }
+          - {
+              description: Web with Atomics,
+              version: nightly,
+              components: rust-src,
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
+            }
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: choco install wget
-        if: runner.os == 'Windows'
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust.version }}
+          components: ${{ matrix.rust.components }}
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.12.1
-          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-${{ matrix.host }}.tar.gz
+          VERSION=v0.13.1
+          URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
       - uses: Swatinem/rust-cache@v2
       - name: Test (Node)
-        run: wasm-pack test --node --features=js
+        env:
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --node -- ${{ matrix.rust.args }}
       - name: Test (Firefox)
-        run: wasm-pack test --headless --firefox --features=js,test-in-browser
+        env:
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (Chrome)
-        run: wasm-pack test --headless --chrome --features=js,test-in-browser
-      - name: Test (Edge)
-        if: runner.os == 'Windows'
-        run: wasm-pack test --headless --chrome --chromedriver $Env:EDGEWEBDRIVER\msedgedriver.exe --features=js,test-in-browser
-      - name: Test (Safari)
-        if: runner.os == 'macOS'
-        run: wasm-pack test --headless --safari --features=js,test-in-browser
-      - name: Test (custom getrandom)
-        run: wasm-pack test --node --features=custom
-      - name: Test (JS overrides custom)
-        run: wasm-pack test --node --features=custom,js
+        env:
+          WASM_BINDGEN_USE_BROWSER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
+      - name: Test (dedicated worker)
+        env:
+          WASM_BINDGEN_USE_DEDICATED_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+      - name: Test (shared worker)
+        env:
+          WASM_BINDGEN_USE_SHARED_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+      - name: Test (service worker)
+        env:
+          WASM_BINDGEN_USE_SERVICE_WORKER: 1
+          RUSTFLAGS: ${{ matrix.rust.flags }}
+        # Firefox doesn't support module service workers and therefor can't import scripts
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
-  wasm64-tests:
-    name: wasm64 Build/Link
-    runs-on: ubuntu-22.04
+  wasi:
+    name: WASI
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Need to build libstd
+      - uses: dtolnay/rust-toolchain@master
         with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - name: Build and Link tests (build-std)
-        # This target is Tier 3, so we have to build libstd ourselves.
-        # We currently cannot run these tests because wasm-bindgen-test-runner
-        # does not yet support memory64.
-        run: cargo test --no-run -Z build-std=std,panic_abort --target=wasm64-unknown-unknown --features=js
-
-  wasi-tests:
-    name: WASI Test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-wasi
-      - name: Install precompiled wasmtime
+          toolchain: 1.82
+          targets: wasm32-wasip1,wasm32-wasip2
+      - name: Install Wasmtime
         run: |
-          VERSION=v2.0.0
+          VERSION=v24.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target wasm32-wasi
-
-  build-tier2:
-    name: Tier 2 Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        target: [
-          x86_64-unknown-fuchsia,
-          x86_64-unknown-redox,
-          x86_64-fortanix-unknown-sgx,
-        ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-      - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=std
-
-  build-tier3:
-    name: Tier 3 Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        # Supported tier 3 targets without libstd support
-        target: [
-          x86_64-unknown-hermit,
-          x86_64-wrs-vxworks,
-          aarch64-kmc-solid_asp3,
-          armv6k-nintendo-3ds,
-          armv7-sony-vita-newlibeabihf,
-          riscv32imc-esp-espidf,
-          aarch64-unknown-nto-qnx710,
-        ]
-        include:
-          - target: aarch64-unknown-nto-qnx710
-            features: ["std"]
-          # Supported tier 3 targets with libstd support
-          - target: x86_64-unknown-openbsd
-            features: ["std"]
-          - target: x86_64-unknown-dragonfly
-            features: ["std"]
-          - target: x86_64-unknown-haiku
-            features: ["std"]
-          # Unsupported tier 3 targets to test the rdrand feature
-          - target: x86_64-unknown-uefi
-            features: ["rdrand"]
-          - target: x86_64-unknown-l4re-uclibc
-            features: ["rdrand"]
-          - target: i686-unknown-hurd-gnu
-            features: ["std"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
-        with:
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo build -Z build-std=${{ contains(matrix.features, 'std') && 'std' || 'core'}} --target=${{ matrix.target }} --features="${{ join(matrix.features, ',') }}"
-
-  build-no-atomics:
-    name: No Atomics Build
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: riscv32i-unknown-none-elf
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo build --features custom --target riscv32i-unknown-none-elf
+      - name: WASI 0.1 Test
+        run: cargo test --target wasm32-wasip1
+      - name: WASI 0.2 Test
+        run: cargo test --target wasm32-wasip2

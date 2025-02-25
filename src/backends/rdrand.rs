@@ -1,6 +1,12 @@
 //! RDRAND backend for x86(-64) targets
-use crate::{lazy::LazyBool, util::slice_as_uninit, Error};
+use crate::{util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
+
+#[path = "../lazy.rs"]
+mod lazy;
+
+#[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
 
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
@@ -13,6 +19,8 @@ cfg_if! {
         type Word = u32;
     }
 }
+
+static RDRAND_GOOD: lazy::LazyBool = lazy::LazyBool::new();
 
 // Recommendation from "Intel® Digital Random Number Generator (DRNG) Software
 // Implementation Guide" - Section 5.2.1 and "Intel® 64 and IA-32 Architectures
@@ -93,15 +101,6 @@ fn is_rdrand_good() -> bool {
     unsafe { self_test() }
 }
 
-pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    static RDRAND_GOOD: LazyBool = LazyBool::new();
-    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
-        return Err(Error::NO_RDRAND);
-    }
-    // SAFETY: After this point, we know rdrand is supported.
-    unsafe { rdrand_exact(dest) }.ok_or(Error::FAILED_RDRAND)
-}
-
 // TODO: make this function safe when we have feature(target_feature_11)
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
@@ -120,4 +119,64 @@ unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
         tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
     Some(())
+}
+
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "rdrand")]
+unsafe fn rdrand_u32() -> Option<u32> {
+    rdrand().map(crate::util::truncate)
+}
+
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "rdrand")]
+unsafe fn rdrand_u64() -> Option<u64> {
+    rdrand()
+}
+
+#[cfg(target_arch = "x86")]
+#[target_feature(enable = "rdrand")]
+unsafe fn rdrand_u32() -> Option<u32> {
+    rdrand()
+}
+
+#[cfg(target_arch = "x86")]
+#[target_feature(enable = "rdrand")]
+unsafe fn rdrand_u64() -> Option<u64> {
+    let a = rdrand()?;
+    let b = rdrand()?;
+    Some((u64::from(a) << 32) | u64::from(b))
+}
+
+#[inline]
+pub fn inner_u32() -> Result<u32, Error> {
+    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+        return Err(Error::NO_RDRAND);
+    }
+    // SAFETY: After this point, we know rdrand is supported.
+    unsafe { rdrand_u32() }.ok_or(Error::FAILED_RDRAND)
+}
+
+#[inline]
+pub fn inner_u64() -> Result<u64, Error> {
+    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+        return Err(Error::NO_RDRAND);
+    }
+    // SAFETY: After this point, we know rdrand is supported.
+    unsafe { rdrand_u64() }.ok_or(Error::FAILED_RDRAND)
+}
+
+#[inline]
+pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+        return Err(Error::NO_RDRAND);
+    }
+    // SAFETY: After this point, we know rdrand is supported.
+    unsafe { rdrand_exact(dest) }.ok_or(Error::FAILED_RDRAND)
+}
+
+impl Error {
+    /// RDRAND instruction failed due to a hardware issue.
+    pub(crate) const FAILED_RDRAND: Error = Self::new_internal(10);
+    /// RDRAND instruction unsupported on this target.
+    pub(crate) const NO_RDRAND: Error = Self::new_internal(11);
 }

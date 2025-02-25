@@ -12,7 +12,7 @@ permissions:
 jobs:
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -23,34 +23,48 @@ jobs:
         # Fixed Nigthly version is used to prevent
         # CI failures which are not relevant to PR changes
         # on introduction of new Clippy lints.
-        toolchain: nightly-2024-06-11
+        toolchain: nightly-2024-10-08
         components: clippy,rust-src
     - name: std feature
       run: cargo clippy --features std
-    - name: custom feature
-      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf --features custom
+    - name: custom backend
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+      run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf
     - name: iOS (apple-other.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
     - name: ESP-IDF (espidf.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
       run: cargo clippy -Zbuild-std=core --target riscv32imc-esp-espidf
     - name: Fuchsia (fuchsia.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
     - name: OpenBSD (getentropy.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-openbsd
-    - name: FreeBSD (getrandom.rs)
-      run: cargo clippy -Zbuild-std=core --target x86_64-unknown-freebsd
     - name: Hermit (hermit.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-hermit
-    - name: Web WASM (js.rs)
-      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features js
-    - name: Linux (linux_android.rs)
-      run: cargo clippy --target x86_64-unknown-linux-gnu --features linux_disable_fallback
+    - name: Web WASM (wasm_js.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js"
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features wasm_js
+    - name: Web WASM with atomics (wasm_js.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory
+      run: cargo clippy -Zbuild-std --target wasm32-unknown-unknown --features wasm_js
+    - name: Linux (getrandom.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
+      run: cargo clippy --target x86_64-unknown-linux-gnu
     - name: Linux (linux_android_with_fallback.rs)
       run: cargo clippy --target x86_64-unknown-linux-gnu
     - name: NetBSD (netbsd.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-netbsd
     - name: Fortranix SGX (rdrand.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-fortanix-unknown-sgx
+    - name: RNDR (rndr.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
+      run: cargo clippy -Zbuild-std=core --target aarch64-unknown-linux-gnu
     - name: Solaris (solaris.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-pc-solaris
     - name: SOLID (solid.rs)
@@ -59,8 +73,10 @@ jobs:
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-redox
     - name: VxWorks (vxworks.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-wrs-vxworks
-    - name: WASI (wasi.rs)
-      run: cargo clippy -Zbuild-std=core --target wasm32-wasip2
+    - name: WASI preview 1 (wasi.rs)
+      run: cargo clippy -Zbuild-std=core --target wasm32-wasip1
+    - name: WASI preview 2 (wasi.rs)
+      run: cargo clippy -Zbuild-std=core,alloc --target wasm32-wasip2
     - name: Windows 7 (windows7.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-win7-windows-msvc
     - name: Windows (windows.rs)
@@ -68,7 +84,7 @@ jobs:
 
   fmt:
     name: rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -80,15 +96,15 @@ jobs:
 
   check-doc:
     name: rustdoc
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           # We need Nightly for doc_auto_cfg
-          toolchain: nightly-2024-06-11
+          toolchain: nightly-2024-09-04
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
-        run: cargo doc --no-deps --features custom
+        run: cargo doc --no-deps --features std
