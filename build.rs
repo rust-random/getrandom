@@ -6,4 +6,7 @@ fn main() {
     if santizers.contains("memory") {
         println!("cargo:rustc-cfg=getrandom_msan");
     }
+
+    // Declare valida as a valid value for getrandom_backend cfg
+    println!("cargo:rustc-check-cfg=cfg(getrandom_backend, values(\"valida\"))");
 }

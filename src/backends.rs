@@ -10,6 +10,9 @@ cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
         mod custom;
         pub use custom::*;
+    } else if #[cfg(getrandom_backend = "valida")] {
+        mod valida;
+        pub use valida::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod getrandom;
         pub use getrandom::*;

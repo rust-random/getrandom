@@ -49,6 +49,8 @@ libc = { version = "0.2.154", default-features = false }
 # netbsd
 [target.'cfg(target_os = "netbsd")'.dependencies]
 libc = { version = "0.2.154", default-features = false }
+# valida
+[target.'cfg(target_os = "valida")'.dependencies]
 
 # solaris
 [target.'cfg(target_os = "solaris")'.dependencies]
@@ -73,15 +75,21 @@ windows-targets = "0.53"
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
+
+# valida
+[target.'cfg(getrandom_backend = "valida")'.dependencies]
+atomic = { version = "0.5", default-features = false }
+
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
 js-sys = { version = "0.3.77", default-features = false, optional = true }
+
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js"))',
+  'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js", "valida"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_linux_without_fallback)',
