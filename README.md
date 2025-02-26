@@ -43,7 +43,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | Target             | Target Triple      | Implementation
 | ------------------ | ------------------ | --------------
 | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-| Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
+| Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`] on Rust 1.78+, [`RtlGenRandom`] otherwise
 | Windows 7, 8       | `*-win7‑windows‑*` | [`RtlGenRandom`]
 | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
 | iOS, tvOS, watchOS | `*‑apple‑{ios,tvos,watchos}` | [`CCRandomGenerateBytes`]
