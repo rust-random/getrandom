@@ -24,7 +24,7 @@ fn rustc_minor_version() -> Option<u64> {
         return None;
     }
 
-    let stdout = str::from_utf8(&out.stdout).ok()?;
+    let stdout = std::str::from_utf8(&out.stdout).ok()?;
 
     // Assumes that the first line contains "rustc 1.xx.0-channel (abcdef 2025-01-01)"
     // where "xx" is the minor version which we want to extract
