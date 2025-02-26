@@ -1,8 +1,5 @@
 use std::{env, ffi::OsString, process::Command};
 
-/// Minor version of the Rust compiler in which win7 targets were inroduced
-const WIN7_INTRODUCED_MINOR_VER: u64 = 78;
-
 /// Tries to get the minor version of use Rust compiler.
 ///
 /// If it fails for any reason, returns `None`.
@@ -45,10 +42,16 @@ fn main() {
 
     // Use `RtlGenRandom` on older compiler versions since win7 targets
     // were introduced only in Rust 1.78
-    let win_legacy = rustc_minor_version()
-        .map(|ver| ver < WIN7_INTRODUCED_MINOR_VER)
-        .unwrap_or(false);
-    if win_legacy {
-        println!("cargo:rustc-cfg=getrandom_windows_legacy");
+    let target_family = env::var_os("CARGO_CFG_TARGET_FAMILY").and_then(|f| f.into_string().ok());
+    if target_family.as_deref() == Some("windows") {
+        /// Minor version of the Rust compiler in which win7 targets were inroduced
+        const WIN7_INTRODUCED_MINOR_VER: u64 = 78;
+
+        let win_legacy = rustc_minor_version()
+            .map(|ver| ver < WIN7_INTRODUCED_MINOR_VER)
+            .unwrap_or(false);
+        if win_legacy {
+            println!("cargo:rustc-cfg=getrandom_windows_legacy");
+        }
     }
 }
