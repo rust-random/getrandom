@@ -1,7 +1,6 @@
 use std::{env, ffi::OsString, process::Command};
 
-/// Tries to get the minor version of use Rust compiler.
-///
+/// Tries to get the minor version of the Rust compiler in use.
 /// If it fails for any reason, returns `None`.
 ///
 /// Based on the `rustc_version` crate.
@@ -47,11 +46,12 @@ fn main() {
         /// Minor version of the Rust compiler in which win7 targets were inroduced
         const WIN7_INTRODUCED_MINOR_VER: u64 = 78;
 
-        let win_legacy = rustc_minor_version()
-            .map(|ver| ver < WIN7_INTRODUCED_MINOR_VER)
-            .unwrap_or(false);
-        if win_legacy {
-            println!("cargo:rustc-cfg=getrandom_windows_legacy");
+        match rustc_minor_version() {
+            Some(minor_ver) if minor_ver < WIN7_INTRODUCED_MINOR_VER => {
+                println!("cargo:rustc-cfg=getrandom_windows_legacy");
+            }
+            None => println!("cargo:warning=Couldn't detect minor version of the Rust compiler"),
+            _ => {}
         }
     }
 }
