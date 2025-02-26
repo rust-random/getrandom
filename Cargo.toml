@@ -83,6 +83,7 @@ level = "warn"
 check-cfg = [
   'cfg(getrandom_backend, values("custom", "rdrand", "rndr", "linux_getrandom", "wasm_js"))',
   'cfg(getrandom_msan)',
+  'cfg(getrandom_windows_legacy)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
