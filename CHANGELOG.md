@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not use `dlsym` on MUSL targets in the `linux_android_with_fallback` backend [#602]
 - Remove `linux_android.rs` and use `getrandom.rs` instead [#603]
 - Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
+- Internal representation of the `Error` type [#614]
+
+### Deprecated
+- `Error::INTERNAL_START` and `Error::CUSTOM_START` associated constants [#614]
 
 [#570]: https://github.com/rust-random/getrandom/pull/570
 [#572]: https://github.com/rust-random/getrandom/pull/572
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#603]: https://github.com/rust-random/getrandom/pull/603
 [#605]: https://github.com/rust-random/getrandom/pull/605
 [#610]: https://github.com/rust-random/getrandom/pull/610
+[#614]: https://github.com/rust-random/getrandom/pull/614
 
 ## [0.3.1] - 2025-01-28
 
