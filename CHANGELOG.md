@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.2] - UNRELEASED
 
 ### Added
+- `efi_rng` opt-in backend [#570]
 - `linux_raw` opt-in backend [#572]
 - `.cargo/config.toml` example in the crate-level docs [#591]
 - `getrandom_test_linux_without_fallback` configuration flag to test that file fallback
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `linux_android.rs` and use `getrandom.rs` instead [#603]
 - Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
 
+[#570]: https://github.com/rust-random/getrandom/pull/570
 [#572]: https://github.com/rust-random/getrandom/pull/572
 [#591]: https://github.com/rust-random/getrandom/pull/591
 [#593]: https://github.com/rust-random/getrandom/pull/593
