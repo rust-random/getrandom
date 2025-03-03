@@ -22,6 +22,9 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "rndr")] {
         mod rndr;
         pub use rndr::*;
+    } else if #[cfg(getrandom_backend = "efi_rng")] {
+        mod efi_rng;
+        pub use efi_rng::*;
     } else if #[cfg(all(getrandom_backend = "wasm_js"))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
