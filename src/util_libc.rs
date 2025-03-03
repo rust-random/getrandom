@@ -34,8 +34,8 @@ cfg_if! {
 }
 
 pub(crate) fn last_os_error() -> Error {
-    // We assum that on all targets which use this function `c_int` is equal to `i32`
-    let errno: libc::c_int = unsafe { get_errno() };
+    // We assume that on all targets which use the `util_libc` module `c_int` is equal to `i32`
+    let errno: i32 = unsafe { get_errno() };
 
     if errno > 0 {
         let code = errno
