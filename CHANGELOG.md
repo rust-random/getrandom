@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - UNRELEASED
+
+### Changed
+- Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
+
+[#610]: https://github.com/rust-random/getrandom/pull/610
+
 ## [0.3.1] - 2025-01-28
 
 ### Fixed
@@ -526,6 +533,8 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.3.2]: https://github.com/rust-random/getrandom/compare/v0.3.0...v0.3.2
+[0.3.1]: https://github.com/rust-random/getrandom/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.3.0
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
