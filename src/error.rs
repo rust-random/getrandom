@@ -45,12 +45,12 @@ impl Error {
     /// Encountered an unexpected situation which should not happen in practice.
     pub const UNEXPECTED: Error = Self::new_internal(2);
 
-    /// Deprecated.
     #[deprecated]
+    #[doc(hidden)]
     pub const INTERNAL_START: u32 = 1 << 31;
 
-    /// Deprecated.
     #[deprecated]
+    #[doc(hidden)]
     pub const CUSTOM_START: u32 = (1 << 31) + (1 << 30);
 
     /// Internal errors can be in the range of 2^16..2^17
