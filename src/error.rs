@@ -1,15 +1,18 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::{fmt, num::NonZeroU32};
+use core::fmt;
 
 // This private alias mirrors `std::io::RawOsError`:
 // https://doc.rust-lang.org/std/io/type.RawOsError.html)
 cfg_if::cfg_if!(
     if #[cfg(target_os = "uefi")] {
         type RawOsError = usize;
+        type NonZeroRawOsError = core::num::NonZeroUsize;
+        const UEFI_ERROR_FLAG: RawOsError = 1 << (RawOsError::BITS - 1);
     } else {
         type RawOsError = i32;
+        type NonZeroRawOsError = core::num::NonZeroI32;
     }
 );
 
@@ -27,8 +30,10 @@ cfg_if::cfg_if!(
 ///   [`std::error::Error`](https://doc.rust-lang.org/std/error/trait.Error.html)
 /// - [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html) implements
 ///   [`From<getrandom::Error>`](https://doc.rust-lang.org/std/convert/trait.From.html).
+// note: on non-UEFI targets OS errors are represented as negative integers,
+// while on UEFI targets OS errors have the highest bit set to 1.
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Error(NonZeroU32);
+pub struct Error(NonZeroRawOsError);
 
 impl Error {
     /// This target/platform is not supported by `getrandom`.
@@ -38,28 +43,33 @@ impl Error {
     /// Encountered an unexpected situation which should not happen in practice.
     pub const UNEXPECTED: Error = Self::new_internal(2);
 
-    /// Codes below this point represent OS Errors (i.e. positive i32 values).
-    /// Codes at or above this point, but below [`Error::CUSTOM_START`] are
-    /// reserved for use by the `rand` and `getrandom` crates.
+    /// Deprecated.
+    #[deprecated]
     pub const INTERNAL_START: u32 = 1 << 31;
 
-    /// Codes at or above this point can be used by users to define their own
-    /// custom errors.
+    /// Deprecated.
+    #[deprecated]
     pub const CUSTOM_START: u32 = (1 << 31) + (1 << 30);
+
+    /// Internal errors can be in the range of 2^16..2^17
+    const INTERNAL_START2: RawOsError = 1 << 16;
+    /// Custom errors can be in the range of 2^17..(2^17 + 2^16)
+    const CUSTOM_START2: RawOsError = 1 << 17;
 
     /// Creates a new instance of an `Error` from a particular OS error code.
     ///
     /// This method is analogous to [`std::io::Error::from_raw_os_error()`][1],
     /// except that it works in `no_std` contexts and `code` will be
-    /// replaced with `Error::UNEXPECTED` if it isn't in the range
-    /// `1..Error::INTERNAL_START`. Thus, for the result `r`,
-    /// `r == Self::UNEXPECTED || r.raw_os_error().unsigned_abs() == code`.
+    /// replaced with `Error::UNEXPECTED` in unexpected cases.
     ///
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
-    pub(super) fn from_os_error(code: u32) -> Self {
-        match NonZeroU32::new(code) {
-            Some(code) if code.get() < Self::INTERNAL_START => Self(code),
+    pub(super) fn from_os_error(code: RawOsError) -> Self {
+        match NonZeroRawOsError::new(code) {
+            #[cfg(target_os = "uefi")]
+            Some(code) if code.get() & UEFI_ERROR_FLAG != 0 => Self(code),
+            #[cfg(not(target_os = "uefi"))]
+            Some(code) if code.get() < 0 => Self(code),
             _ => Self::UNEXPECTED,
         }
     }
@@ -79,27 +89,38 @@ impl Error {
     #[inline]
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
-        if code >= Self::INTERNAL_START {
-            return None;
+        #[cfg(target_os = "uefi")]
+        {
+            if code & UEFI_ERROR_FLAG != 0 {
+                Some(code)
+            } else {
+                None
+            }
         }
-        let errno = RawOsError::try_from(code).ok()?;
-        #[cfg(target_os = "solid_asp3")]
-        let errno = -errno;
-        Some(errno)
+
+        #[cfg(not(target_os = "uefi"))]
+        {
+            if code >= 0 {
+                return None;
+            }
+            #[cfg(not(target_os = "solid_asp3"))]
+            let code = code.checked_neg()?;
+            Some(code)
+        }
     }
 
     /// Creates a new instance of an `Error` from a particular custom error code.
     pub const fn new_custom(n: u16) -> Error {
-        // SAFETY: code > 0 as CUSTOM_START > 0 and adding n won't overflow a u32.
-        let code = Error::CUSTOM_START + (n as u32);
-        Error(unsafe { NonZeroU32::new_unchecked(code) })
+        // SAFETY: code > 0 as CUSTOM_START > 0 and adding `n` won't overflow `RawOsError`.
+        let code = Error::CUSTOM_START2 + (n as RawOsError);
+        Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
     pub(crate) const fn new_internal(n: u16) -> Error {
-        // SAFETY: code > 0 as INTERNAL_START > 0 and adding n won't overflow a u32.
-        let code = Error::INTERNAL_START + (n as u32);
-        Error(unsafe { NonZeroU32::new_unchecked(code) })
+        // SAFETY: code > 0 as INTERNAL_START > 0 and adding `n` won't overflow `RawOsError`.
+        let code = Error::INTERNAL_START2 + (n as RawOsError);
+        Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 
     fn internal_desc(&self) -> Option<&'static str> {
