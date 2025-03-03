@@ -58,7 +58,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 // TODO: Move `path` to `CStr` and use `CStr::from_bytes_until_nul` (MSRV 1.69)
 // or C-string literals (MSRV 1.77) for statics
 fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
-    assert!(path.iter().any(|&b| b == 0));
+    assert!(path.contains(&0));
     loop {
         let fd = unsafe {
             libc::open(
