@@ -42,11 +42,18 @@ jobs:
       - name: Check (linux_android_with_fallback.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
-      - name: Build (linux_android.rs)
+      - name: Build (getrandom.rs)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
         run: cargo build --release
-      - name: Check (linux_android.rs)
+      - name: Check (getrandom.rs)
+        run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
+
+      - name: Build (linux_raw.rs)
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
+        run: cargo build --release
+      - name: Check (linux_raw.rs)
         run: (exit $( grep -c panic target/release/libgetrandom_wrapper.so ))
 
       - name: Build (rdrand.rs)
@@ -97,11 +104,6 @@ jobs:
         run: cross build --release --target=aarch64-unknown-linux-gnu
       - name: Check (rndr.rs)
         run: (exit $( grep -c panic target/aarch64-unknown-linux-gnu/release/libgetrandom_wrapper.so ))
-
-      - name: Build (getrandom.rs)
-        run: cross build --release --target=x86_64-unknown-freebsd
-      - name: Check (getrandom.rs)
-        run: (exit $( grep -c panic target/x86_64-unknown-freebsd/release/libgetrandom_wrapper.so ))
 
       - name: Build (netbsd.rs)
         run: cross build --release --target=x86_64-unknown-netbsd

@@ -43,7 +43,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | Target             | Target Triple      | Implementation
 | ------------------ | ------------------ | --------------
 | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
-| Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
+| Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`] on Rust 1.78+, [`RtlGenRandom`] otherwise
 | Windows 7, 8       | `*-win7‑windows‑*` | [`RtlGenRandom`]
 | macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
 | iOS, tvOS, watchOS | `*‑apple‑{ios,tvos,watchos}` | [`CCRandomGenerateBytes`]
@@ -80,6 +80,7 @@ of randomness based on their specific needs:
 | Backend name      | Target               | Target Triple            | Implementation
 | ----------------- | -------------------- | ------------------------ | --------------
 | `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+| `linux_raw`       | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses raw `asm!`-based syscalls instead of `libc`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
@@ -110,6 +111,15 @@ Note that using an opt-in backend in a library (e.g. for tests or benchmarks)
 WILL NOT have any effect on its downstream users.
 
 [`.cargo/config.toml`]: https://doc.rust-lang.org/cargo/reference/config.html
+
+### Raw Linux syscall support
+
+Currently the `linux_raw` backend supports only targets with stabilized `asm!` macro,
+i.e. `arm`, `aarch64`, `loongarch64`, `riscv32`, `riscv64`, `s390x`, `x86`, and `x86_64`.
+
+Note that the raw syscall backend may be slower than backends based on `libc::getrandom`,
+e.g. it does not implement vDSO optimizations and on `x86` it uses the infamously slow
+`int 0x80` instruction to perform syscall.
 
 ### WebAssembly support
 
