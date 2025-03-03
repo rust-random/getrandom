@@ -6,9 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.2] - UNRELEASED
 
+### Added
+- `linux_raw` opt-in backend [#572]
+- `.cargo/config.toml` example in crate-level docs [#591]
+- `getrandom_test_linux_without_fallback` configuration flag to test that file fallback
+  is not triggered in the `linux_android_with_fallback` backend [#605]
+
 ### Changed
+- Update `windows-targets` dependency to v0.53 [#593]
+- Update `wasi` dependency to v0.14 [#594]
+- Add `#[inline]` attribute to the inner functions [#596]
+- Do not use `dlsym` on MUSL targets in the `linux_android_with_fallback` backend [#602]
+- Remove `linux_android.rs` and use `getrandom.rs` instead [#603]
 - Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
 
+[#572]: https://github.com/rust-random/getrandom/pull/572
+[#591]: https://github.com/rust-random/getrandom/pull/591
+[#593]: https://github.com/rust-random/getrandom/pull/593
+[#594]: https://github.com/rust-random/getrandom/pull/594
+[#596]: https://github.com/rust-random/getrandom/pull/596
+[#602]: https://github.com/rust-random/getrandom/pull/602
+[#603]: https://github.com/rust-random/getrandom/pull/603
+[#605]: https://github.com/rust-random/getrandom/pull/605
 [#610]: https://github.com/rust-random/getrandom/pull/610
 
 ## [0.3.1] - 2025-01-28
