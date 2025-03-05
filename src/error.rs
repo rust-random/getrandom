@@ -45,18 +45,10 @@ impl Error {
     /// Encountered an unexpected situation which should not happen in practice.
     pub const UNEXPECTED: Error = Self::new_internal(2);
 
-    #[deprecated]
-    #[doc(hidden)]
-    pub const INTERNAL_START: u32 = 1 << 31;
-
-    #[deprecated]
-    #[doc(hidden)]
-    pub const CUSTOM_START: u32 = (1 << 31) + (1 << 30);
-
     /// Internal errors can be in the range of 2^16..2^17
-    const INTERNAL_START2: RawOsError = 1 << 16;
+    const INTERNAL_START: RawOsError = 1 << 16;
     /// Custom errors can be in the range of 2^17..(2^17 + 2^16)
-    const CUSTOM_START2: RawOsError = 1 << 17;
+    const CUSTOM_START: RawOsError = 1 << 17;
 
     /// Creates a new instance of an `Error` from a particular OS error code.
     ///
@@ -128,14 +120,14 @@ impl Error {
     /// Creates a new instance of an `Error` from a particular custom error code.
     pub const fn new_custom(n: u16) -> Error {
         // SAFETY: code > 0 as CUSTOM_START > 0 and adding `n` won't overflow `RawOsError`.
-        let code = Error::CUSTOM_START2 + (n as RawOsError);
+        let code = Error::CUSTOM_START + (n as RawOsError);
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
     pub(crate) const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding `n` won't overflow `RawOsError`.
-        let code = Error::INTERNAL_START2 + (n as RawOsError);
+        let code = Error::INTERNAL_START + (n as RawOsError);
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 

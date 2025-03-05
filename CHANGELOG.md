@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
 - Internal representation of the `Error` type [#614]
 
-### Deprecated
+### Removed
 - `Error::INTERNAL_START` and `Error::CUSTOM_START` associated constants [#614]
 
 [#570]: https://github.com/rust-random/getrandom/pull/570
