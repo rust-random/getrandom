@@ -92,6 +92,9 @@ impl Error {
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
 
+        // note: in this method we need to cover only backends which rely on `Error::from_os_error`,
+        // on all other backends this method always returns `None`.
+
         #[cfg(target_os = "uefi")]
         {
             if code & UEFI_ERROR_FLAG != 0 {
@@ -105,12 +108,12 @@ impl Error {
         {
             // On most targets `std` expects positive error codes while retrieving error strings:
             // - `libc`-based targets use `strerror_r` which expects positive error codes.
-            // - Hermit defers to the `hermit-abi` crate and it expects positive error codes:
+            // - Hermit relies on the `hermit-abi` crate, which expects positive error codes:
             //   https://docs.rs/hermit-abi/0.4.0/src/hermit_abi/errno.rs.html#400-532
             // - WASIp1 uses the same conventions as `libc`:
             //   https://github.com/rust-lang/rust/blob/1.85.0/library/std/src/sys/pal/wasi/os.rs#L57-L67
             //
-            // The only excpetion is Solid, `std` expects negative system error codes, see:
+            // The only exception is Solid, `std` expects negative system error codes, see:
             // https://github.com/rust-lang/rust/blob/1.85.0/library/std/src/sys/pal/solid/error.rs#L5-L31
             if code >= 0 {
                 None
