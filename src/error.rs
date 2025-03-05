@@ -15,19 +15,6 @@ cfg_if::cfg_if!(
     } else {
         type RawOsError = i32;
         type NonZeroRawOsError = core::num::NonZeroI32;
-
-        /// Constant which defines whether the target uses negative or positive codes for
-        /// system errors.
-        ///
-        /// In general, only `libc`-based targets with its infamous `errno` use positive error codes.
-        ///
-        /// This constant must cover all backends which rely on `Error::from_os_error`.
-        const NEGATIVE_OS_CODES: bool = cfg!(any(
-            target_os = "solid_asp3",
-            target_os = "hermit",
-            getrandom_backend = "linux_raw",
-            all(target_arch = "wasm32", target_os = "wasi",  target_env = "p1"),
-        ));
     }
 );
 
@@ -80,29 +67,13 @@ impl Error {
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
     pub(super) fn from_os_error(code: RawOsError) -> Self {
-        #[cfg(target_os = "uefi")]
-        if code & UEFI_ERROR_FLAG != 0 {
-            let code = NonZeroRawOsError::new(code).expect("The highest bit is set to one");
-            return Self(code);
+        match NonZeroRawOsError::new(code) {
+            #[cfg(target_os = "uefi")]
+            Some(code) if code.get() & UEFI_ERROR_FLAG != 0 => Self(code),
+            #[cfg(not(target_os = "uefi"))]
+            Some(code) if code.get() < 0 => Self(code),
+            _ => Self::UNEXPECTED,
         }
-
-        #[cfg(not(target_os = "uefi"))]
-        {
-            if NEGATIVE_OS_CODES && (code < 0) {
-                let code = NonZeroRawOsError::new(code).expect("The code is not equal to zero");
-                return Self(code);
-            }
-
-            if !NEGATIVE_OS_CODES && (code > 0) {
-                let code = code
-                    .checked_neg()
-                    .expect("Positive numbers can be always negated");
-                let code = NonZeroRawOsError::new(code).expect("The code is not equal to zero");
-                return Self(code);
-            }
-        }
-
-        Self::UNEXPECTED
     }
 
     /// Extract the raw OS error code (if this error came from the OS)
@@ -132,12 +103,21 @@ impl Error {
 
         #[cfg(not(target_os = "uefi"))]
         {
+            // On most targets `std` expects positive error codes while retrieving error strings:
+            // - `libc`-based targets use `strerror_r` which expects positive error codes.
+            // - Hermit defers to the `hermit-abi` crate and it expects positive error codes:
+            //   https://docs.rs/hermit-abi/0.4.0/src/hermit_abi/errno.rs.html#400-532
+            // - WASIp1 uses the same conventions as `libc`:
+            //   https://github.com/rust-lang/rust/blob/1.85.0/library/std/src/sys/pal/wasi/os.rs#L57-L67
+            //
+            // The only excpetion is Solid, `std` expects negative system error codes, see:
+            // https://github.com/rust-lang/rust/blob/1.85.0/library/std/src/sys/pal/solid/error.rs#L5-L31
             if code >= 0 {
                 None
-            } else if NEGATIVE_OS_CODES {
-                Some(code)
-            } else {
+            } else if cfg!(not(target_os = "solid_asp3")) {
                 code.checked_neg()
+            } else {
+                Some(code)
             }
         }
     }
