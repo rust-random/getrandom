@@ -15,6 +15,19 @@ cfg_if::cfg_if!(
     } else {
         type RawOsError = i32;
         type NonZeroRawOsError = core::num::NonZeroI32;
+
+        /// Constant which defines whether the target uses negative or positive codes for
+        /// system errors.
+        ///
+        /// In general, only `libc`-based targets with its infamous `errno` use positive error codes.
+        ///
+        /// This constant must cover all backends which rely on `Error::from_os_error`.
+        const NEGATIVE_OS_CODES: bool = cfg!(any(
+            target_os = "solid_asp3",
+            target_os = "hermit",
+            getrandom_backend = "linux_raw",
+            all(target_arch = "wasm32", target_os = "wasi",  target_env = "p1"),
+        ));
     }
 );
 
@@ -67,13 +80,29 @@ impl Error {
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
     #[allow(dead_code)]
     pub(super) fn from_os_error(code: RawOsError) -> Self {
-        match NonZeroRawOsError::new(code) {
-            #[cfg(target_os = "uefi")]
-            Some(code) if code.get() & UEFI_ERROR_FLAG != 0 => Self(code),
-            #[cfg(not(target_os = "uefi"))]
-            Some(code) if code.get() < 0 => Self(code),
-            _ => Self::UNEXPECTED,
+        #[cfg(target_os = "uefi")]
+        if code & UEFI_ERROR_FLAG != 0 {
+            let code = NonZeroRawOsError::new(code).expect("The highest bit is set to one");
+            return Self(code);
         }
+
+        #[cfg(not(target_os = "uefi"))]
+        {
+            if NEGATIVE_OS_CODES && (code < 0) {
+                let code = NonZeroRawOsError::new(code).expect("The code is not equal to zero");
+                return Self(code);
+            }
+
+            if !NEGATIVE_OS_CODES && (code > 0) {
+                let code = code
+                    .checked_neg()
+                    .expect("Positive numbers can be always negated");
+                let code = NonZeroRawOsError::new(code).expect("The code is not equal to zero");
+                return Self(code);
+            }
+        }
+
+        Self::UNEXPECTED
     }
 
     /// Extract the raw OS error code (if this error came from the OS)
@@ -91,6 +120,7 @@ impl Error {
     #[inline]
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
+
         #[cfg(target_os = "uefi")]
         {
             if code & UEFI_ERROR_FLAG != 0 {
@@ -103,11 +133,12 @@ impl Error {
         #[cfg(not(target_os = "uefi"))]
         {
             if code >= 0 {
-                return None;
+                None
+            } else if NEGATIVE_OS_CODES {
+                Some(code)
+            } else {
+                code.checked_neg()
             }
-            #[cfg(not(target_os = "solid_asp3"))]
-            let code = code.checked_neg()?;
-            Some(code)
         }
     }
 

@@ -38,10 +38,7 @@ pub(crate) fn last_os_error() -> Error {
     let errno: i32 = unsafe { get_errno() };
 
     if errno > 0 {
-        let code = errno
-            .checked_neg()
-            .expect("Positive number can be always negated");
-        Error::from_os_error(code)
+        Error::from_os_error(errno)
     } else {
         Error::ERRNO_NOT_POSITIVE
     }
