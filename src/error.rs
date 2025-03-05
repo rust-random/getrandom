@@ -24,14 +24,12 @@ cfg_if::cfg_if!(
 /// if so, which error code the OS gave the application. If such an error is
 /// encountered, please consult with your system documentation.
 ///
-/// Internally this type is a NonZeroU32, with certain values reserved for
-/// certain purposes, see [`Error::INTERNAL_START`] and [`Error::CUSTOM_START`].
-///
 /// *If this crate's `"std"` Cargo feature is enabled*, then:
 /// - [`getrandom::Error`][Error] implements
 ///   [`std::error::Error`](https://doc.rust-lang.org/std/error/trait.Error.html)
 /// - [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html) implements
 ///   [`From<getrandom::Error>`](https://doc.rust-lang.org/std/convert/trait.From.html).
+
 // note: on non-UEFI targets OS errors are represented as negative integers,
 // while on UEFI targets OS errors have the highest bit set to 1.
 #[derive(Copy, Clone, Eq, PartialEq)]
