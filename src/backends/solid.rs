@@ -14,8 +14,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if ret >= 0 {
         Ok(())
     } else {
-        // ITRON error numbers are always negative, so we negate it so that it
-        // falls in the dedicated OS error range (1..INTERNAL_START).
-        Err(Error::from_os_error(ret.unsigned_abs()))
+        Err(Error::from_os_error(ret))
     }
 }
