@@ -38,6 +38,9 @@ cfg_if! {
                 );
             }
         }
+    } else if #[cfg(all(target_os = "linux", target_env = ""))] {
+        mod linux_raw;
+        pub use linux_raw::*;
     } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
         pub use esp_idf::*;
