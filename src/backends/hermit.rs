@@ -45,7 +45,7 @@ pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             }
             code => {
                 let code = i32::try_from(code).map_err(|_| Error::UNEXPECTED)?;
-                return Err(Error::from_os_error(code));
+                return Err(Error::from_neg_error_code(code));
             }
         }
     }

@@ -14,6 +14,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if ret >= 0 {
         Ok(())
     } else {
-        Err(Error::from_os_error(ret))
+        Err(Error::from_neg_error_code(ret))
     }
 }

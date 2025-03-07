@@ -48,21 +48,25 @@ impl Error {
     /// Custom errors can be in the range of 2^17..(2^17 + 2^16)
     const CUSTOM_START: RawOsError = 1 << 17;
 
-    /// Creates a new instance of an `Error` from a particular OS error code.
-    ///
-    /// This method is analogous to [`std::io::Error::from_raw_os_error()`][1],
-    /// except that it works in `no_std` contexts and `code` will be
-    /// replaced with `Error::UNEXPECTED` in unexpected cases.
-    ///
-    /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.from_raw_os_error
+    /// Creates a new instance of an `Error` from a negative error code.
     #[allow(dead_code)]
-    pub(super) fn from_os_error(code: RawOsError) -> Self {
-        match NonZeroRawOsError::new(code) {
-            #[cfg(target_os = "uefi")]
-            Some(code) if code.get() & UEFI_ERROR_FLAG != 0 => Self(code),
-            #[cfg(not(target_os = "uefi"))]
-            Some(code) if code.get() < 0 => Self(code),
-            _ => Self::UNEXPECTED,
+    pub(super) fn from_neg_error_code(code: RawOsError) -> Self {
+        if code < 0 {
+            let code = NonZeroRawOsError::new(code).expect("`code` is negative");
+            Self(code)
+        } else {
+            Error::UNEXPECTED
+        }
+    }
+
+    /// Creates a new instance of an `Error` from an UEFI error code.
+    #[cfg(target_os = "uefi")]
+    pub(super) fn from_uefi_code(code: RawOsError) -> Self {
+        if code.get() & UEFI_ERROR_FLAG != 0 {
+            let code = NonZeroRawOsError::new(code).expect("The highest bit of `code` is set to 1");
+            Self(code)
+        } else {
+            Self::UNEXPECTED
         }
     }
 
@@ -82,7 +86,8 @@ impl Error {
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
 
-        // note: in this method we need to cover only backends which rely on `Error::from_os_error`,
+        // note: in this method we need to cover only backends which rely on
+        // `Error::{from_error_code, from_errno, from_uefi_code}` methods,
         // on all other backends this method always returns `None`.
 
         #[cfg(target_os = "uefi")]

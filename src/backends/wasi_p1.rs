@@ -21,6 +21,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let ret = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
     match ret {
         0 => Ok(()),
-        code => Err(Error::from_os_error(code)),
+        code => Err(Error::from_neg_error_code(code)),
     }
 }
