@@ -2,12 +2,16 @@ version: 2
 updates:
 - package-ecosystem: cargo
   directory: "/"
-  versioning-strategy: lockfile-only
+  versioning-strategy: increase-if-necessary
+  allow:
+    - dependency-type: "all"
   schedule:
     interval: weekly
-  open-pull-requests-limit: 10
+  groups:
+    all-deps:
+      patterns:
+        - "*"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
     interval: weekly
-  open-pull-requests-limit: 10
