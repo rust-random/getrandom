@@ -43,7 +43,7 @@ fn init() -> Result<NonNull<rng::Protocol>, Error> {
     };
 
     if ret.is_error() {
-        return Err(Error::TEMP_EFI_ERROR);
+        return Err(Error::from_uefi_code(ret.as_usize()));
     }
 
     let handles_len = buf_size / HANDLE_SIZE;
@@ -112,7 +112,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     };
 
     if ret.is_error() {
-        Err(Error::TEMP_EFI_ERROR)
+        Err(Error::from_uefi_code(ret.as_usize()))
     } else {
         Ok(())
     }
@@ -121,5 +121,4 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 impl Error {
     pub(crate) const BOOT_SERVICES_UNAVAILABLE: Error = Self::new_internal(10);
     pub(crate) const NO_RNG_HANDLE: Error = Self::new_internal(11);
-    pub(crate) const TEMP_EFI_ERROR: Error = Self::new_internal(12);
 }
