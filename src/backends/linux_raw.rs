@@ -128,11 +128,8 @@ pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             }
             Err(_) if ret == EINTR => continue,
             Err(_) => {
-                let code: u32 = ret
-                    .wrapping_neg()
-                    .try_into()
-                    .map_err(|_| Error::UNEXPECTED)?;
-                return Err(Error::from_os_error(code));
+                let code = i32::try_from(ret).map_err(|_| Error::UNEXPECTED)?;
+                return Err(Error::from_neg_error_code(code));
             }
         }
     }

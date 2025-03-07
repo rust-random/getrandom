@@ -44,10 +44,8 @@ pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
                 dest = dest.get_mut(len..).ok_or(Error::UNEXPECTED)?;
             }
             code => {
-                let err = u32::try_from(code.unsigned_abs())
-                    .ok()
-                    .map_or(Error::UNEXPECTED, Error::from_os_error);
-                return Err(err);
+                let code = i32::try_from(code).map_err(|_| Error::UNEXPECTED)?;
+                return Err(Error::from_neg_error_code(code));
             }
         }
     }

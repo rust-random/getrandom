@@ -34,14 +34,16 @@ cfg_if! {
 }
 
 pub(crate) fn last_os_error() -> Error {
-    let errno: libc::c_int = unsafe { get_errno() };
+    // We assume that on all targets which use the `util_libc` module `c_int` is equal to `i32`
+    let errno: i32 = unsafe { get_errno() };
 
-    // c_int-to-u32 conversion is lossless for nonnegative values if they are the same size.
-    const _: () = assert!(core::mem::size_of::<libc::c_int>() == core::mem::size_of::<u32>());
-
-    match u32::try_from(errno) {
-        Ok(code) if code != 0 => Error::from_os_error(code),
-        _ => Error::ERRNO_NOT_POSITIVE,
+    if errno > 0 {
+        let code = errno
+            .checked_neg()
+            .expect("Positive number can be always negated");
+        Error::from_neg_error_code(code)
+    } else {
+        Error::ERRNO_NOT_POSITIVE
     }
 }
 
