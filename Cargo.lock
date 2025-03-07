@@ -31,9 +31,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "compiler_builtins"
-version = "0.1.150"
+version = "0.1.151"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c42734e0ccf0d9f953165770593a75306f0b24dda1aa03f115c70748726dbca"
+checksum = "abc30f1766d387c35f2405e586d3e7a88230dc728ff78cd1d0bc59ae0b63154b"
 
 [[package]]
 name = "getrandom"
