@@ -1,12 +1,15 @@
 name: Update Cargo.lock
 
 on:
+  # Allow manually running the update
+  workflow_dispatch:
+  # Run every Sunday at 00:00 UTC
   schedule:
-    # Run every Sunday at 00:00 UTC
     - cron: '0 0 * * 0'
 
+# We need permissions to commit code and open a pull request
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -14,15 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
       - name: Update dependencies
         run: cargo update
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           title: "Update Cargo.lock"
           commit-message: "Update Cargo.lock"
