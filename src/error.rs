@@ -62,7 +62,7 @@ impl Error {
     /// Creates a new instance of an `Error` from an UEFI error code.
     #[cfg(target_os = "uefi")]
     pub(super) fn from_uefi_code(code: RawOsError) -> Self {
-        if code.get() & UEFI_ERROR_FLAG != 0 {
+        if code & UEFI_ERROR_FLAG != 0 {
             let code = NonZeroRawOsError::new(code).expect("The highest bit of `code` is set to 1");
             Self(code)
         } else {
