@@ -41,9 +41,7 @@ fn init() -> NonNull<c_void> {
             let dangling_ptr = NonNull::dangling().as_ptr();
             // Check that `getrandom` syscall is supported by kernel
             let res = unsafe { getrandom_fn(dangling_ptr, 0, 0) };
-            if cfg!(getrandom_test_linux_fallback) {
-                NOT_AVAILABLE
-            } else if res.is_negative() {
+            if res.is_negative() {
                 match util_libc::last_os_error().raw_os_error() {
                     Some(libc::ENOSYS) => NOT_AVAILABLE, // No kernel support
                     // The fallback on EPERM is intentionally not done on Android since this workaround
@@ -59,11 +57,6 @@ fn init() -> NonNull<c_void> {
         }
         None => NOT_AVAILABLE,
     };
-
-    #[cfg(getrandom_test_linux_without_fallback)]
-    if res_ptr == NOT_AVAILABLE {
-        panic!("Fallback is triggered with enabled `getrandom_test_linux_without_fallback`")
-    }
 
     GETRANDOM_FN.store(res_ptr.as_ptr(), Ordering::Release);
     res_ptr

@@ -53,6 +53,8 @@ jobs:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=${{ matrix.target }} --features=std
+      - run: cargo test --test linux_no_fallback -- --test-threads 1
+      - run: cargo test --test linux_force_fallback -- --test-threads 1
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
@@ -62,17 +64,9 @@ jobs:
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
         run: cargo test --target=${{ matrix.target }} --features=std
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-        run: cargo test --features=std
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
-          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
-        run: cargo test --features=std
-      - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std
 
   ios:
     name: iOS Simulator

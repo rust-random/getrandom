@@ -10,9 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `efi_rng` opt-in backend [#570]
 - `linux_raw` opt-in backend [#572]
 - `.cargo/config.toml` example in the crate-level docs [#591]
-- `getrandom_test_linux_without_fallback` configuration flag to test that file fallback
-  is not triggered in the `linux_android_with_fallback` backend [#605]
 - Cygwin support [#626]
+- Add tests for Linux fallback paths without hardcoding `cfg`s [#628]
 
 ### Changed
 - Remove `windows-targets` dependency and use [`raw-dylib`] directly [#627]
@@ -35,11 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#597]: https://github.com/rust-random/getrandom/pull/597
 [#602]: https://github.com/rust-random/getrandom/pull/602
 [#603]: https://github.com/rust-random/getrandom/pull/603
-[#605]: https://github.com/rust-random/getrandom/pull/605
 [#610]: https://github.com/rust-random/getrandom/pull/610
 [#614]: https://github.com/rust-random/getrandom/pull/614
 [#626]: https://github.com/rust-random/getrandom/pull/626
 [#627]: https://github.com/rust-random/getrandom/pull/627
+[#628]: https://github.com/rust-random/getrandom/pull/628
 [`raw-dylib`]: https://doc.rust-lang.org/reference/items/external-blocks.html?highlight=link#dylib-versus-raw-dylib
 
 ## [0.3.1] - 2025-01-28

@@ -84,11 +84,17 @@ check-cfg = [
   'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "wasm_js"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_windows_legacy)',
-  'cfg(getrandom_test_linux_fallback)',
-  'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
   'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
 ]
+
+# Linux-specific fallback tests
+[[test]]
+name = "linux_force_fallback"
+test = false
+[[test]]
+name = "linux_no_fallback"
+test = false
 
 [package.metadata.docs.rs]
 features = ["std"]
