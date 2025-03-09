@@ -47,7 +47,7 @@ r-efi = { version = "5.1", default-features = false }
 libc = { version = "0.2.154", default-features = false }
 
 # getrandom
-[target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
+[target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", target_os = "cygwin", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
 # netbsd
@@ -87,6 +87,7 @@ check-cfg = [
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
+  'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
 ]
 
 [package.metadata.docs.rs]
