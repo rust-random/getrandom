@@ -94,6 +94,9 @@ jobs:
           x86_64-wrs-vxworks,
           x86_64-unknown-dragonfly,
           x86_64-unknown-haiku,
+          # TODO: once libstd support for cygwin is added
+          # https://github.com/rust-lang/rust/pull/137621
+          # x86_64-pc-cygwin,
         ]
     steps:
       - uses: actions/checkout@v4
