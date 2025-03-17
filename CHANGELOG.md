@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.cargo/config.toml` example in the crate-level docs [#591]
 - `getrandom_test_linux_without_fallback` configuration flag to test that file fallback
   is not triggered in the `linux_android_with_fallback` backend [#605]
+- Built-in support for `*-linux-none` targets [#618]
+- Cygwin support [#626]
 
 ### Changed
-- Update `windows-targets` dependency to v0.53 [#593]
+- Remove `windows-targets` dependency and use [`raw-dylib`] directly [#627]
 - Update `wasi` dependency to v0.14 [#594]
 - Add `#[inline]` attribute to the inner functions [#596]
 - Update WASI and Emscripten links in the crate-level docs [#597]
@@ -29,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#570]: https://github.com/rust-random/getrandom/pull/570
 [#572]: https://github.com/rust-random/getrandom/pull/572
 [#591]: https://github.com/rust-random/getrandom/pull/591
-[#593]: https://github.com/rust-random/getrandom/pull/593
 [#594]: https://github.com/rust-random/getrandom/pull/594
 [#596]: https://github.com/rust-random/getrandom/pull/596
 [#597]: https://github.com/rust-random/getrandom/pull/597
@@ -38,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#605]: https://github.com/rust-random/getrandom/pull/605
 [#610]: https://github.com/rust-random/getrandom/pull/610
 [#614]: https://github.com/rust-random/getrandom/pull/614
+[#618]: https://github.com/rust-random/getrandom/pull/618
+[#626]: https://github.com/rust-random/getrandom/pull/626
+[#627]: https://github.com/rust-random/getrandom/pull/627
+[`raw-dylib`]: https://doc.rust-lang.org/reference/items/external-blocks.html?highlight=link#dylib-versus-raw-dylib
 
 ## [0.3.1] - 2025-01-28
 

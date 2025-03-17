@@ -94,6 +94,10 @@ jobs:
           x86_64-wrs-vxworks,
           x86_64-unknown-dragonfly,
           x86_64-unknown-haiku,
+          x86_64-unknown-linux-none,
+          # TODO: once libc support for cygwin is released
+          # https://github.com/rust-lang/libc/pull/4308
+          # x86_64-pc-cygwin,
         ]
     steps:
       - uses: actions/checkout@v4

@@ -40,7 +40,7 @@ fn main() {
     }
 
     // Use `RtlGenRandom` on older compiler versions since win7 targets
-    // were introduced only in Rust 1.78
+    // TODO(MSRV 1.78): Remove this check
     let target_family = env::var_os("CARGO_CFG_TARGET_FAMILY").and_then(|f| f.into_string().ok());
     if target_family.as_deref() == Some("windows") {
         /// Minor version of the Rust compiler in which win7 targets were inroduced

@@ -69,6 +69,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | PS Vita            | `*-vita-*`         | [`getentropy`][19]
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
+| Cygwin             | `*-cygwin`         | [`getrandom`][20] (based on [`RtlGenRandom`])
 
 Pull Requests that add support for new targets to `getrandom` are always welcome.
 
@@ -351,6 +352,7 @@ dual licensed as above, without any additional terms or conditions.
 [17]: https://www.gnu.org/software/libc/manual/html_mono/libc.html#index-getrandom
 [18]: https://github.com/rust3ds/shim-3ds/commit/b01d2568836dea2a65d05d662f8e5f805c64389d
 [19]: https://github.com/vitasdk/newlib/blob/2d869fe47aaf02b8e52d04e9a2b79d5b210fd016/newlib/libc/sys/vita/getentropy.c
+[20]: https://github.com/cygwin/cygwin/blob/main/winsup/cygwin/libc/getentropy.cc
 
 [`ProcessPrng`]: https://learn.microsoft.com/en-us/windows/win32/seccng/processprng
 [`RtlGenRandom`]: https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
