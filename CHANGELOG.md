@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.2] - UNRELEASED
+## [0.3.2] - 2025-03-17
 
 ### Added
 - `efi_rng` opt-in backend [#570]
@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cygwin support [#626]
 
 ### Changed
-- Remove `windows-targets` dependency and use [`raw-dylib`] directly [#627]
 - Update `wasi` dependency to v0.14 [#594]
 - Add `#[inline]` attribute to the inner functions [#596]
 - Update WASI and Emscripten links in the crate-level docs [#597]
@@ -24,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `linux_android.rs` and use `getrandom.rs` instead [#603]
 - Always use `RtlGenRandom` on Windows targets when compiling with pre-1.78 Rust [#610]
 - Internal representation of the `Error` type [#614]
+- Remove `windows-targets` dependency and use [`raw-dylib`] directly [#627]
 
 ### Removed
 - `Error::INTERNAL_START` and `Error::CUSTOM_START` associated constants [#614]
