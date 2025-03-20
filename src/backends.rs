@@ -173,8 +173,9 @@ cfg_if! {
             https://docs.rs/getrandom/#webassembly-support"
         );
     } else {
-        compile_error!("target is not supported. You may need to define \
-                        a custom backend see: \
-                        https://docs.rs/getrandom/#custom-backends");
+        compile_error!(
+            "target is not supported. You may need to define a custom backend see: \
+            https://docs.rs/getrandom/#custom-backend"
+        );
     }
 }
