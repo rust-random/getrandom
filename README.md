@@ -143,6 +143,9 @@ Crypto methods [described above][opt-in] via [`wasm-bindgen`], do
 This backend supports both web browsers (main window and Web Workers)
 and Node.js (v19 or later) environments.
 
+WARNING: It is highly recommended to enable the `wasm_js` feature only for
+binary crates and tests, i.e. avoid unconditionally enabling it in library crates.
+
 ### Custom backend
 
 If this crate does not support your target out of the box or you have to use
