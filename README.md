@@ -326,7 +326,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[GitHub Actions]: https://github.com/rust-random/getrandom/actions?query=workflow:Tests+branch:master
+[GitHub Actions]: https://github.com/rust-random/getrandom/actions?query=branch:master
 [Build Status]: https://github.com/rust-random/getrandom/actions/workflows/tests.yml/badge.svg?branch=master
 [crates.io]: https://crates.io/crates/getrandom
 [Crate]: https://img.shields.io/crates/v/getrandom
