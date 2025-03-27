@@ -13,6 +13,7 @@ permissions:
 
 env:
   CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
