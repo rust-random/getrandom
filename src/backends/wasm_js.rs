@@ -1,9 +1,4 @@
 //! Implementation for WASM based on Web and Node.js
-
-// Temporarily allow the warning until `wasm-bindgen` fixes the bug:
-// https://github.com/rustwasm/wasm-bindgen/issues/4463
-#![allow(wasm_c_abi)]
-
 use crate::Error;
 use core::mem::MaybeUninit;
 
