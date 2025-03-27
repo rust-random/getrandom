@@ -55,6 +55,9 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     Ok(())
 }
 
+// Temporarily allow the warning until `wasm-bindgen` fixes the bug:
+// https://github.com/rustwasm/wasm-bindgen/issues/4463
+#[allow(wasm_c_abi)]
 #[wasm_bindgen]
 extern "C" {
     // Crypto.getRandomValues()
