@@ -1,4 +1,9 @@
 //! Implementation for WASM based on Web and Node.js
+
+// Temporarily allow the warning until `wasm-bindgen` fixes the bug:
+// https://github.com/rustwasm/wasm-bindgen/issues/4463
+#![allow(wasm_c_abi)]
+
 use crate::Error;
 use core::mem::MaybeUninit;
 
@@ -55,9 +60,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     Ok(())
 }
 
-// Temporarily allow the warning until `wasm-bindgen` fixes the bug:
-// https://github.com/rustwasm/wasm-bindgen/issues/4463
-#[allow(wasm_c_abi)]
 #[wasm_bindgen]
 extern "C" {
     // Crypto.getRandomValues()
