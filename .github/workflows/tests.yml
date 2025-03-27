@@ -248,17 +248,19 @@ jobs:
       fail-fast: false
       matrix:
         rust:
+          # Temporarily allow warnings (i.e. remove `-Dwarnings`) until `wasm-bindgen` fixes the bug:
+          # https://github.com/rustwasm/wasm-bindgen/issues/4463
           - {
               description: Web,
               version: stable,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
+              flags: '--cfg getrandom_backend="wasm_js"',
               args: '--features=std,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              flags: '--cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
               args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
