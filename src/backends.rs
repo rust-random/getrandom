@@ -31,11 +31,11 @@ cfg_if! {
                 mod wasm_js;
                 pub use wasm_js::*;
             } else {
-                compile_error!(
+                compile_error!(concat!(
                     "The \"wasm_js\" backend requires the `wasm_js` feature \
                     for `getrandom`. For more information see: \
-                    https://docs.rs/getrandom/#webassembly-support"
-                );
+                    https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
+                ));
             }
         }
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
@@ -165,17 +165,17 @@ cfg_if! {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
-        compile_error!(
+        compile_error!(concat!(
             "The wasm32-unknown-unknown targets are not supported by default; \
             you may need to enable the \"wasm_js\" configuration flag. Note \
             that enabling the `wasm_js` feature flag alone is insufficient. \
             For more information see: \
-            https://docs.rs/getrandom/#webassembly-support"
-        );
+            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
+        ));
     } else {
-        compile_error!(
+        compile_error!(concat!(
             "target is not supported. You may need to define a custom backend see: \
-            https://docs.rs/getrandom/#custom-backend"
-        );
+            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#custom-backend"
+        ));
     }
 }
