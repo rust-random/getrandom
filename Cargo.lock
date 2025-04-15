@@ -16,9 +16,9 @@ checksum = "1628fb46dfa0b37568d12e5edd512553eccf6a22a78e8bde00bb4aed84d5bdbf"
 
 [[package]]
 name = "cc"
-version = "1.2.18"
+version = "1.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "525046617d8376e3db1deffb079e91cef90a89fc3ca5c185bbf8c9ecdd15cd5c"
+checksum = "8e3a13707ac958681c13b39b458c073d0d9bc8a22cb1b2f4c8e55eb72c13f362"
 dependencies = [
  "shlex",
 ]
@@ -31,9 +31,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "compiler_builtins"
-version = "0.1.152"
+version = "0.1.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2153cf213eb259361567720ce55f6446f17acd0ccca87fb6dc05360578228a58"
+checksum = "926ef6a360c15a911023352fd6969c51605d70495406f735beb1ca0257448e59"
 
 [[package]]
 name = "getrandom"
