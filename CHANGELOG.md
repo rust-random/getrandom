@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.16] - 2025-04-22
 ### Added
-- Backport cygwin support [#654]
+- Cygwin support (backport of [#626]) [#654]
 
+[#626]: https://github.com/rust-random/getrandom/pull/626
 [#654]: https://github.com/rust-random/getrandom/pull/654
 
 ## [0.2.15] - 2024-05-06
@@ -460,6 +461,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.2.16]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.2.16
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/rust-random/getrandom/compare/v0.2.12...v0.2.13
