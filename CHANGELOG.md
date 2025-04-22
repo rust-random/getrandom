@@ -460,6 +460,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.2.16]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.2.16
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/rust-random/getrandom/compare/v0.2.12...v0.2.13
