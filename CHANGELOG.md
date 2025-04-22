@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.16] - 2025-04-22
+### Added
+- Backport cygwin support [#654]
+
+[#654]: https://github.com/rust-random/getrandom/pull/654
+
 ## [0.2.15] - 2024-05-06
 ### Added
 - Apple visionOS support [#410]
