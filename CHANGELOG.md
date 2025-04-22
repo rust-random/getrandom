@@ -127,6 +127,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#571]: https://github.com/rust-random/getrandom/pull/571
 [#574]: https://github.com/rust-random/getrandom/pull/574
 
+## [0.2.16] - 2025-04-22
+### Added
+- Cygwin support (backport of [#626]) [#654]
+
+[#654]: https://github.com/rust-random/getrandom/pull/654
+
 ## [0.2.15] - 2024-05-06
 ### Added
 - Apple visionOS support [#410]
@@ -581,6 +587,7 @@ Publish an empty template library.
 [0.3.2]: https://github.com/rust-random/getrandom/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/rust-random/getrandom/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.3.0
+[0.2.16]: https://github.com/rust-random/getrandom/compare/v0.2.16...v0.2.16
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/rust-random/getrandom/compare/v0.2.12...v0.2.13
