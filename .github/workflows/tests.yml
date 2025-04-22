@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: master
+    branches: backports/v0.2
   pull_request:
-    branches: master
+    branches: backports/v0.2
   schedule:
     - cron: "0 12 * * 1"
 
