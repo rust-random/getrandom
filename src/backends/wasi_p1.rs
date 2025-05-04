@@ -26,6 +26,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     match ret {
         0 => Ok(()),
         code if code <= MAX_ERROR_CODE => Err(Error::from_neg_error_code(-code)),
-        _ => Error::UNEXPECTED,
+        _ => Err(Error::UNEXPECTED),
     }
 }
