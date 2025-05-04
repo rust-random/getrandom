@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doc improvements [#632] [#634] [#635]
 - Add crate version to docs.rs links used in `compile_error!`s [#639]
 
+## Fixed
+- Error handling in WASI p1 [#661]
+
 [#632]: https://github.com/rust-random/getrandom/pull/632
 [#634]: https://github.com/rust-random/getrandom/pull/634
 [#635]: https://github.com/rust-random/getrandom/pull/635
 [#639]: https://github.com/rust-random/getrandom/pull/639
+[#661]: https://github.com/rust-random/getrandom/pull/661
 
 ## [0.3.2] - 2025-03-17
 
