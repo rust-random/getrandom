@@ -12,7 +12,7 @@ extern "C" {
 }
 
 /// WASI p1 uses `u16` for error codes in its witx definitions:
-/// https://github.com/WebAssembly/WASI/blob/38454e9e22013cd00ea04916f556beb9e6d96cec/legacy/preview1/witx/typenames.witx#L39
+/// https://github.com/WebAssembly/WASI/blob/38454e9e/legacy/preview1/witx/typenames.witx#L34-L39
 const MAX_ERROR_CODE: i32 = u16::MAX as i32;
 
 #[inline]
@@ -25,6 +25,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let ret = unsafe { random_get(dest.as_mut_ptr() as i32, dest.len() as i32) };
     match ret {
         0 => Ok(()),
+        // WASI functions should return positive error codes which are smaller than `MAX_ERROR_CODE`
         code if code <= MAX_ERROR_CODE => Err(Error::from_neg_error_code(-code)),
         _ => Err(Error::UNEXPECTED),
     }
