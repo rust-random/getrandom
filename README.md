@@ -87,6 +87,7 @@ of randomness based on their specific needs:
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
 | `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nigthly compiler)
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
+| `no_op`           | All targets          | `*`                      | A backend that provides no randomness.
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
 The flag can be set either by specifying the `rustflags` field in [`.cargo/config.toml`]:
