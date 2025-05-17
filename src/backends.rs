@@ -38,6 +38,9 @@ cfg_if! {
                 ));
             }
         }
+    } else if #[cfg(getrandom_backend = "no_op")] {
+        mod no_op;
+        pub use no_op::*;
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
         pub use linux_raw::*;

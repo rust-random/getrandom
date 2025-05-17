@@ -273,3 +273,14 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
         run: cargo build --target riscv32i-unknown-none-elf
+
+  no-op:
+    name: No-op
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="no_op"
+        run: cargo build --target wasm32-unknown-unknown
