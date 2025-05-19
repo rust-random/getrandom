@@ -163,7 +163,10 @@ jobs:
           # TODO: add Android tests back when the cross cuts a new release.
           # See: https://github.com/cross-rs/cross/issues/1222
           # aarch64-linux-android,
-          powerpc-unknown-linux-gnu,
+          # This target is currently broken:
+          # https://github.com/rust-random/getrandom/actions/runs/15109500597/job/42465556156
+          #powerpc-unknown-linux-gnu,
+          riscv64gc-unknown-linux-gnu,
           # This target is currently broken:
           # https://github.com/rust-random/getrandom/actions/runs/12949235459/job/36119546920
           #wasm32-unknown-emscripten,
@@ -230,19 +233,17 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          # Temporarily allow warnings (i.e. remove `-Dwarnings`) until `wasm-bindgen` fixes the bug:
-          # https://github.com/rustwasm/wasm-bindgen/issues/4463
           - {
               description: Web,
               version: stable,
-              flags: '--cfg getrandom_backend="wasm_js"',
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
               args: '--features=std,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
-              flags: '--cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
               args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
@@ -262,31 +263,37 @@ jobs:
       - name: Test (Node)
         env:
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         run: wasm-pack test --node -- ${{ matrix.rust.args }}
       - name: Test (Firefox)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (Chrome)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
       - name: Test (dedicated worker)
         env:
           WASM_BINDGEN_USE_DEDICATED_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (shared worker)
         env:
           WASM_BINDGEN_USE_SHARED_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
       - name: Test (service worker)
         env:
           WASM_BINDGEN_USE_SERVICE_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
+          RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         # Firefox doesn't support module service workers and therefor can't import scripts
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
