@@ -3,6 +3,8 @@ extern crate std;
 
 use core::fmt;
 
+use crate::Backend;
+
 // This private alias mirrors `std::io::RawOsError`:
 // https://doc.rust-lang.org/std/io/type.RawOsError.html)
 cfg_if::cfg_if!(
@@ -50,8 +52,7 @@ impl Error {
 
     /// Creates a new instance of an `Error` from a negative error code.
     #[cfg(not(target_os = "uefi"))]
-    #[allow(dead_code)]
-    pub(super) fn from_neg_error_code(code: RawOsError) -> Self {
+    pub fn from_neg_error_code(code: RawOsError) -> Self {
         if code < 0 {
             let code = NonZeroRawOsError::new(code).expect("`code` is negative");
             Self(code)
@@ -62,8 +63,7 @@ impl Error {
 
     /// Creates a new instance of an `Error` from an UEFI error code.
     #[cfg(target_os = "uefi")]
-    #[allow(dead_code)]
-    pub(super) fn from_uefi_code(code: RawOsError) -> Self {
+    pub fn from_uefi_code(code: RawOsError) -> Self {
         if code & UEFI_ERROR_FLAG != 0 {
             let code = NonZeroRawOsError::new(code).expect("The highest bit of `code` is set to 1");
             Self(code)
@@ -129,6 +129,16 @@ impl Error {
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 
+    /// Creates a new instance of an `Error` from a particular custom error code.
+    const fn as_custom(self) -> Option<u16> {
+        let value = self.0.get().checked_sub(Error::CUSTOM_START);
+
+        match value {
+            Some(value) if 0 <= value && value <= u16::MAX as RawOsError => Some(value as u16),
+            _ => None,
+        }
+    }
+
     /// Creates a new instance of an `Error` from a particular internal error code.
     pub(crate) const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding `n` won't overflow `RawOsError`.
@@ -141,38 +151,14 @@ impl Error {
             Error::UNSUPPORTED => "getrandom: this target is not supported",
             Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
             Error::UNEXPECTED => "unexpected situation",
-            #[cfg(any(
-                target_os = "ios",
-                target_os = "visionos",
-                target_os = "watchos",
-                target_os = "tvos",
-            ))]
-            Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
-            #[cfg(all(windows, target_vendor = "win7"))]
-            Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
-            #[cfg(all(feature = "wasm_js", getrandom_backend = "wasm_js"))]
-            Error::WEB_CRYPTO => "Web Crypto API is unavailable",
-            #[cfg(target_os = "vxworks")]
-            Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
-
-            #[cfg(any(
-                getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
-            ))]
-            Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
-            #[cfg(any(
-                getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
-            ))]
-            Error::NO_RDRAND => "RDRAND: instruction not supported",
-
-            #[cfg(getrandom_backend = "rndr")]
-            Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
-            #[cfg(getrandom_backend = "rndr")]
-            Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
             _ => return None,
         };
         Some(desc)
+    }
+
+    fn custom_desc(&self) -> Option<&'static str> {
+        let n = self.as_custom()?;
+        crate::ExternBackend::describe_custom_error(n)
     }
 }
 
@@ -185,6 +171,9 @@ impl fmt::Debug for Error {
             dbg.field("description", &std::io::Error::from_raw_os_error(errno));
         } else if let Some(desc) = self.internal_desc() {
             dbg.field("internal_code", &self.0.get());
+            dbg.field("description", &desc);
+        } else if let Some(desc) = self.custom_desc() {
+            dbg.field("custom_code", &self.0.get());
             dbg.field("description", &desc);
         } else {
             dbg.field("unknown_code", &self.0.get());
@@ -204,6 +193,8 @@ impl fmt::Display for Error {
                 }
             }
         } else if let Some(desc) = self.internal_desc() {
+            f.write_str(desc)
+        } else if let Some(desc) = self.custom_desc() {
             f.write_str(desc)
         } else {
             write!(f, "Unknown Error: {}", self.0.get())

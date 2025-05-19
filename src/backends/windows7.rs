@@ -12,7 +12,41 @@
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
-pub use crate::util::{inner_u32, inner_u64};
+use crate::Backend;
+
+pub struct WindowsLegacyBackend;
+
+unsafe impl Backend for WindowsLegacyBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
+    }
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        // Prevent overflow of u32
+        let chunk_size =
+            usize::try_from(i32::MAX).expect("Windows does not support 16-bit targets");
+        for chunk in dest.chunks_mut(chunk_size) {
+            let chunk_len = u32::try_from(chunk.len()).expect("chunk size is bounded by i32::MAX");
+            let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk_len) };
+            if ret != TRUE {
+                return Err(Error::new_custom(WINDOWS_RTL_GEN_RANDOM));
+            }
+        }
+        Ok(())
+    }
+
+    #[inline]
+    fn describe_custom_error(n: u16) -> Option<&'static str> {
+        if n == WINDOWS_RTL_GEN_RANDOM {
+            Some("RtlGenRandom: Windows system function failure")
+        } else {
+            None
+        }
+    }
+}
 
 // Binding to the Windows.Win32.Security.Authentication.Identity.RtlGenRandom
 // API. Don't use windows-targets as it doesn't support Windows 7 targets.
@@ -25,21 +59,5 @@ extern "system" {
 type BOOLEAN = u8;
 const TRUE: BOOLEAN = 1u8;
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // Prevent overflow of u32
-    let chunk_size = usize::try_from(i32::MAX).expect("Windows does not support 16-bit targets");
-    for chunk in dest.chunks_mut(chunk_size) {
-        let chunk_len = u32::try_from(chunk.len()).expect("chunk size is bounded by i32::MAX");
-        let ret = unsafe { RtlGenRandom(chunk.as_mut_ptr().cast::<c_void>(), chunk_len) };
-        if ret != TRUE {
-            return Err(Error::WINDOWS_RTL_GEN_RANDOM);
-        }
-    }
-    Ok(())
-}
-
-impl Error {
-    /// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
-    pub(crate) const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(10);
-}
+/// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.
+const WINDOWS_RTL_GEN_RANDOM: u16 = 10;

@@ -1,13 +1,11 @@
 //! Implementations that just need to read from a file
+use crate::Backend;
 use crate::Error;
 use core::{
     ffi::c_void,
     mem::MaybeUninit,
     sync::atomic::{AtomicI32, Ordering},
 };
-
-#[cfg(not(any(target_os = "android", target_os = "linux")))]
-pub use crate::util::{inner_u32, inner_u64};
 
 #[path = "../util_libc.rs"]
 pub(super) mod util_libc;
@@ -40,15 +38,25 @@ const FD_ONGOING_INIT: libc::c_int = -2;
 // `Ordering::Acquire` to synchronize with it.
 static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let mut fd = FD.load(Ordering::Acquire);
-    if fd == FD_UNINIT || fd == FD_ONGOING_INIT {
-        fd = open_or_wait()?;
+pub struct UseFileBackend;
+
+unsafe impl Backend for UseFileBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
     }
-    util_libc::sys_fill_exact(dest, |buf| unsafe {
-        libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
-    })
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        let mut fd = FD.load(Ordering::Acquire);
+        if fd == FD_UNINIT || fd == FD_ONGOING_INIT {
+            fd = open_or_wait()?;
+        }
+        util_libc::sys_fill_exact(dest, |buf| unsafe {
+            libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
+        })
+    }
 }
 
 /// Open a file in read-only mode.

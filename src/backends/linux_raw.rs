@@ -1,7 +1,6 @@
 //! Implementation for Linux / Android using `asm!`-based syscalls.
+use crate::Backend;
 use crate::{Error, MaybeUninit};
-
-pub use crate::util::{inner_u32, inner_u64};
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 compile_error!("`linux_raw` backend can be enabled only for Linux/Android targets!");
@@ -111,25 +110,35 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
     r0
 }
 
-#[inline]
-pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // Value of this error code is stable across all target arches.
-    const EINTR: isize = -4;
+pub struct LinuxRawBackend;
 
-    loop {
-        let ret = unsafe { getrandom_syscall(dest.as_mut_ptr().cast(), dest.len(), 0) };
-        match usize::try_from(ret) {
-            Ok(0) => return Err(Error::UNEXPECTED),
-            Ok(len) => {
-                dest = dest.get_mut(len..).ok_or(Error::UNEXPECTED)?;
-                if dest.is_empty() {
-                    return Ok(());
+unsafe impl Backend for LinuxRawBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
+    }
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        // Value of this error code is stable across all target arches.
+        const EINTR: isize = -4;
+
+        loop {
+            let ret = unsafe { getrandom_syscall(dest.as_mut_ptr().cast(), dest.len(), 0) };
+            match usize::try_from(ret) {
+                Ok(0) => return Err(Error::UNEXPECTED),
+                Ok(len) => {
+                    dest = dest.get_mut(len..).ok_or(Error::UNEXPECTED)?;
+                    if dest.is_empty() {
+                        return Ok(());
+                    }
                 }
-            }
-            Err(_) if ret == EINTR => continue,
-            Err(_) => {
-                let code = i32::try_from(ret).map_err(|_| Error::UNEXPECTED)?;
-                return Err(Error::from_neg_error_code(code));
+                Err(_) if ret == EINTR => continue,
+                Err(_) => {
+                    let code = i32::try_from(ret).map_err(|_| Error::UNEXPECTED)?;
+                    return Err(Error::from_neg_error_code(code));
+                }
             }
         }
     }

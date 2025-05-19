@@ -3,6 +3,7 @@
 //! `getrandom(2)` was introduced in NetBSD 10. To support older versions we
 //! implement our own weak linkage to it, and provide a fallback based on the
 //! KERN_ARND sysctl.
+use crate::Backend;
 use crate::Error;
 use core::{
     cmp,
@@ -11,8 +12,6 @@ use core::{
     ptr,
     sync::atomic::{AtomicPtr, Ordering},
 };
-
-pub use crate::util::{inner_u32, inner_u64};
 
 #[path = "../util_libc.rs"]
 mod util_libc;
@@ -59,20 +58,30 @@ fn init() -> *mut c_void {
     ptr
 }
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // Despite being only a single atomic variable, we still cannot always use
-    // Ordering::Relaxed, as we need to make sure a successful call to `init`
-    // is "ordered before" any data read through the returned pointer (which
-    // occurs when the function is called). Our implementation mirrors that of
-    // the one in libstd, meaning that the use of non-Relaxed operations is
-    // probably unnecessary.
-    let mut fptr = GETRANDOM.load(Ordering::Acquire);
-    if fptr.is_null() {
-        fptr = init();
+pub struct NetBsdBackend;
+
+unsafe impl Backend for NetBsdBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
     }
-    let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
-    util_libc::sys_fill_exact(dest, |buf| unsafe {
-        fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
-    })
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        // Despite being only a single atomic variable, we still cannot always use
+        // Ordering::Relaxed, as we need to make sure a successful call to `init`
+        // is "ordered before" any data read through the returned pointer (which
+        // occurs when the function is called). Our implementation mirrors that of
+        // the one in libstd, meaning that the use of non-Relaxed operations is
+        // probably unnecessary.
+        let mut fptr = GETRANDOM.load(Ordering::Acquire);
+        if fptr.is_null() {
+            fptr = init();
+        }
+        let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
+        util_libc::sys_fill_exact(dest, |buf| unsafe {
+            fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
+        })
+    }
 }

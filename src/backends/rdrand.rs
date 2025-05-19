@@ -1,4 +1,5 @@
 //! RDRAND backend for x86(-64) targets
+use crate::Backend;
 use crate::{util::slice_as_uninit, Error};
 use core::mem::{size_of, MaybeUninit};
 
@@ -147,36 +148,53 @@ unsafe fn rdrand_u64() -> Option<u64> {
     Some((u64::from(a) << 32) | u64::from(b))
 }
 
-#[inline]
-pub fn inner_u32() -> Result<u32, Error> {
-    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
-        return Err(Error::NO_RDRAND);
+pub struct RdrandBackend;
+
+unsafe impl Backend for RdrandBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
     }
-    // SAFETY: After this point, we know rdrand is supported.
-    unsafe { rdrand_u32() }.ok_or(Error::FAILED_RDRAND)
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+            return Err(Error::new_custom(NO_RDRAND));
+        }
+        // SAFETY: After this point, we know rdrand is supported.
+        unsafe { rdrand_exact(dest) }.ok_or(Error::new_custom(FAILED_RDRAND))
+    }
+
+    #[inline]
+    fn u32() -> Result<u32, Error> {
+        if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+            return Err(Error::new_custom(NO_RDRAND));
+        }
+        // SAFETY: After this point, we know rdrand is supported.
+        unsafe { rdrand_u32() }.ok_or(Error::new_custom(FAILED_RDRAND))
+    }
+
+    #[inline]
+    fn u64() -> Result<u64, Error> {
+        if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
+            return Err(Error::new_custom(NO_RDRAND));
+        }
+        // SAFETY: After this point, we know rdrand is supported.
+        unsafe { rdrand_u64() }.ok_or(Error::new_custom(FAILED_RDRAND))
+    }
+
+    #[inline]
+    fn describe_custom_error(n: u16) -> Option<&'static str> {
+        match n {
+            FAILED_RDRAND => Some("RDRAND: failed multiple times: CPU issue likely"),
+            NO_RDRAND => Some("RDRAND: instruction not supported"),
+            _ => None,
+        }
+    }
 }
 
-#[inline]
-pub fn inner_u64() -> Result<u64, Error> {
-    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
-        return Err(Error::NO_RDRAND);
-    }
-    // SAFETY: After this point, we know rdrand is supported.
-    unsafe { rdrand_u64() }.ok_or(Error::FAILED_RDRAND)
-}
-
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    if !RDRAND_GOOD.unsync_init(is_rdrand_good) {
-        return Err(Error::NO_RDRAND);
-    }
-    // SAFETY: After this point, we know rdrand is supported.
-    unsafe { rdrand_exact(dest) }.ok_or(Error::FAILED_RDRAND)
-}
-
-impl Error {
-    /// RDRAND instruction failed due to a hardware issue.
-    pub(crate) const FAILED_RDRAND: Error = Self::new_internal(10);
-    /// RDRAND instruction unsupported on this target.
-    pub(crate) const NO_RDRAND: Error = Self::new_internal(11);
-}
+/// RDRAND instruction failed due to a hardware issue.
+const FAILED_RDRAND: u16 = 10;
+/// RDRAND instruction unsupported on this target.
+const NO_RDRAND: u16 = 11;

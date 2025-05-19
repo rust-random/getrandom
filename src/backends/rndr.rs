@@ -2,6 +2,7 @@
 //!
 //! Arm Architecture Reference Manual for A-profile architecture:
 //! ARM DDI 0487K.a, ID032224, D23.2.147 RNDR, Random Number
+use crate::Backend;
 use crate::{
     util::{slice_as_uninit, truncate},
     Error,
@@ -108,38 +109,55 @@ fn is_rndr_available() -> bool {
     }
 }
 
-#[inline]
-pub fn inner_u32() -> Result<u32, Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
+pub struct RndrBackend;
+
+unsafe impl Backend for RndrBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
     }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    let res = unsafe { rndr() };
-    res.map(truncate).ok_or(Error::RNDR_FAILURE)
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        if !is_rndr_available() {
+            return Err(Error::new_custom(RNDR_NOT_AVAILABLE));
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        unsafe { rndr_fill(dest).ok_or(Error::new_custom(RNDR_FAILURE)) }
+    }
+
+    #[inline]
+    fn u32() -> Result<u32, Error> {
+        if !is_rndr_available() {
+            return Err(Error::new_custom(RNDR_NOT_AVAILABLE));
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.map(truncate).ok_or(Error::new_custom(RNDR_FAILURE))
+    }
+
+    #[inline]
+    fn u64() -> Result<u64, Error> {
+        if !is_rndr_available() {
+            return Err(Error::new_custom(RNDR_NOT_AVAILABLE));
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.ok_or(Error::new_custom(RNDR_FAILURE))
+    }
+
+    #[inline]
+    fn describe_custom_error(n: u16) -> Option<&'static str> {
+        match n {
+            RNDR_FAILURE => Some("RNDR: Could not generate a random number"),
+            RNDR_NOT_AVAILABLE => Some("RNDR: Register not supported"),
+            _ => None,
+        }
+    }
 }
 
-#[inline]
-pub fn inner_u64() -> Result<u64, Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
-    }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    let res = unsafe { rndr() };
-    res.ok_or(Error::RNDR_FAILURE)
-}
-
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
-    }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
-}
-
-impl Error {
-    /// RNDR register read failed due to a hardware issue.
-    pub(crate) const RNDR_FAILURE: Error = Self::new_internal(10);
-    /// RNDR register is not supported on this target.
-    pub(crate) const RNDR_NOT_AVAILABLE: Error = Self::new_internal(11);
-}
+/// RNDR register read failed due to a hardware issue.
+const RNDR_FAILURE: u16 = 10;
+/// RNDR register is not supported on this target.
+const RNDR_NOT_AVAILABLE: u16 = 11;

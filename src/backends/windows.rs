@@ -20,10 +20,25 @@
 //!     - Thin wrapper around ProcessPrng
 //!
 //! For more information see the Windows RNG Whitepaper: https://aka.ms/win10rng
-use crate::Error;
-use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
+use crate::Backend;
+use crate::Error;
+
+pub struct WindowsBackend;
+
+unsafe impl Backend for WindowsBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let result = unsafe { ProcessPrng(dest, len) };
+        // Since Windows 10, calls to the user-mode RNG are guaranteed to never
+        // fail during runtime (rare windows W); `ProcessPrng` will only ever
+        // return 1 (which is how windows represents TRUE).
+        // See the bottom of page 6 of the aforementioned Windows RNG
+        // whitepaper for more information.
+        debug_assert!(result == TRUE);
+        Ok(())
+    }
+}
 
 // Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
 // bcryptprimitives.dll lacks an import library, we use "raw-dylib". This
@@ -47,15 +62,3 @@ extern "system" {
 #[allow(clippy::upper_case_acronyms)]
 type BOOL = core::ffi::c_int; // MSRV 1.64, similarly OK for this backend.
 const TRUE: BOOL = 1;
-
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let result = unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
-    // Since Windows 10, calls to the user-mode RNG are guaranteed to never
-    // fail during runtime (rare windows W); `ProcessPrng` will only ever
-    // return 1 (which is how windows represents TRUE).
-    // See the bottom of page 6 of the aforementioned Windows RNG
-    // whitepaper for more information.
-    debug_assert!(result == TRUE);
-    Ok(())
-}

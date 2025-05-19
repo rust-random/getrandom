@@ -1,4 +1,5 @@
 //! Implementation for Hermit
+use crate::Backend;
 use crate::Error;
 use core::mem::MaybeUninit;
 
@@ -12,42 +13,52 @@ extern "C" {
     fn sys_secure_rand64(value: *mut u64) -> i32;
 }
 
-#[inline]
-pub fn inner_u32() -> Result<u32, Error> {
-    let mut res = MaybeUninit::uninit();
-    let ret = unsafe { sys_secure_rand32(res.as_mut_ptr()) };
-    match ret {
-        0 => Ok(unsafe { res.assume_init() }),
-        -1 => Err(Error::UNSUPPORTED),
-        _ => Err(Error::UNEXPECTED),
-    }
-}
+pub struct HermitBackend;
 
-#[inline]
-pub fn inner_u64() -> Result<u64, Error> {
-    let mut res = MaybeUninit::uninit();
-    let ret = unsafe { sys_secure_rand64(res.as_mut_ptr()) };
-    match ret {
-        0 => Ok(unsafe { res.assume_init() }),
-        -1 => Err(Error::UNSUPPORTED),
-        _ => Err(Error::UNEXPECTED),
+unsafe impl Backend for HermitBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
     }
-}
 
-#[inline]
-pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    while !dest.is_empty() {
-        let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };
-        match res {
-            res if res > 0 => {
-                let len = usize::try_from(res).map_err(|_| Error::UNEXPECTED)?;
-                dest = dest.get_mut(len..).ok_or(Error::UNEXPECTED)?;
-            }
-            code => {
-                let code = i32::try_from(code).map_err(|_| Error::UNEXPECTED)?;
-                return Err(Error::from_neg_error_code(code));
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        while !dest.is_empty() {
+            let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };
+            match res {
+                res if res > 0 => {
+                    let len = usize::try_from(res).map_err(|_| Error::UNEXPECTED)?;
+                    dest = dest.get_mut(len..).ok_or(Error::UNEXPECTED)?;
+                }
+                code => {
+                    let code = i32::try_from(code).map_err(|_| Error::UNEXPECTED)?;
+                    return Err(Error::from_neg_error_code(code));
+                }
             }
         }
+        Ok(())
     }
-    Ok(())
+
+    #[inline]
+    fn u32() -> Result<u32, Error> {
+        let mut res = MaybeUninit::uninit();
+        let ret = unsafe { sys_secure_rand32(res.as_mut_ptr()) };
+        match ret {
+            0 => Ok(unsafe { res.assume_init() }),
+            -1 => Err(Error::UNSUPPORTED),
+            _ => Err(Error::UNEXPECTED),
+        }
+    }
+
+    #[inline]
+    fn u64() -> Result<u64, Error> {
+        let mut res = MaybeUninit::uninit();
+        let ret = unsafe { sys_secure_rand64(res.as_mut_ptr()) };
+        match ret {
+            0 => Ok(unsafe { res.assume_init() }),
+            -1 => Err(Error::UNSUPPORTED),
+            _ => Err(Error::UNEXPECTED),
+        }
+    }
 }

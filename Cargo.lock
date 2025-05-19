@@ -37,7 +37,7 @@ checksum = "448068da8f2326b2a0472353cb401dd8795a89c007ef30fff90f50706e862e72"
 
 [[package]]
 name = "getrandom"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "cfg-if",
  "compiler_builtins",

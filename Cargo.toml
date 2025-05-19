@@ -1,6 +1,6 @@
 [package]
 name = "getrandom"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.63" # Sync tests.yml and README.md.
 authors = ["The Rand Project Developers"]
@@ -18,12 +18,14 @@ std = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 
+# Provides a default implementations of the backend for many supported targets.
+default-backends = ["dep:libc", "dep:r-efi", "dep:wasi"]
 # Optional backend: wasm_js
 # This flag enables the backend but does not select it. To use the backend, use
 # this flag *and* set getrandom_backend=wasm_js (see README).
 # WARNING: It is highly recommended to enable this feature only for binary crates and tests,
 # i.e. avoid unconditionally enabling it in library crates.
-wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
+wasm_js = ["dep:wasm-bindgen", "dep:js-sys", "default-backends"]
 
 [dependencies]
 cfg-if = "1"
@@ -34,43 +36,43 @@ core = { version = "1.0", optional = true, package = "rustc-std-workspace-core" 
 
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # efi_rng
 [target.'cfg(all(target_os = "uefi", getrandom_backend = "efi_rng"))'.dependencies]
-r-efi = { version = "5.1", default-features = false }
+r-efi = { version = "5.1", default-features = false, optional = true }
 
 # getentropy
 [target.'cfg(any(target_os = "macos", target_os = "openbsd", target_os = "vita", target_os = "emscripten"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # getrandom
 [target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", target_os = "cygwin", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # netbsd
 [target.'cfg(target_os = "netbsd")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # solaris
 [target.'cfg(target_os = "solaris")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # use_file
 [target.'cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # vxworks
 [target.'cfg(target_os = "vxworks")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.154", default-features = false, optional = true }
 
 # wasi (0.2 only)
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies]
-wasi = { version = "0.14", default-features = false }
+wasi = { version = "0.14", default-features = false, optional = true }
 
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]

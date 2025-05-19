@@ -2,8 +2,11 @@
 use crate::Error;
 use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub struct UnsupportedBackend;
 
-pub fn fill_inner(_dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    Err(Error::UNSUPPORTED)
+unsafe impl Backend for UnsupportedBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        Err(Error::UNSUPPORTED)
+    }
 }

@@ -1,4 +1,5 @@
 //! Implementation for VxWorks
+use crate::Backend;
 use crate::Error;
 use core::{
     cmp::Ordering::{Equal, Greater, Less},
@@ -9,7 +10,47 @@ use core::{
 #[path = "../util_libc.rs"]
 mod util_libc;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub struct VxWorksBackend;
+
+unsafe impl Backend for VxWorksBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
+    }
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        while !RNG_INIT.load(Relaxed) {
+            init()?;
+        }
+
+        // Prevent overflow of i32
+        let chunk_size =
+            usize::try_from(i32::MAX).expect("VxWorks does not support 16-bit targets");
+        for chunk in dest.chunks_mut(chunk_size) {
+            let chunk_len: libc::c_int = chunk
+                .len()
+                .try_into()
+                .expect("chunk size is bounded by i32::MAX");
+            let p: *mut libc::c_uchar = chunk.as_mut_ptr().cast();
+            let ret = unsafe { libc::randABytes(p, chunk_len) };
+            if ret != 0 {
+                return Err(util_libc::last_os_error());
+            }
+        }
+        Ok(())
+    }
+
+    #[inline]
+    fn describe_custom_error(n: u16) -> Option<&'static str> {
+        if n == VXWORKS_RAND_SECURE {
+            Some("Web Crypto API is unavailable")
+        } else {
+            None
+        }
+    }
+}
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
 
@@ -21,34 +62,10 @@ fn init() -> Result<(), Error> {
         Equal => unsafe {
             libc::usleep(10);
         },
-        Less => return Err(Error::VXWORKS_RAND_SECURE),
+        Less => return Err(Error::new_custom(VXWORKS_RAND_SECURE)),
     }
     Ok(())
 }
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    while !RNG_INIT.load(Relaxed) {
-        init()?;
-    }
-
-    // Prevent overflow of i32
-    let chunk_size = usize::try_from(i32::MAX).expect("VxWorks does not support 16-bit targets");
-    for chunk in dest.chunks_mut(chunk_size) {
-        let chunk_len: libc::c_int = chunk
-            .len()
-            .try_into()
-            .expect("chunk size is bounded by i32::MAX");
-        let p: *mut libc::c_uchar = chunk.as_mut_ptr().cast();
-        let ret = unsafe { libc::randABytes(p, chunk_len) };
-        if ret != 0 {
-            return Err(util_libc::last_os_error());
-        }
-    }
-    Ok(())
-}
-
-impl Error {
-    /// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
-    pub(crate) const VXWORKS_RAND_SECURE: Error = Self::new_internal(10);
-}
+/// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).
+const VXWORKS_RAND_SECURE: u16 = 10;

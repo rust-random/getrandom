@@ -9,44 +9,34 @@
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
         mod custom;
-        pub use custom::*;
+        crate::set_backend!(custom::LegacyCustomBackend);
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod getrandom;
-        pub use getrandom::*;
+        crate::set_backend!(getrandom::GetrandomBackend);
     } else if #[cfg(getrandom_backend = "linux_raw")] {
         mod linux_raw;
-        pub use linux_raw::*;
+        crate::set_backend!(linux_raw::LinuxRawBackend);
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
-        pub use rdrand::*;
+        crate::set_backend!(rdrand::RdrandBackend);
     } else if #[cfg(getrandom_backend = "rndr")] {
         mod rndr;
-        pub use rndr::*;
+        crate::set_backend!(rndr::RndrBackend);
     } else if #[cfg(getrandom_backend = "efi_rng")] {
         mod efi_rng;
-        pub use efi_rng::*;
-    } else if #[cfg(all(getrandom_backend = "wasm_js"))] {
-        cfg_if! {
-            if #[cfg(feature = "wasm_js")] {
-                mod wasm_js;
-                pub use wasm_js::*;
-            } else {
-                compile_error!(concat!(
-                    "The \"wasm_js\" backend requires the `wasm_js` feature \
-                    for `getrandom`. For more information see: \
-                    https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
-                ));
-            }
-        }
+        crate::set_backend!(efi_rng::UefiBackend);
+    } else if #[cfg(all(getrandom_backend = "wasm_js", feature = "wasm_js"))] {
+        mod wasm_js;
+        crate::set_backend!(wasm_js::WasmJsBackend);
     } else if #[cfg(getrandom_backend = "unsupported")] {
         mod unsupported;
-        pub use unsupported::*;
+        crate::set_backend!(unsupported::UnsupportedBackend);
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
-        pub use linux_raw::*;
+        crate::set_backend!(linux_raw::LinuxRawBackend);
     } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
-        pub use esp_idf::*;
+        crate::set_backend!(esp_idf::EspIdfBackend);
     } else if #[cfg(any(
         target_os = "haiku",
         target_os = "redox",
@@ -54,7 +44,7 @@ cfg_if! {
         target_os = "aix",
     ))] {
         mod use_file;
-        pub use use_file::*;
+        crate::set_backend!(use_file::UseFileBackend);
     } else if #[cfg(any(
         target_os = "macos",
         target_os = "openbsd",
@@ -62,7 +52,7 @@ cfg_if! {
         target_os = "emscripten",
     ))] {
         mod getentropy;
-        pub use getentropy::*;
+        crate::set_backend!(getentropy::GetentropyBackend);
     } else if #[cfg(any(
         // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
         // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
@@ -102,7 +92,7 @@ cfg_if! {
     ))] {
         mod use_file;
         mod linux_android_with_fallback;
-        pub use linux_android_with_fallback::*;
+        crate::set_backend!(linux_android_with_fallback::LinuxBackend);
     } else if #[cfg(any(
         target_os = "android",
         target_os = "linux",
@@ -116,16 +106,16 @@ cfg_if! {
         all(target_os = "horizon", target_arch = "arm"),
     ))] {
         mod getrandom;
-        pub use getrandom::*;
+        crate::set_backend!(getrandom::GetrandomBackend);
     } else if #[cfg(target_os = "solaris")] {
         mod solaris;
-        pub use solaris::*;
+        crate::set_backend!(solaris::SolarisBackend);
     } else if #[cfg(target_os = "netbsd")] {
         mod netbsd;
-        pub use netbsd::*;
+        crate::set_backend!(netbsd::NetBsdBackend);
     } else if #[cfg(target_os = "fuchsia")] {
         mod fuchsia;
-        pub use fuchsia::*;
+        crate::set_backend!(fuchsia::FuchsiaBackend);
     } else if #[cfg(any(
         target_os = "ios",
         target_os = "visionos",
@@ -133,48 +123,31 @@ cfg_if! {
         target_os = "tvos",
     ))] {
         mod apple_other;
-        pub use apple_other::*;
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
-        cfg_if! {
-            if #[cfg(target_env = "p1")] {
-                mod wasi_p1;
-                pub use wasi_p1::*;
-            } else if #[cfg(target_env = "p2")] {
-                mod wasi_p2;
-                pub use wasi_p2::*;
-            } else {
-                compile_error!(
-                    "Unknown version of WASI (only previews 1 and 2 are supported) \
-                    or Rust version older than 1.80 was used"
-                );
-            }
-        }
+        crate::set_backend!(apple_other::AppleOtherBackend);
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p1"))] {
+        mod wasi_p1;
+        crate::set_backend!(wasi_p1::WasiP1Backend);
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))] {
+        mod wasi_p2;
+        crate::set_backend!(wasi_p2::WasiP2Backend);
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
-        pub use hermit::*;
+        crate::set_backend!(hermit::HermitBackend);
     } else if #[cfg(target_os = "vxworks")] {
         mod vxworks;
-        pub use vxworks::*;
+        crate::set_backend!(vxworks::VxWorksBackend);
     } else if #[cfg(target_os = "solid_asp3")] {
         mod solid;
-        pub use solid::*;
+        crate::set_backend!(solid::SolidBackend);
     } else if #[cfg(all(windows, any(target_vendor = "win7", getrandom_windows_legacy)))] {
         mod windows7;
-        pub use windows7::*;
+        crate::set_backend!(windows7::WindowsLegacyBackend);
     } else if #[cfg(windows)] {
         mod windows;
-        pub use windows::*;
+        crate::set_backend!(windows::WindowsBackend);
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
-        pub use rdrand::*;
-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
-        compile_error!(concat!(
-            "The wasm32-unknown-unknown targets are not supported by default; \
-            you may need to enable the \"wasm_js\" configuration flag. Note \
-            that enabling the `wasm_js` feature flag alone is insufficient. \
-            For more information see: \
-            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
-        ));
+        crate::set_backend!(rdrand::RdrandBackend);
     } else {
         compile_error!(concat!(
             "target is not supported. You may need to define a custom backend see: \

@@ -32,44 +32,20 @@ extern crate cfg_if;
 
 use core::mem::MaybeUninit;
 
-mod backends;
+use crate::backend::ExternBackend;
+
+mod backend;
 mod error;
 mod util;
+
+#[cfg(feature = "default-backends")]
+mod backends;
 
 #[cfg(feature = "std")]
 mod error_std_impls;
 
+pub use crate::backend::Backend;
 pub use crate::error::Error;
-
-/// Fill `dest` with random bytes from the system's preferred random number source.
-///
-/// This function returns an error on any failure, including partial reads. We
-/// make no guarantees regarding the contents of `dest` on error. If `dest` is
-/// empty, `getrandom` immediately returns success, making no calls to the
-/// underlying operating system.
-///
-/// Blocking is possible, at least during early boot; see module documentation.
-///
-/// In general, `getrandom` will be fast enough for interactive usage, though
-/// significantly slower than a user-space CSPRNG; for the latter consider
-/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
-///
-/// # Examples
-///
-/// ```
-/// # fn main() -> Result<(), getrandom::Error> {
-/// let mut buf = [0u8; 32];
-/// getrandom::fill(&mut buf)?;
-/// # Ok(()) }
-/// ```
-#[inline]
-pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
-    // SAFETY: The `&mut MaybeUninit<_>` reference doesn't escape,
-    // and `fill_uninit` guarantees it will never de-initialize
-    // any part of `dest`.
-    fill_uninit(unsafe { util::slice_as_uninit_mut(dest) })?;
-    Ok(())
-}
 
 /// Fill potentially uninitialized buffer `dest` with random bytes from
 /// the system's preferred random number source and return a mutable
@@ -96,7 +72,7 @@ pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
 #[inline]
 pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     if !dest.is_empty() {
-        backends::fill_inner(dest)?;
+        ExternBackend::fill_uninit(dest)?;
     }
 
     #[cfg(getrandom_msan)]
@@ -114,6 +90,32 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     })
 }
 
+/// Fill `dest` with random bytes from the system's preferred random number source.
+///
+/// This function returns an error on any failure, including partial reads. We
+/// make no guarantees regarding the contents of `dest` on error. If `dest` is
+/// empty, `getrandom` immediately returns success, making no calls to the
+/// underlying operating system.
+///
+/// Blocking is possible, at least during early boot; see module documentation.
+///
+/// In general, `getrandom` will be fast enough for interactive usage, though
+/// significantly slower than a user-space CSPRNG; for the latter consider
+/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), getrandom::Error> {
+/// let mut buf = [0u8; 32];
+/// getrandom::fill(&mut buf)?;
+/// # Ok(()) }
+/// ```
+#[inline]
+pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
+    ExternBackend::fill(dest)
+}
+
 /// Get random `u32` from the system's preferred random number source.
 ///
 /// # Examples
@@ -125,7 +127,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
 /// ```
 #[inline]
 pub fn u32() -> Result<u32, Error> {
-    backends::inner_u32()
+    ExternBackend::u32()
 }
 
 /// Get random `u64` from the system's preferred random number source.
@@ -139,5 +141,5 @@ pub fn u32() -> Result<u32, Error> {
 /// ```
 #[inline]
 pub fn u64() -> Result<u64, Error> {
-    backends::inner_u64()
+    ExternBackend::u64()
 }

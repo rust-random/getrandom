@@ -1,5 +1,6 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
 use super::use_file;
+use crate::Backend;
 use crate::Error;
 use core::{
     ffi::c_void,
@@ -8,8 +9,6 @@ use core::{
     sync::atomic::{AtomicPtr, Ordering},
 };
 use use_file::util_libc;
-
-pub use crate::util::{inner_u32, inner_u64};
 
 type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint) -> libc::ssize_t;
 
@@ -72,30 +71,40 @@ fn init() -> NonNull<c_void> {
 // Prevent inlining of the fallback implementation
 #[inline(never)]
 fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    use_file::fill_inner(dest)
+    use_file::UseFileBackend::fill_uninit(dest)
 }
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    // Despite being only a single atomic variable, we still cannot always use
-    // Ordering::Relaxed, as we need to make sure a successful call to `init`
-    // is "ordered before" any data read through the returned pointer (which
-    // occurs when the function is called). Our implementation mirrors that of
-    // the one in libstd, meaning that the use of non-Relaxed operations is
-    // probably unnecessary.
-    let raw_ptr = GETRANDOM_FN.load(Ordering::Acquire);
-    let fptr = match NonNull::new(raw_ptr) {
-        Some(p) => p,
-        None => init(),
-    };
+pub struct LinuxBackend;
 
-    if fptr == NOT_AVAILABLE {
-        use_file_fallback(dest)
-    } else {
-        // note: `transmute` is currently the only way to convert a pointer into a function reference
-        let getrandom_fn = unsafe { transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
-        util_libc::sys_fill_exact(dest, |buf| unsafe {
-            getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
-        })
+unsafe impl Backend for LinuxBackend {
+    #[inline]
+    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        Self::fill_uninit(slice)
+    }
+
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        // Despite being only a single atomic variable, we still cannot always use
+        // Ordering::Relaxed, as we need to make sure a successful call to `init`
+        // is "ordered before" any data read through the returned pointer (which
+        // occurs when the function is called). Our implementation mirrors that of
+        // the one in libstd, meaning that the use of non-Relaxed operations is
+        // probably unnecessary.
+        let raw_ptr = GETRANDOM_FN.load(Ordering::Acquire);
+        let fptr = match NonNull::new(raw_ptr) {
+            Some(p) => p,
+            None => init(),
+        };
+
+        if fptr == NOT_AVAILABLE {
+            use_file_fallback(dest)
+        } else {
+            // note: `transmute` is currently the only way to convert a pointer into a function reference
+            let getrandom_fn = unsafe { transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
+            util_libc::sys_fill_exact(dest, |buf| unsafe {
+                getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
+            })
+        }
     }
 }
