@@ -38,6 +38,9 @@ cfg_if! {
                 ));
             }
         }
+    } else if #[cfg(getrandom_backend = "unsupported")] {
+        mod unsupported;
+        pub use unsupported::*;
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
         pub use linux_raw::*;
