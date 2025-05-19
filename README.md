@@ -87,7 +87,7 @@ of randomness based on their specific needs:
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
 | `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nigthly compiler)
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
-| `runtime_error`   | All targets          | `*`                      | Errors when providing randomness. Useful when only needing this crate to compile in wasm32, but it's not actually used.
+| `unsupported`     | All targets          | `*`                      | Always returns `Err(Error::UNSUPPORTED)` (see [unsupported backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
 The flag can be set either by specifying the `rustflags` field in [`.cargo/config.toml`]:
@@ -204,20 +204,14 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 }
 ```
 
-If you are confident that `getrandom` is not used in your project, but
-it gets pulled nevertheless by one of your dependencies, then you can
-use the following custom backend, which always returns the "unsupported" error:
-```rust
-use getrandom::Error;
+### Unsupported backend
 
-#[no_mangle]
-unsafe extern "Rust" fn __getrandom_v03_custom(
-    dest: *mut u8,
-    len: usize,
-) -> Result<(), Error> {
-    Err(Error::UNSUPPORTED)
-}
-```
+In some rare scenarios you might be compiling this crate in a constrained
+environment (ex. `wasm32-unknown-unknown`), but this crate's functionality
+is not actually used by your code. If you are confident that `getrandom` is
+not used in your project, but it gets pulled nevertheless by one of your
+dependencies, then you can enable the `unsupported` backend, which always
+returns `Err(Error::UNSUPPORTED)`.
 
 ### Platform Support
 
@@ -374,6 +368,7 @@ dual licensed as above, without any additional terms or conditions.
 [`get-random-u64`]: https://github.com/WebAssembly/WASI/blob/v0.2.1/wasip2/random/random.wit#L23-L28
 [configuration flags]: #configuration-flags
 [custom backend]: #custom-backend
+[unsupported backend]: #unsupported-backend
 [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55

@@ -274,8 +274,7 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
         run: cargo build --target riscv32i-unknown-none-elf
 
-
-  runtime-error:
+  unsupported:
     name: Runtime error
     runs-on: ubuntu-24.04
     steps:
@@ -285,5 +284,5 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="runtime_error"
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
         run: cargo build --target wasm32-unknown-unknown
