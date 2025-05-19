@@ -206,8 +206,8 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 
 ### Unsupported backend
 
-In some rare scenarios you might be compiling this crate in a constrained
-environment (e.g. `wasm32-unknown-unknown`), but this crate's functionality
+In some rare scenarios, you might be compiling this crate for an unsupported
+target (e.g. `wasm32-unknown-unknown`), but this crate's functionality
 is not actually used by your code. If you are confident that `getrandom` is
 not used in your project, but it gets pulled nevertheless by one of your
 dependencies, then you can enable the `unsupported` backend, which always
