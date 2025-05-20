@@ -26,7 +26,7 @@ pub struct SolarisBackend;
 unsafe impl Backend for SolarisBackend {
     #[inline]
     unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
-        let slice = core::slice::from_raw_parts_mut(dest as *mut MaybeUninit<u8>, len);
+        let slice = core::slice::from_raw_parts_mut(dest.cast(), len);
         Self::fill_uninit(slice)
     }
 
