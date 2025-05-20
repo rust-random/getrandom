@@ -9,7 +9,6 @@ use core::{mem::MaybeUninit, slice};
 macro_rules! set_backend {
     ($t: ty) => {
         const _: () = {
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_fill_ptr(
                 dest: *mut u8,
@@ -18,7 +17,6 @@ macro_rules! set_backend {
                 <$t as $crate::Backend>::fill_ptr(dest, len)
             }
 
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_fill_uninit(
                 dest: &mut [core::mem::MaybeUninit<u8>],
@@ -26,25 +24,21 @@ macro_rules! set_backend {
                 <$t as $crate::Backend>::fill_uninit(dest)
             }
 
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_fill(dest: &mut [u8]) -> Result<(), $crate::Error> {
                 <$t as $crate::Backend>::fill(dest)
             }
 
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_u32() -> Result<u32, $crate::Error> {
                 <$t as $crate::Backend>::u32()
             }
 
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_u64() -> Result<u64, $crate::Error> {
                 <$t as $crate::Backend>::u64()
             }
 
-            #[inline]
             #[no_mangle]
             unsafe fn __getrandom_v04_backend_describe_custom_error(
                 n: u16,
