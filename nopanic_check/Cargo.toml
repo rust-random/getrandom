@@ -12,7 +12,7 @@ name = "getrandom_wrapper"
 crate-type = ["cdylib"]
 
 [dependencies]
-getrandom = { path = ".." }
+getrandom = { path = "..", features = ["default-backends"]}
 
 [profile.release]
 panic = "abort"

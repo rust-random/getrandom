@@ -23,7 +23,7 @@ unsafe impl Backend for HermitBackend {
     }
 
     #[inline]
-    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    fn fill_uninit(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         while !dest.is_empty() {
             let res = unsafe { sys_read_entropy(dest.as_mut_ptr().cast::<u8>(), dest.len(), 0) };
             match res {
