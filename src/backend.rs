@@ -117,7 +117,7 @@ pub unsafe trait Backend {
 
     /// Describes a custom [`Error`] code reported by this [`Backend`].
     #[inline]
-    #[expect(unused_variables)]
+    #[allow(unused_variables)]
     fn describe_custom_error(n: u16) -> Option<&'static str> {
         None
     }

@@ -6,7 +6,7 @@ pub struct UnsupportedBackend;
 
 unsafe impl Backend for UnsupportedBackend {
     #[inline]
-    unsafe fn fill_ptr(dest: *mut u8, len: usize) -> Result<(), Error> {
+    unsafe fn fill_ptr(_dest: *mut u8, _len: usize) -> Result<(), Error> {
         Err(Error::UNSUPPORTED)
     }
 }

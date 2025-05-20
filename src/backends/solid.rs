@@ -1,7 +1,6 @@
 //! Implementation for SOLID
 use crate::Backend;
 use crate::Error;
-use core::mem::MaybeUninit;
 
 extern "C" {
     pub fn SOLID_RNG_SampleRandomBytes(buffer: *mut u8, length: usize) -> i32;

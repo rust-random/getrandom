@@ -1,7 +1,6 @@
 //! Implementation for WASI Preview 1
 use crate::Backend;
 use crate::Error;
-use core::mem::MaybeUninit;
 
 // This linking is vendored from the wasi crate:
 // https://docs.rs/wasi/0.11.0+wasi-snapshot-preview1/src/wasi/lib_generated.rs.html#2344-2350
