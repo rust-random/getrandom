@@ -131,12 +131,19 @@ impl Error {
 
     /// Creates a new instance of an `Error` from a particular custom error code.
     const fn as_custom(self) -> Option<u16> {
-        let value = self.0.get().checked_sub(Error::CUSTOM_START);
+        let mut value = self.0.get();
 
-        match value {
-            Some(value) if 0 <= value && value <= u16::MAX as RawOsError => Some(value as u16),
-            _ => None,
+        if value < Self::CUSTOM_START {
+            return None;
         }
+
+        value -= Self::CUSTOM_START;
+
+        if value > u16::MAX as RawOsError {
+            return None;
+        }
+
+        Some(value as u16)
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.

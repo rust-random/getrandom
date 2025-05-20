@@ -22,7 +22,7 @@ unsafe impl Backend for WasmJsBackend {
     fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         for chunk in dest.chunks_mut(MAX_BUFFER_SIZE) {
             if get_random_values(chunk).is_err() {
-                return Err(Error::WEB_CRYPTO);
+                return Err(Error::new_custom(WEB_CRYPTO));
             }
         }
         Ok(())
