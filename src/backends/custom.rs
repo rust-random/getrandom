@@ -1,7 +1,6 @@
 //! An implementation which calls out to an externally defined function.
 use crate::Backend;
 use crate::Error;
-use core::mem::MaybeUninit;
 
 pub struct LegacyCustomBackend;
 

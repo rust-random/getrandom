@@ -1,7 +1,7 @@
 //! Implementation for iOS, tvOS, and watchOS where `getentropy` is unavailable.
 use crate::Backend;
 use crate::Error;
-use core::{ffi::c_void, mem::MaybeUninit};
+use core::ffi::c_void;
 
 pub struct AppleOtherBackend;
 

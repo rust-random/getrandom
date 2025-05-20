@@ -1,7 +1,6 @@
 //! Implementation for Fuchsia Zircon
 use crate::Backend;
 use crate::Error;
-use core::mem::MaybeUninit;
 
 #[link(name = "zircon")]
 extern "C" {
