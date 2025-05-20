@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use core::{mem::MaybeUninit, ptr};
 
 /// Polyfill for `maybe_uninit_slice` feature's
