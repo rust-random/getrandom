@@ -35,11 +35,11 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test
+      - run: cargo test --features default-backends
       # Make sure enabling the std feature doesn't break anything
-      - run: cargo test --features=std
+      - run: cargo test --features=std,default-backends
       - if: ${{ matrix.toolchain == 'nightly' }}
-        run: cargo test --benches
+        run: cargo test --benches --features default-backends
 
   linux:
     name: Linux
@@ -53,27 +53,27 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
-        run: cargo test --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-        run: cargo test --features=std
+        run: cargo test --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
-        run: cargo test --features=std
+        run: cargo test --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std
+        run: cargo test --features=std,default-backends
 
   ios:
     name: iOS Simulator
@@ -105,7 +105,7 @@ jobs:
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test
+        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test --features default-backends
 
   windows:
     name: Windows
@@ -123,7 +123,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --features=std
+      - run: cargo test --features=std,default-backends
 
   windows7:
     name: Windows 7 (on Windows 10)
@@ -136,8 +136,8 @@ jobs:
           toolchain: nightly-2024-05-20
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
-      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
+      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std,default-backends
+      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std,default-backends
 
   sanitizer:
     name: Sanitizer
@@ -151,7 +151,7 @@ jobs:
       - env:
           RUSTFLAGS: -Dwarnings -Zsanitizer=memory
           RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu --features default-backends
 
   cross:
     name: Cross
@@ -180,7 +180,7 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Test
-        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std,default-backends
 
   freebsd:
     name: FreeBSD VM
@@ -194,7 +194,7 @@ jobs:
           usesh: true
           prepare: |
             pkg install -y rust
-          run: cargo test
+          run: cargo test --features default-backends
 
   openbsd:
     name: OpenBSD VM
@@ -208,7 +208,7 @@ jobs:
           usesh: true
           prepare: |
             pkg_add rust
-          run: cargo test
+          run: cargo test --features default-backends
 
   netbsd:
     name: NetBSD VM
@@ -223,8 +223,8 @@ jobs:
           prepare: |
             /usr/sbin/pkg_add rust
           run: |
-            cargo test
-            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test
+            cargo test --features default-backends
+            RUSTFLAGS="--cfg getrandom_test_netbsd_fallback -D warnings" cargo test --features default-backends
 
   web:
     name: ${{ matrix.rust.description }}
@@ -237,14 +237,14 @@ jobs:
               description: Web,
               version: stable,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
-              args: '--features=std,wasm_js',
+              args: '--features=std,wasm_js,default-backends',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
+              args: '--features=std,wasm_js,default-backends -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v4
@@ -314,6 +314,6 @@ jobs:
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
       - name: WASI 0.1 Test
-        run: cargo test --target wasm32-wasip1
+        run: cargo test --target wasm32-wasip1 --features default-backends
       - name: WASI 0.2 Test
-        run: cargo test --target wasm32-wasip2
+        run: cargo test --target wasm32-wasip2 --features default-backends

@@ -2,10 +2,67 @@
 use crate::Error;
 use core::{mem::MaybeUninit, slice};
 
+/// Uses the provided [`Backend`].
+/// This macro must be called exactly once, otherwise the final linking will fail due to either
+/// duplicated or missing symbols.
+#[macro_export]
+macro_rules! set_backend {
+    ($t: ty) => {
+        const _: () = {
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_fill_ptr(
+                dest: *mut u8,
+                len: usize,
+            ) -> Result<(), $crate::Error> {
+                <$t as $crate::Backend>::fill_ptr(dest, len)
+            }
+
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_fill_uninit(
+                dest: &mut [core::mem::MaybeUninit<u8>],
+            ) -> Result<(), $crate::Error> {
+                <$t as $crate::Backend>::fill_uninit(dest)
+            }
+
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_fill(dest: &mut [u8]) -> Result<(), $crate::Error> {
+                <$t as $crate::Backend>::fill(dest)
+            }
+
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_u32() -> Result<u32, $crate::Error> {
+                <$t as $crate::Backend>::u32()
+            }
+
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_u64() -> Result<u64, $crate::Error> {
+                <$t as $crate::Backend>::u64()
+            }
+
+            #[inline]
+            #[no_mangle]
+            unsafe fn __getrandom_v04_backend_describe_custom_error(
+                n: u16,
+            ) -> Option<&'static str> {
+                <$t as $crate::Backend>::describe_custom_error(n)
+            }
+        };
+    };
+}
+
 /// Describes how `getrandom` can collect random values from a particular backend.
 ///
 /// Implementers can pair this with [`set_backend`] to always use their [`Backend`],
 /// or allow users to call it themselves if that's more appropriate.
+///
+/// # Safety
+///
+/// The implementation of this trait must produce sufficiently randomized values.
 pub unsafe trait Backend {
     /// Writes `len` random values starting at `dest`.
     ///
@@ -126,57 +183,4 @@ unsafe impl Backend for ExternBackend {
         }
         unsafe { __getrandom_v04_backend_describe_custom_error(n) }
     }
-}
-
-/// Uses the provided [`Backend`].
-/// This macro must be called exactly once, otherwise the final linking will fail due to either
-/// duplicated or missing symbols.
-#[macro_export]
-macro_rules! set_backend {
-    ($t: ty) => {
-        const _: () = {
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_fill_ptr(
-                dest: *mut u8,
-                len: usize,
-            ) -> Result<(), $crate::Error> {
-                <$t as $crate::Backend>::fill_ptr(dest, len)
-            }
-
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_fill_uninit(
-                dest: &mut [core::mem::MaybeUninit<u8>],
-            ) -> Result<(), $crate::Error> {
-                <$t as $crate::Backend>::fill_uninit(dest)
-            }
-
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_fill(dest: &mut [u8]) -> Result<(), $crate::Error> {
-                <$t as $crate::Backend>::fill(dest)
-            }
-
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_u32() -> Result<u32, $crate::Error> {
-                <$t as $crate::Backend>::u32()
-            }
-
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_u64() -> Result<u64, $crate::Error> {
-                <$t as $crate::Backend>::u64()
-            }
-
-            #[inline]
-            #[no_mangle]
-            unsafe fn __getrandom_v04_backend_describe_custom_error(
-                n: u16,
-            ) -> Option<&'static str> {
-                <$t as $crate::Backend>::describe_custom_error(n)
-            }
-        };
-    };
 }

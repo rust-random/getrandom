@@ -27,14 +27,14 @@ jobs:
           targets: aarch64-apple-darwin, aarch64-apple-ios
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std
-      - run: cargo test --no-run --target=aarch64-apple-ios --features=std
-      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
-      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
+      - run: cargo test --no-run --target=aarch64-apple-darwin --features=std,default-backends
+      - run: cargo test --no-run --target=aarch64-apple-ios --features=std,default-backends
+      - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std,default-backends
+      - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std,default-backends
       # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
       - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
       # std is broken on visionOS right now
-      #- run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
+      #- run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std,default-backends
 
   cross:
     name: Cross
@@ -56,7 +56,7 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Build Tests
-        run: cross test --no-run --target=${{ matrix.target }} --features=std
+        run: cross test --no-run --target=${{ matrix.target }} --features=std,default-backends
 
   tier2:
     name: Tier 2
@@ -76,7 +76,7 @@ jobs:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo build --target=${{ matrix.target }} --features=std,default-backends
 
   tier3:
     name: Tier 3
@@ -105,7 +105,7 @@ jobs:
         with:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build -Z build-std=core --target=${{ matrix.target }}
+      - run: cargo build -Z build-std=core --target=${{ matrix.target }} --features default-backends
 
   # Ubuntu does not support running x32 binaries:
   # https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1994516/comments/21
@@ -125,16 +125,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends libc6-dev-x32 libx32gcc-11-dev
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --target=${{ matrix.target }} --features=std
+      - run: cargo build --target=${{ matrix.target }} --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo build --target=${{ matrix.target }} --features=std
+        run: cargo build --target=${{ matrix.target }} --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-        run: cargo build --features=std
+        run: cargo build --features=std,default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build --features=std
+        run: cargo build --features=std,default-backends
 
   linux-raw:
     name: Build Raw Linux
@@ -160,7 +160,7 @@ jobs:
           components: rust-src
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
-        run: cargo build -Zbuild-std=core --target=${{ matrix.target }}
+        run: cargo build -Zbuild-std=core --target=${{ matrix.target }} --features default-backends
 
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
@@ -194,7 +194,7 @@ jobs:
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }}
+        run: cargo build --target ${{ matrix.target.target }} ${{ matrix.feature.feature }} -Zbuild-std=${{ matrix.feature.build-std }} --features default-backends
 
   efi-rng:
     name: UEFI RNG Protocol
@@ -214,7 +214,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="efi_rng"
-        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std,default-backends
 
   rdrand-uefi:
     name: RDRAND UEFI
@@ -233,10 +233,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=core --target=${{ matrix.target }}
+        run: cargo build -Z build-std=core --target=${{ matrix.target }} --features default-backends
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std
+        run: cargo build -Z build-std=std --target=${{ matrix.target }} --features std,default-backends
 
   rndr:
     name: RNDR
@@ -251,15 +251,15 @@ jobs:
       - name: RNDR enabled at compile time (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr" -C target-feature=+rand
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --target=aarch64-unknown-linux-gnu --features default-backends
       - name: Runtime RNDR detection without std (Linux)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu
+        run: cargo build --target=aarch64-unknown-linux-gnu --features default-backends
       - name: Runtime RNDR detection with std (macOS)
         env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rndr"
-        run: cargo build --target=aarch64-unknown-linux-gnu --features std
+        run: cargo build --target=aarch64-unknown-linux-gnu --features std,default-backends
 
   no-atomics:
     name: No Atomics
@@ -272,7 +272,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        run: cargo build --target riscv32i-unknown-none-elf
+        run: cargo build --target riscv32i-unknown-none-elf --features default-backends
 
   unsupported:
     name: Runtime error
@@ -285,4 +285,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
-        run: cargo build --target wasm32-unknown-unknown
+        run: cargo build --target wasm32-unknown-unknown --features default-backends
