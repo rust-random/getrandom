@@ -124,12 +124,16 @@ cfg_if! {
     ))] {
         mod apple_other;
         crate::set_backend!(apple_other::AppleOtherBackend);
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p1"))] {
-        mod wasi_p1;
-        crate::set_backend!(wasi_p1::WasiP1Backend);
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))] {
-        mod wasi_p2;
-        crate::set_backend!(wasi_p2::WasiP2Backend);
+    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
+        cfg_if! {
+            if #[cfg(target_env = "p1")] {
+                mod wasi_p1;
+                crate::set_backend!(wasi_p1::WasiP1Backend);
+            } else if #[cfg(target_env = "p2")] {
+                mod wasi_p2;
+                crate::set_backend!(wasi_p2::WasiP2Backend);
+            }
+        }
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         crate::set_backend!(hermit::HermitBackend);

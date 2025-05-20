@@ -5,6 +5,7 @@ use core::{mem::MaybeUninit, ptr};
 /// `MaybeUninit::slice_assume_init_mut`. Every element of `slice` must have
 /// been initialized.
 #[inline(always)]
+#[deny(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &mut [T] {
     let ptr = ptr_from_mut::<[MaybeUninit<T>]>(slice) as *mut [T];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
@@ -16,6 +17,7 @@ pub(crate) unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &
 /// This is unsafe because it allows assigning uninitialized values into
 /// `slice`, which would be undefined behavior.
 #[inline(always)]
+#[deny(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
     let ptr = ptr_from_mut::<[T]>(slice) as *mut [MaybeUninit<T>];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
