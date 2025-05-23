@@ -9,7 +9,7 @@
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
         // We allow 3rd party backends when `getrandom_backend = "custom"` is enabled, as it can
-        // only be enabled by the final binary, even when `first-party-backends-only` is enabled.
+        // only be enabled by the final binary, even when `custom-fallback` isn't enabled.
         mod custom;
         pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
@@ -145,10 +145,16 @@ cfg_if! {
             } else if #[cfg(target_env = "p2")] {
                 mod wasi_p2;
                 pub use wasi_p2::*;
-            } else if #[cfg(feature = "first-party-backends-only")] {
+            } else if #[cfg(not(feature = "custom-fallback"))] {
+                // If the user has not enabled `custom-fallback` then no backend is available
                 compile_error!(
                     "Unknown version of WASI (only previews 1 and 2 are supported) \
                     or Rust version older than 1.80 was used"
+                );
+            } else if #[cfg(getrandom_no_fallback)] {
+                compile_error!(
+                    "The `getrandom_no_fallback` RUSTFLAG has been set,\
+                    but the \"custom-fallback\" feature has been enabled."
                 );
             }
         }
@@ -170,7 +176,20 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), feature = "first-party-backends-only"))] {
+    } else if #[cfg(all(feature = "custom-fallback", not(getrandom_no_fallback)))] {
+        // Since `getrandom_no_fallback` is not enabled, allow 3rd party backends via `custom`.
+        // This is a duplicate of the first branch in this cfg_if statement to allow `custom` to either
+        // be the highest or lowest priority based on `getrandom_backend = "custom"`.
+        mod custom;
+        pub use custom::*;
+    } else if #[cfg(all(feature = "custom-fallback", getrandom_no_fallback))] {
+        compile_error!(
+            "The `getrandom_no_fallback` RUSTFLAG has been set,\
+            but the \"custom-fallback\" feature has been enabled.\
+            This typically happens when a dependency provides a custom fallback\
+            but you have forbidden it using `getrandom_no_fallback`."
+        );
+    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
         compile_error!(concat!(
             "The wasm32-unknown-unknown targets are not supported by default; \
             you may need to enable the \"wasm_js\" configuration flag. Note \
@@ -178,25 +197,11 @@ cfg_if! {
             For more information see: \
             https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
         ));
-    } else if #[cfg(feature = "first-party-backends-only")] {
+    } else {
         compile_error!(concat!(
             "target is not supported by a first party backend.\
             You may need to define a custom backend see: \
             https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#custom-backend"
         ));
-    } else {
-        #[cfg(feature = "first-party-backends-only")]
-        compile_error!(concat!(
-            "an internal error has allowed a 3rd party backend when it\
-            was explicitly prohibited.\
-            Please file a bug report. See: \
-            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION")
-        ));
-
-        // Since `first-party-backends-only` is not enabled, allow 3rd party backends via `custom`.
-        // This is a duplicate of the first branch in this cfg_if statement to allow `custom` to either
-        // be the highest or lowest priority based on `getrandom_backend = "custom"`.
-        mod custom;
-        pub use custom::*;
     }
 }
