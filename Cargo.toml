@@ -12,11 +12,18 @@ categories = ["os", "no-std"]
 exclude = [".*"]
 
 [features]
+# `first-party-backends-only` is enabled by default for conservative backwards compatibility in 0.3
+# NOTE: Future versions may wish to remove this default depending on the security ramifications.
+default = ["first-party-backends-only"]
 # Implement std::error::Error for getrandom::Error and
 # use std to retrieve OS error descriptions
 std = []
 # Unstable feature to support being a libstd dependency
 rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
+# Throw a compiler error when a first-party backend is not available
+# WARNING: It is highly recommended to enable this feature only for binary crates and tests,
+# i.e. avoid unconditionally enabling it in library crates.
+first-party-backends-only = []
 
 # Optional backend: wasm_js
 # This flag enables the backend but does not select it. To use the backend, use

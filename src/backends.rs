@@ -8,6 +8,8 @@
 
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
+        // We allow 3rd party backends when `getrandom_backend = "custom"` is enabled, as it can
+        // only be enabled by the final binary, even when `first-party-backends-only` is enabled.
         mod custom;
         pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
@@ -31,6 +33,7 @@ cfg_if! {
                 mod wasm_js;
                 pub use wasm_js::*;
             } else {
+                // If `wasm_js` is enabled the user intended for it to be used, compiler error
                 compile_error!(concat!(
                     "The \"wasm_js\" backend requires the `wasm_js` feature \
                     for `getrandom`. For more information see: \
@@ -142,7 +145,7 @@ cfg_if! {
             } else if #[cfg(target_env = "p2")] {
                 mod wasi_p2;
                 pub use wasi_p2::*;
-            } else {
+            } else if #[cfg(feature = "first-party-backends-only")] {
                 compile_error!(
                     "Unknown version of WASI (only previews 1 and 2 are supported) \
                     or Rust version older than 1.80 was used"
@@ -167,7 +170,7 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
+    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), feature = "first-party-backends-only"))] {
         compile_error!(concat!(
             "The wasm32-unknown-unknown targets are not supported by default; \
             you may need to enable the \"wasm_js\" configuration flag. Note \
@@ -175,10 +178,25 @@ cfg_if! {
             For more information see: \
             https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
         ));
-    } else {
+    } else if #[cfg(feature = "first-party-backends-only")] {
         compile_error!(concat!(
-            "target is not supported. You may need to define a custom backend see: \
+            "target is not supported by a first party backend.\
+            You may need to define a custom backend see: \
             https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#custom-backend"
         ));
+    } else {
+        #[cfg(feature = "first-party-backends-only")]
+        compile_error!(concat!(
+            "an internal error has allowed a 3rd party backend when it\
+            was explicitly prohibited.\
+            Please file a bug report. See: \
+            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION")
+        ));
+
+        // Since `first-party-backends-only` is not enabled, allow 3rd party backends via `custom`.
+        // This is a duplicate of the first branch in this cfg_if statement to allow `custom` to either
+        // be the highest or lowest priority based on `getrandom_backend = "custom"`.
+        mod custom;
+        pub use custom::*;
     }
 }
