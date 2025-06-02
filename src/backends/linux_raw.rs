@@ -1,7 +1,7 @@
 //! Implementation for Linux / Android using `asm!`-based syscalls.
-use crate::{Error, MaybeUninit};
-
+use super::sanitizer;
 pub use crate::util::{inner_u32, inner_u64};
+use crate::{Error, MaybeUninit};
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 compile_error!("`linux_raw` backend can be enabled only for Linux/Android targets!");
@@ -118,6 +118,7 @@ pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
     loop {
         let ret = unsafe { getrandom_syscall(dest.as_mut_ptr().cast(), dest.len(), 0) };
+        unsafe { sanitizer::unpoison_linux_getrandom_result(dest, ret) };
         match usize::try_from(ret) {
             Ok(0) => return Err(Error::UNEXPECTED),
             Ok(len) => {

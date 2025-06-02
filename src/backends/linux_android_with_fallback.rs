@@ -1,5 +1,5 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use super::use_file;
+use super::{sanitizer, use_file};
 use crate::Error;
 use core::{
     ffi::c_void,
@@ -95,7 +95,9 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // note: `transmute` is currently the only way to convert a pointer into a function reference
         let getrandom_fn = unsafe { transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
         util_libc::sys_fill_exact(dest, |buf| unsafe {
-            getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
+            let ret = getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0);
+            sanitizer::unpoison_linux_getrandom_result(buf, ret);
+            ret
         })
     }
 }
