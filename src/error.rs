@@ -200,7 +200,7 @@ impl fmt::Display for Error {
                 if #[cfg(feature = "std")] {
                     std::io::Error::from_raw_os_error(errno).fmt(f)
                 } else {
-                    write!(f, "OS Error: {}", errno)
+                    write!(f, "OS Error: {errno}")
                 }
             }
         } else if let Some(desc) = self.internal_desc() {
