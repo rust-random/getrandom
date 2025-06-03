@@ -23,7 +23,7 @@ jobs:
         # Fixed Nigthly version is used to prevent
         # CI failures which are not relevant to PR changes
         # on introduction of new Clippy lints.
-        toolchain: nightly-2024-10-08
+        toolchain: nightly-2025-06-01
         components: clippy,rust-src
     - name: std feature
       run: cargo clippy --features std
@@ -110,7 +110,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           # We need Nightly for doc_auto_cfg
-          toolchain: nightly-2024-09-04
+          toolchain: nightly-2025-06-01
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
