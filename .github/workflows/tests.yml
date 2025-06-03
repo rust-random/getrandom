@@ -139,8 +139,24 @@ jobs:
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
 
-  sanitizer:
-    name: Sanitizer
+  sanitizer-linux-aarch64:
+    name: Sanitizer Linux AArch64
+    # MemorySanitizer won't run in QEMU so we can't run it in cross:
+    # https://github.com/llvm/llvm-project/issues/65144
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-06-01
+          components: rust-src
+      - env:
+          RUSTFLAGS: -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=aarch64-unknown-linux-gnu
+
+  sanitizer-linux-x86_64:
+    name: Sanitizer Linux x86_64
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
