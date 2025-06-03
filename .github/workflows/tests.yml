@@ -139,35 +139,65 @@ jobs:
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
       - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
 
-  sanitizer-linux-aarch64:
-    name: Sanitizer Linux AArch64
-    # MemorySanitizer won't run in QEMU so we can't run it in cross:
-    # https://github.com/llvm/llvm-project/issues/65144
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2025-06-01
-          components: rust-src
-      - env:
-          RUSTFLAGS: -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=aarch64-unknown-linux-gnu
+  sanitizer-linux:
+    name: Sanitizer Linux
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        arch: [
+            "aarch64",
+            "x86_64",
+        ]
+        include:
+          # MemorySanitizer won't run in QEMU so we can't run it in cross:
+          # https://github.com/llvm/llvm-project/issues/65144
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
 
-  sanitizer-linux-x86_64:
-    name: Sanitizer Linux x86_64
-    runs-on: ubuntu-24.04
+          - arch: x86_64
+            runner: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-06-01
           components: rust-src
-      - env:
+      - name: default configuration
+        env:
           RUSTFLAGS: -Dwarnings -Zsanitizer=memory
           RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=x86_64-unknown-linux-gnu
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - name: --cfg getrandom_backend="linux_getrandom"
+        env:
+          RUSTFLAGS: --cfg getrandom_backend="linux_getrandom" -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_backend="linux_getrandom" -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - name: --cfg getrandom_backend="linux_raw"
+        env:
+          RUSTFLAGS: --cfg getrandom_backend="linux_raw" -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_backend="linux_raw" -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - name: --cfg getrandom_backend="linux_fallback"
+        env:
+          RUSTFLAGS: --cfg getrandom_backend="linux_fallback" -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_backend="linux_fallback" -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - if: ${{ matrix.arch == 'x86_64' }}
+        name: --cfg getrandom_backend="rdrand"
+        env:
+          RUSTFLAGS: --cfg getrandom_backend="rdrand" -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_backend="rdrand" -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - name: --cfg getrandom_test_linux_fallback
+        env:
+          RUSTFLAGS: --cfg getrandom_test_linux_fallback -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_test_linux_fallback -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+      - name: --cfg getrandom_test_linux_without_fallback
+        env:
+          RUSTFLAGS: --cfg getrandom_test_linux_without_fallback -Dwarnings -Zsanitizer=memory
+          RUSTDOCFLAGS: --cfg getrandom_test_linux_without_fallback -Dwarnings -Zsanitizer=memory
+        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
 
   cross:
     name: Cross
