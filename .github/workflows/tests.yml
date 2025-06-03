@@ -141,19 +141,24 @@ jobs:
 
   sanitizer-linux-aarch64:
     name: Sanitizer Linux AArch64
-    # MemorySanitizer won't run in QEMU so we can't run it in cross:
-    # https://github.com/llvm/llvm-project/issues/65144
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-06-01
           components: rust-src
-      - env:
+      - name: Install precompiled cross
+        run: |
+          VERSION=v0.2.5
+          URL=https://github.com/cross-rs/cross/releases/download/${VERSION}/cross-x86_64-unknown-linux-gnu.tar.gz
+          wget -O - $URL | tar -xz -C ~/.cargo/bin
+          cross --version
+      - name: Test
+        env:
           RUSTFLAGS: -Dwarnings -Zsanitizer=memory
           RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=aarch64-unknown-linux-gnu
+        run: cross test --no-fail-fast -Zbuild-std --target=aarch64-unknown-linux-gnu
 
   sanitizer-linux-x86_64:
     name: Sanitizer Linux x86_64
