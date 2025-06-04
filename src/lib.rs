@@ -106,12 +106,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
 
     // SAFETY: `dest` has been fully initialized by `imp::fill_inner`
     // since it returned `Ok`.
-    Ok(unsafe {
-        #[cfg(getrandom_msan)]
-        __msan_unpoison(dest.as_mut_ptr().cast(), dest.len());
-
-        util::slice_assume_init_mut(dest)
-    })
+    Ok(unsafe { util::slice_assume_init_mut(dest) })
 }
 
 /// Get random `u32` from the system's preferred random number source.

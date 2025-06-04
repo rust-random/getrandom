@@ -26,6 +26,14 @@ mod util_libc;
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     util_libc::sys_fill_exact(dest, |buf| unsafe {
-        libc::getrandom(buf.as_mut_ptr().cast(), buf.len(), 0)
+        let ret = libc::getrandom(buf.as_mut_ptr().cast(), buf.len(), 0);
+
+        #[cfg(any(target_os = "android", target_os = "linux"))]
+        #[allow(unused_unsafe)] // TODO(MSRV 1.65): Remove this.
+        unsafe {
+            super::sanitizer::unpoison_linux_getrandom_result(buf, ret);
+        }
+
+        ret
     })
 }
