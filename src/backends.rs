@@ -257,3 +257,41 @@ pub unsafe trait Backend {
         crate::util::inner_u64()
     }
 }
+
+/// Sets the fallback [`Backend`](crate::Backend).
+/// 
+/// # Examples
+/// 
+/// ```ignore
+/// struct MyBackend;
+/// 
+/// impl Backend for MyBackend { /* ... */ }
+/// 
+/// set_backend!(MyBackend);
+/// ```
+#[cfg(feature = "custom-fallback")]
+#[macro_export]
+// The macro is defined outside of the `fallback` module to allow its use even when the fallback is
+// not used.
+// This ensures that a future backend making a particular fallback use redundant is _not_ a compiler
+// error.
+macro_rules! set_backend {
+    ($t: ty) => {
+        const _: () = {
+            #[no_mangle]
+            extern "Rust" fn __getrandom_v03_fallback_fill_uninit(dest: &mut [::core::mem::MaybeUninit<u8>]) -> Result<(), $crate::Error> {
+                <$t as $crate::Backend>::fill_uninit(dest)
+            }
+
+            #[no_mangle]
+            extern "Rust" fn __getrandom_v03_fallback_u32() -> Result<u32, $crate::Error> {
+                <$t as $crate::Backend>::u32()
+            }
+
+            #[no_mangle]
+            extern "Rust" fn __getrandom_v03_fallback_u64() -> Result<u64, $crate::Error> {
+                <$t as $crate::Backend>::u64()
+            }
+        };
+    };
+}

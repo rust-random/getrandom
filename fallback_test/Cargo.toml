@@ -1,0 +1,19 @@
+[package]
+name = "fallback_test"
+description = "Test crate for assessing the custom-fallback feature"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+getrandom = { path = "..", default-features = false }
+
+[features]
+fallback = ["getrandom/custom-fallback"]
+fail-double-definition = ["fallback"]
+
+[profile.release]
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

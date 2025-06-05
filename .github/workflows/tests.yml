@@ -358,3 +358,21 @@ jobs:
         run: cargo test --target wasm32-wasip1
       - name: WASI 0.2 Test
         run: cargo test --target wasm32-wasip2
+  
+  fallback:
+    name: Custom Fallback
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.82
+          targets: thumbv6m-none-eabi # A target getrandom doesn't currently support
+      - uses: Swatinem/rust-cache@v2
+      - run: cd fallback_test
+      - name: No Fallback (Should Fail)
+        run: $(cargo build --target thumbv6m-none-eabi; if [ $? -ne 0 ]; then exit 0; else exit 1; fi)
+      - name: Fallback
+        run: cargo build --target thumbv6m-none-eabi --features fallback
+      - name: Double Fallback (Should Fail)
+        run: $(cargo build --target thumbv6m-none-eabi --features fallback,fail-double-definition; if [ $? -ne 0 ]; then exit 0; else exit 1; fi)
