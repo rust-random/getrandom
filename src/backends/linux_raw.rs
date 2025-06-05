@@ -114,7 +114,7 @@ pub struct Implementation;
 
 unsafe impl crate::Backend for Implementation {
     #[inline]
-    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    fn fill_uninit(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // Value of this error code is stable across all target arches.
         const EINTR: isize = -4;
 

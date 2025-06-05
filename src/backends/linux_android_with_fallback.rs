@@ -1,5 +1,5 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use super::{sanitizer, use_file};
+use super::{sanitizer, use_file, Backend};
 use crate::Error;
 use core::{
     ffi::c_void,
@@ -75,7 +75,7 @@ fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
 pub struct Implementation;
 
-unsafe impl crate::Backend for Implementation {
+unsafe impl Backend for Implementation {
     #[inline]
     fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         // Despite being only a single atomic variable, we still cannot always use
