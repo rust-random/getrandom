@@ -259,14 +259,14 @@ pub unsafe trait Backend {
 }
 
 /// Sets the fallback [`Backend`](crate::Backend).
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```ignore
 /// struct MyBackend;
-/// 
+///
 /// impl Backend for MyBackend { /* ... */ }
-/// 
+///
 /// set_backend!(MyBackend);
 /// ```
 #[cfg(feature = "custom-fallback")]
@@ -279,7 +279,9 @@ macro_rules! set_backend {
     ($t: ty) => {
         const _: () = {
             #[no_mangle]
-            extern "Rust" fn __getrandom_v03_fallback_fill_uninit(dest: &mut [::core::mem::MaybeUninit<u8>]) -> Result<(), $crate::Error> {
+            extern "Rust" fn __getrandom_v03_fallback_fill_uninit(
+                dest: &mut [::core::mem::MaybeUninit<u8>],
+            ) -> Result<(), $crate::Error> {
                 <$t as $crate::Backend>::fill_uninit(dest)
             }
 
