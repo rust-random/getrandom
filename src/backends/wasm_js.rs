@@ -2,8 +2,6 @@
 use crate::Error;
 use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
-
 #[cfg(not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"))))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
@@ -15,7 +13,7 @@ const MAX_BUFFER_SIZE: usize = 65536;
 
 #[cfg(not(target_feature = "atomics"))]
 #[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(MAX_BUFFER_SIZE) {
         if get_random_values(chunk).is_err() {
             return Err(Error::WEB_CRYPTO);
@@ -25,7 +23,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 #[cfg(target_feature = "atomics")]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // getRandomValues does not work with all types of WASM memory,
     // so we initially write to browser memory to avoid exceptions.
     let buf_len = usize::min(dest.len(), MAX_BUFFER_SIZE);
@@ -69,4 +67,13 @@ extern "C" {
 impl Error {
     /// The environment does not support the Web Crypto API.
     pub(crate) const WEB_CRYPTO: Error = Self::new_internal(10);
+}
+
+pub struct Implementation;
+
+unsafe impl crate::Backend for Implementation {
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        fill_inner(dest)
+    }
 }

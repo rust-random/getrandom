@@ -25,6 +25,12 @@ rustc-dep-of-std = ["dep:compiler_builtins", "dep:core"]
 # i.e. avoid unconditionally enabling it in library crates.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
+# Optional backend: custom-fallback
+# This flag allows a custom fallback backend.
+# This will be used as a last-resort instead of raising a compiler error when
+# no other backend is available.
+custom-fallback = []
+
 [dependencies]
 cfg-if = "1"
 
@@ -90,6 +96,7 @@ check-cfg = [
   'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
   'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
+  'cfg(getrandom_no_external_fallback)',
 ]
 
 [package.metadata.docs.rs]

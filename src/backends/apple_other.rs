@@ -2,16 +2,18 @@
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
-pub use crate::util::{inner_u32, inner_u64};
+pub struct Implementation;
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let dst_ptr = dest.as_mut_ptr().cast::<c_void>();
-    let ret = unsafe { libc::CCRandomGenerateBytes(dst_ptr, dest.len()) };
-    if ret == libc::kCCSuccess {
-        Ok(())
-    } else {
-        Err(Error::IOS_RANDOM_GEN)
+unsafe impl crate::Backend for Implementation {
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        let dst_ptr = dest.as_mut_ptr().cast::<c_void>();
+        let ret = unsafe { libc::CCRandomGenerateBytes(dst_ptr, dest.len()) };
+        if ret == libc::kCCSuccess {
+            Ok(())
+        } else {
+            Err(Error::IOS_RANDOM_GEN)
+        }
     }
 }
 

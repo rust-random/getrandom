@@ -2,12 +2,14 @@
 use crate::Error;
 use core::mem::MaybeUninit;
 
-pub use crate::util::{inner_u32, inner_u64};
+pub struct Implementation;
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    extern "Rust" {
-        fn __getrandom_v03_custom(dest: *mut u8, len: usize) -> Result<(), Error>;
+unsafe impl crate::Backend for Implementation {
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        extern "Rust" {
+            fn __getrandom_v03_custom(dest: *mut u8, len: usize) -> Result<(), Error>;
+        }
+        unsafe { __getrandom_v03_custom(dest.as_mut_ptr().cast(), dest.len()) }
     }
-    unsafe { __getrandom_v03_custom(dest.as_mut_ptr().cast(), dest.len()) }
 }

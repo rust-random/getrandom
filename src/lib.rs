@@ -39,7 +39,10 @@ mod util;
 #[cfg(feature = "std")]
 mod error_std_impls;
 
+pub use crate::backends::Backend;
 pub use crate::error::Error;
+
+use backends::Implementation;
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
 ///
@@ -96,7 +99,7 @@ pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
 #[inline]
 pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     if !dest.is_empty() {
-        backends::fill_inner(dest)?;
+        Implementation::fill_uninit(dest)?;
     }
 
     #[cfg(getrandom_msan)]
@@ -120,7 +123,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
 /// ```
 #[inline]
 pub fn u32() -> Result<u32, Error> {
-    backends::inner_u32()
+    Implementation::u32()
 }
 
 /// Get random `u64` from the system's preferred random number source.
@@ -134,5 +137,5 @@ pub fn u32() -> Result<u32, Error> {
 /// ```
 #[inline]
 pub fn u64() -> Result<u64, Error> {
-    backends::inner_u64()
+    Implementation::u64()
 }

@@ -108,33 +108,37 @@ fn is_rndr_available() -> bool {
     }
 }
 
-#[inline]
-pub fn inner_u32() -> Result<u32, Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
-    }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    let res = unsafe { rndr() };
-    res.map(truncate).ok_or(Error::RNDR_FAILURE)
-}
+pub struct Implementation;
 
-#[inline]
-pub fn inner_u64() -> Result<u64, Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
+unsafe impl crate::Backend for Implementation {
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        if !is_rndr_available() {
+            return Err(Error::RNDR_NOT_AVAILABLE);
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
     }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    let res = unsafe { rndr() };
-    res.ok_or(Error::RNDR_FAILURE)
-}
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    if !is_rndr_available() {
-        return Err(Error::RNDR_NOT_AVAILABLE);
+    #[inline]
+    fn u32() -> Result<u32, Error> {
+        if !is_rndr_available() {
+            return Err(Error::RNDR_NOT_AVAILABLE);
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.map(truncate).ok_or(Error::RNDR_FAILURE)
     }
-    // SAFETY: after this point, we know the `rand` target feature is enabled
-    unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
+
+    #[inline]
+    fn u64() -> Result<u64, Error> {
+        if !is_rndr_available() {
+            return Err(Error::RNDR_NOT_AVAILABLE);
+        }
+        // SAFETY: after this point, we know the `rand` target feature is enabled
+        let res = unsafe { rndr() };
+        res.ok_or(Error::RNDR_FAILURE)
+    }
 }
 
 impl Error {
