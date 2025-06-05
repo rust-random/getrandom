@@ -6,7 +6,7 @@ pub struct Implementation;
 
 unsafe impl crate::Backend for Implementation {
     #[inline]
-    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    fn fill_uninit(_dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         Err(Error::UNSUPPORTED)
     }
 
