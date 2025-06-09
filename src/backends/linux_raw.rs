@@ -13,6 +13,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
     // Based on `rustix` and `linux-raw-sys` code.
     cfg_if! {
         if #[cfg(target_arch = "arm")] {
+            // TODO(MSRV-1.78): Also check `target_abi = "eabi"`.
             // In thumb-mode, r7 is the frame pointer and is not permitted to be used in
             // an inline asm operand, so we have to use a different register and copy it
             // into r7 inside the inline asm.
@@ -32,6 +33,11 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                 options(nostack, preserves_flags)
             );
         } else if #[cfg(target_arch = "aarch64")] {
+            // TODO(MSRV-1.78): Also check `any(target_abi = "", target_abi = "ilp32")` above.
+            // According the the ILP32 patch for the kernel that hasn't yet
+            // been merged into the mainline, "AARCH64/ILP32 ABI uses standard
+            // syscall table [...] with the exceptions listed below," where
+            // getrandom is not mentioned as an exception.
             const __NR_getrandom: u32 = 278;
             core::arch::asm!(
                 "svc 0",
@@ -42,6 +48,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                 options(nostack, preserves_flags)
             );
         } else if #[cfg(target_arch = "loongarch64")] {
+            // TODO(MSRV-1.78): Also check `any(target_abi = "", target_abi = "ilp32")` above.
             const __NR_getrandom: u32 = 278;
             core::arch::asm!(
                 "syscall 0",
@@ -86,10 +93,10 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                 options(nostack, preserves_flags)
             );
         } else if #[cfg(target_arch = "x86_64")] {
-            #[cfg(target_pointer_width = "64")]
-            const __NR_getrandom: u32 = 318;
-            #[cfg(target_pointer_width = "32")]
-            const __NR_getrandom: u32 = (1 << 30) + 318;
+            // TODO(MSRV-1.78): Add `any(target_abi = "", target_abi = "x32")` above.
+            const __X32_SYSCALL_BIT: u32 = 0x40000000;
+            const OFFSET: u32 = if cfg!(target_pointer_width = "32") { __X32_SYSCALL_BIT } else { 0 };
+            const __NR_getrandom: u32 = OFFSET + 318;
 
             core::arch::asm!(
                 "syscall",
