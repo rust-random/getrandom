@@ -6,10 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.4] - UNRELEASED
 
+### Changed
+- Relax MSRV for the `linux_raw` opt-in backend on ARM targets [#688]
+
 ### Added
 - `unsupported` opt-in backend [#667]
 
 [#667]: https://github.com/rust-random/getrandom/pull/667
+[#688]: https://github.com/rust-random/getrandom/pull/688
 
 ## [0.3.3] - 2025-05-09
 
