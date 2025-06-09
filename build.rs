@@ -26,7 +26,7 @@ fn rustc_minor_version() -> Option<u64> {
     // where "xx" is the minor version which we want to extract
     let mut lines = stdout.lines();
     let first_line = lines.next()?;
-    let minor_ver_str = first_line.split(".").nth(1)?;
+    let minor_ver_str = first_line.split('.').nth(1)?;
     minor_ver_str.parse().ok()
 }
 
