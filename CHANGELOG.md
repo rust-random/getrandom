@@ -92,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `register_custom_getrandom!` macro [#504]
 - Implementation of `From<NonZeroU32>` for `Error` and `Error::code` method [#507]
 - Internet Explorer 11 support [#554]
-- Target-specific assocciated `Error` constants [#562]
+- Target-specific associated `Error` constants [#562]
 
 ### Changed
 - Use `ProcessPrng` on Windows 10 and up, and use `RtlGenRandom` on older Windows versions [#415]
@@ -240,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update MSRV to 1.36 [#291]
 - Use getentropy on Emscripten [#307]
-- Solaris: consistantly use `/dev/random` source [#310]
+- Solaris: consistently use `/dev/random` source [#310]
 - Move 3ds selection above rdrand/js/custom fallback [#312]
 - Remove buffer zeroing from Node.js implementation [#315]
 - Use `open` instead of `open64` [#326]
