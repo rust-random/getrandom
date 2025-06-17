@@ -27,7 +27,7 @@ const FD_ONGOING_INIT: libc::c_int = -2;
 // In theory `libc::c_int` could be something other than `i32`, but for the
 // targets we currently support that use `use_file`, it is always `i32`.
 // If/when we add support for a target where that isn't the case, we may
-// need to use a different atomic type or make other accomodations. The
+// need to use a different atomic type or make other accommodations. The
 // compiler will let us know if/when that is the case, because the
 // `FD.store(fd)` would fail to compile.
 //
