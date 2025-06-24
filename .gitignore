@@ -2,3 +2,5 @@
 **/*.rs.bk
 nopanic_check/Cargo.lock
 nopanic_check/target/
+fallback_test/Cargo.lock
+fallback_test/target/
