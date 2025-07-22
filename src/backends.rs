@@ -100,7 +100,15 @@ cfg_if! {
                 // Minimum supported Linux kernel version for MUSL targets
                 // is not specified explicitly (as of Rust 1.77) and they
                 // are used in practice to target pre-3.17 kernels.
-                target_env = "musl",
+                all(
+                    target_env = "musl",
+                    not(
+                        any(
+                            target_arch = "riscv64",
+                            target_arch = "riscv32",
+                        ),
+                    ),
+                ),
             ),
         )
     ))] {
