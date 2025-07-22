@@ -158,7 +158,18 @@ mod sync {
     pub(super) fn wait() {
         let op = libc::FUTEX_WAIT | libc::FUTEX_PRIVATE_FLAG;
         let timeout_ptr = core::ptr::null::<libc::timespec>();
+        #[cfg(not(target_arch = "riscv32"))]
         let ret = unsafe { libc::syscall(libc::SYS_futex, &FD, op, FD_ONGOING_INIT, timeout_ptr) };
+        #[cfg(target_arch = "riscv32")]
+        let ret = unsafe {
+            libc::syscall(
+                libc::SYS_futex_time64,
+                &FD,
+                op,
+                FD_ONGOING_INIT,
+                timeout_ptr,
+            )
+        };
         // FUTEX_WAIT should return either 0 or EAGAIN error
         debug_assert!({
             match ret {
@@ -172,7 +183,13 @@ mod sync {
     /// Wake up all threads which wait for value of atomic `FD` to change.
     pub(super) fn wake() {
         let op = libc::FUTEX_WAKE | libc::FUTEX_PRIVATE_FLAG;
+
+        #[cfg(not(target_arch = "riscv32"))]
         let ret = unsafe { libc::syscall(libc::SYS_futex, &FD, op, libc::INT_MAX) };
+
+        #[cfg(target_arch = "riscv32")]
+        let ret = unsafe { libc::syscall(libc::SYS_futex_time64, &FD, op, libc::INT_MAX) };
+
         debug_assert!(ret >= 0);
     }
 
