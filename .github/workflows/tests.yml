@@ -82,11 +82,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: 1.88.0
           targets: aarch64-apple-ios-sim
       - name: Install precompiled cargo-dinghy
         run: |
-          VERSION=0.8.0
+          VERSION=0.8.1
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
       - name: Check cargo-dinghy version.
