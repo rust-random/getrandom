@@ -64,6 +64,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | WASI 0.1           | `wasm32‑wasip1`    | [`random_get`]
 | WASI 0.2           | `wasm32‑wasip2`    | [`get-random-u64`]
 | SOLID              | `*-kmc-solid_*`    | `SOLID_RNG_SampleRandomBytes`
+| OP-TEE             | `*-optee`          | [`TEE_GenerateRandom`] from OP-TEE UTEE API
 | Nintendo 3DS       | `*-nintendo-3ds`   | [`getrandom`][18]
 | ESP-IDF            | `*‑espidf`         | [`esp_fill_random`] WARNING: see "Early Boot" section below
 | PS Vita            | `*-vita-*`         | [`getentropy`][19]
@@ -372,6 +373,7 @@ dual licensed as above, without any additional terms or conditions.
 [`wasm-bindgen`]: https://github.com/rustwasm/wasm-bindgen
 [`module`]: https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/module.html
 [`sys_read_entropy`]: https://github.com/hermit-os/kernel/blob/315f58ff5efc81d9bf0618af85a59963ff55f8b1/src/syscalls/entropy.rs#L47-L55
+[`TEE_GenerateRandom`]: https://github.com/OP-TEE/optee_os/blob/master/lib/libutee/include/tee_internal_api.h
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/WebAssembly/WASI
 [Emscripten]: https://emscripten.org

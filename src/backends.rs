@@ -173,6 +173,9 @@ cfg_if! {
     } else if #[cfg(target_os = "solid_asp3")] {
         mod solid;
         pub use solid::*;
+    } else if #[cfg(target_os = "optee")] {
+        mod optee;
+        pub use optee::*;
     } else if #[cfg(all(windows, any(target_vendor = "win7", getrandom_windows_legacy)))] {
         mod windows7;
         pub use windows7::*;
