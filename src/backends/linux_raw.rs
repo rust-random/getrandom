@@ -34,7 +34,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             );
         } else if #[cfg(target_arch = "aarch64")] {
             // TODO(MSRV-1.78): Also check `any(target_abi = "", target_abi = "ilp32")` above.
-            // According the the ILP32 patch for the kernel that hasn't yet
+            // According the ILP32 patch for the kernel that hasn't yet
             // been merged into the mainline, "AARCH64/ILP32 ABI uses standard
             // syscall table [...] with the exceptions listed below," where
             // getrandom is not mentioned as an exception.
