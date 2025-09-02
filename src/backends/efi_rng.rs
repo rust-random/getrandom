@@ -12,8 +12,6 @@ use r_efi::{
 
 extern crate std;
 
-pub use crate::util::{inner_u32, inner_u64};
-
 #[cfg(not(target_os = "uefi"))]
 compile_error!("`efi_rng` backend can be enabled only for UEFI targets!");
 
@@ -94,27 +92,31 @@ fn init() -> Result<NonNull<rng::Protocol>, Error> {
     Err(Error::NO_RNG_HANDLE)
 }
 
-#[inline]
-pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    let protocol = match NonNull::new(RNG_PROTOCOL.load(Relaxed)) {
-        Some(p) => p,
-        None => init()?,
-    };
+pub struct Implementation;
 
-    let mut alg_guid = rng::ALGORITHM_RAW;
-    let ret = unsafe {
-        ((*protocol.as_ptr()).get_rng)(
-            protocol.as_ptr(),
-            &mut alg_guid,
-            dest.len(),
-            dest.as_mut_ptr().cast::<u8>(),
-        )
-    };
+unsafe impl crate::Backend for Implementation {
+    #[inline]
+    fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        let protocol = match NonNull::new(RNG_PROTOCOL.load(Relaxed)) {
+            Some(p) => p,
+            None => init()?,
+        };
 
-    if ret.is_error() {
-        Err(Error::from_uefi_code(ret.as_usize()))
-    } else {
-        Ok(())
+        let mut alg_guid = rng::ALGORITHM_RAW;
+        let ret = unsafe {
+            ((*protocol.as_ptr()).get_rng)(
+                protocol.as_ptr(),
+                &mut alg_guid,
+                dest.len(),
+                dest.as_mut_ptr().cast::<u8>(),
+            )
+        };
+
+        if ret.is_error() {
+            Err(Error::from_uefi_code(ret.as_usize()))
+        } else {
+            Ok(())
+        }
     }
 }
 
