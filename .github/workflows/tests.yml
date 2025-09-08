@@ -256,7 +256,7 @@ jobs:
     runs-on: ubuntu-24.04
     # The job is currently broken:
     # https://github.com/rust-random/getrandom/actions/runs/17557903310/job/49871767957
-    - if: false
+    if: false
     steps:
       - uses: actions/checkout@v5
       - name: Test in NetBSD
