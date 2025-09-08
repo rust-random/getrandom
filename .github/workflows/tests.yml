@@ -255,6 +255,9 @@ jobs:
     name: NetBSD VM
     runs-on: ubuntu-24.04
     steps:
+      # The job is currently broken:
+      # https://github.com/rust-random/getrandom/actions/runs/17557903310/job/49871767957
+      - if: false
       - uses: actions/checkout@v5
       - name: Test in NetBSD
         uses: vmactions/netbsd-vm@v1
