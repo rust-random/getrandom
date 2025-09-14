@@ -1,7 +1,5 @@
-///! Implementation for Ariel OS
+//! Implementation for Ariel OS
 use crate::Error;
-use ariel_os_random;
-use core::ffi::c_void;
 use core::mem::MaybeUninit;
 use rand::RngCore;
 
