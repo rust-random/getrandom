@@ -78,16 +78,17 @@ Pull Requests that add support for new targets to `getrandom` are always welcome
 `getrandom` also provides optional (opt-in) backends, which allow users to customize the source
 of randomness based on their specific needs:
 
-| Backend name      | Target               | Target Triple            | Implementation
-| ----------------- | -------------------- | ------------------------ | --------------
-| `linux_getrandom` | Linux, Android       | `*‑linux‑*`              | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
-| `linux_raw`       | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses raw `asm!`-based syscalls instead of `libc`.
-| `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
-| `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
+| Backend name      | Target               | Target Triple                             | Implementation
+| ----------------- | -------------------- |-------------------------------------------| --------------
+| `linux_getrandom` | Linux, Android       | `*‑linux‑*`                               | [`getrandom`][1] system call (without `/dev/urandom` fallback). Bumps minimum supported Linux kernel version to 3.17 and Android API level to 23 (Marshmallow).
+| `linux_raw`       | Linux, Android       | `*‑linux‑*`                               | Same as `linux_getrandom`, but uses raw `asm!`-based syscalls instead of `libc`.
+| `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`                      | [`RDRAND`] instruction
+| `rndr`            | AArch64              | `aarch64-*`                               | [`RNDR`] register
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
-| `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nightly compiler)
-| `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
-| `unsupported`     | All targets          | `*`                      | Always returns `Err(Error::UNSUPPORTED)` (see [unsupported backend])
+| `efi_rng`         | UEFI                 | `*-unknown‑uefi`                          | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nightly compiler)
+| `ariel-os`        | Ariel OS             |                                           | Ariel OS's built-in entropy source (see [Ariel OS documentation](https://ariel-os.org/docs/development/getting-random-numbers/))
+| `custom`          | All targets          | `*`                                       | User-provided custom implementation (see [custom backend])
+| `unsupported`     | All targets          | `*`                                       | Always returns `Err(Error::UNSUPPORTED)` (see [unsupported backend])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
 The flag can be set either by specifying the `rustflags` field in [`.cargo/config.toml`]:

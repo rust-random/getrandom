@@ -74,10 +74,15 @@ js-sys = { version = "0.3.77", default-features = false, optional = true }
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
+# ariel-os
+[target.'cfg(getrandom_backend = "ariel-os")'.dependencies]
+ariel-os-random = { git = "https://github.com/ariel-os/ariel-os.git", tag = "v0.2.1", features = ["csprng"] }
+rand = { version = "0.8.5", default-features = false }
+
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "wasm_js", "unsupported"))',
+  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "wasm_js", "ariel-os", "unsupported"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_windows_legacy)',
   'cfg(getrandom_test_linux_fallback)',

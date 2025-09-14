@@ -190,6 +190,9 @@ cfg_if! {
             For more information see: \
             https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
         ));
+    } else if #[cfg(getrandom_backend = "ariel-os")] {
+        mod ariel_os;
+        pub use ariel_os::*;
     } else {
         compile_error!(concat!(
             "target is not supported. You may need to define a custom backend see: \

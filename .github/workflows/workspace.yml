@@ -37,6 +37,10 @@ jobs:
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="esp_idf"
       run: cargo clippy -Zbuild-std=core --target riscv32imc-esp-espidf
+    - name: Ariel OS (ariel_os.rs)
+      env:
+        RUSTFLAGS: -Dwarnings --cfg getrandom_backend="ariel-os"
+      run: cargo clippy -Zbuild-std=core --target riscv32imac-unknown-none-elf
     - name: Fuchsia (fuchsia.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-unknown-fuchsia
     - name: OpenBSD (getentropy.rs)
