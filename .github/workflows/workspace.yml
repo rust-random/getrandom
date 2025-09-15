@@ -84,7 +84,7 @@ jobs:
     - name: WASI preview 1 (wasi.rs)
       run: cargo clippy -Zbuild-std=core --target wasm32-wasip1
     - name: WASI preview 2 (wasi.rs)
-      run: cargo clippy -Zbuild-std=core,alloc --target wasm32-wasip2
+      run: cargo clippy --target wasm32-wasip2
     - name: Windows 7 (windows7.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-win7-windows-msvc
     - name: Windows (windows.rs)
