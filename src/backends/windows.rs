@@ -44,7 +44,7 @@ pub use crate::util::{inner_u32, inner_u64};
 extern "system" {
     fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL;
 }
-#[allow(clippy::upper_case_acronyms)]
+#[allow(clippy::upper_case_acronyms, clippy::incompatible_msrv)]
 type BOOL = core::ffi::c_int; // MSRV 1.64, similarly OK for this backend.
 const TRUE: BOOL = 1;
 
