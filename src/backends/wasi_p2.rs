@@ -1,7 +1,7 @@
 //! Implementation for WASI Preview 2.
 use crate::Error;
 use core::mem::MaybeUninit;
-use wasi::random::random::get_random_u64;
+use wasip2::random::random::get_random_u64;
 
 #[inline]
 pub fn inner_u32() -> Result<u32, Error> {
