@@ -1,6 +1,6 @@
 //! Implementation for WASI Preview 2.
 use crate::Error;
-use core::mem::MaybeUninit;
+use core::{mem::MaybeUninit, ptr::copy_nonoverlapping};
 use wasip2::random::random::get_random_u64;
 
 #[inline]
@@ -16,8 +16,6 @@ pub fn inner_u64() -> Result<u64, Error> {
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    use core::ptr::copy_nonoverlapping;
-
     let (prefix, chunks, suffix) = unsafe { dest.align_to_mut::<MaybeUninit<u64>>() };
 
     // We use `get_random_u64` instead of `get_random_bytes` because the latter creates
