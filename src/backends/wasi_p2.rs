@@ -17,7 +17,6 @@ pub fn inner_u64() -> Result<u64, Error> {
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     use core::ptr::copy_nonoverlapping;
-    use wasi::random::random::get_random_u64;
 
     let (prefix, chunks, suffix) = unsafe { dest.align_to_mut::<MaybeUninit<u64>>() };
 
