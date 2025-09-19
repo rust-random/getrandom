@@ -182,6 +182,9 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
+    } else if #[cfg(feature = "custom-fallback")] {
+        mod custom;
+        pub use custom::*;
     } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
         compile_error!(concat!(
             "The wasm32-unknown-unknown targets are not supported by default; \

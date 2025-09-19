@@ -16,6 +16,10 @@ exclude = [".*"]
 # use std to retrieve OS error descriptions
 std = []
 
+# Use the custom backend on unsupported targets
+# WARNING: this feature SHOULD be enabled only by fallback implementation crates!
+custom-fallback = []
+
 # Optional backend: wasm_js
 # This flag enables the backend but does not select it. To use the backend, use
 # this flag *and* set getrandom_backend=wasm_js (see README).
