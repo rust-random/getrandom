@@ -29,8 +29,8 @@ cfg_if! {
         mod efi_rng;
         pub use efi_rng::*;
     } else if #[cfg(getrandom_backend = "windows_legacy")] {
-        mod windows7;
-        pub use windows7::*;
+        mod windows_legacy;
+        pub use windows_legacy::*;
     } else if #[cfg(all(getrandom_backend = "wasm_js"))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
@@ -177,8 +177,8 @@ cfg_if! {
         mod solid;
         pub use solid::*;
     } else if #[cfg(all(windows, target_vendor = "win7"))] {
-        mod windows7;
-        pub use windows7::*;
+        mod windows_legacy;
+        pub use windows_legacy::*;
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::*;
