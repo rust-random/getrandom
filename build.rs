@@ -48,7 +48,7 @@ fn main() {
 
         match rustc_minor_version() {
             Some(minor_ver) if minor_ver < WIN7_INTRODUCED_MINOR_VER => {
-                println!("cargo:rustc-cfg=getrandom_windows_legacy");
+                println!("cargo:rustc-cfg=getrandom_backend=\"windows-legacy\"");
             }
             None => println!("cargo:warning=Couldn't detect minor version of the Rust compiler"),
             _ => {}
