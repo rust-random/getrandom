@@ -86,6 +86,7 @@ of randomness based on their specific needs:
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
 | `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
 | `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nightly compiler)
+| `windows_legacy`  | Windows              | `*-windows-*`            | [`RtlGenRandom`]
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 | `unsupported`     | All targets          | `*`                      | Always returns `Err(Error::UNSUPPORTED)` (see [unsupported backend])
 
