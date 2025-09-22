@@ -28,7 +28,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "efi_rng")] {
         mod efi_rng;
         pub use efi_rng::*;
-    } else if #[cfg(all(getrandom_backend = "wasm_js"))] {
+    } else if #[cfg(getrandom_backend = "wasm_js")] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
                 mod wasm_js;
@@ -183,13 +183,20 @@ cfg_if! {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
-        compile_error!(concat!(
-            "The wasm32-unknown-unknown targets are not supported by default; \
-            you may need to enable the \"wasm_js\" configuration flag. Note \
-            that enabling the `wasm_js` feature flag alone is insufficient. \
-            For more information see: \
-            https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
-        ));
+        cfg_if! {
+            if #[cfg(feature = "assume_wasm_js")] {
+                mod wasm_js;
+                pub use wasm_js::*;
+            } else {
+                compile_error!(concat!(
+                    "The wasm32-unknown-unknown targets are not supported by default; \
+                    you may need to enable the \"wasm_js\" configuration flag. Note \
+                    that enabling the `wasm_js` feature flag alone is insufficient. \
+                    For more information see: \
+                    https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
+                ));
+            }
+        }
     } else {
         compile_error!(concat!(
             "target is not supported. You may need to define a custom backend see: \
