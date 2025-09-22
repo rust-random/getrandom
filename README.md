@@ -132,20 +132,26 @@ which JavaScript interface should be used (or if JavaScript is available at all)
 
 To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using the Web
 Crypto methods [described above][opt-in] via [`wasm-bindgen`], do
-*both* of the following:
+one of the following:
 
--   Use the `wasm_js` feature flag, i.e.
-    `getrandom = { version = "0.3", features = ["wasm_js"] }`.
-    On its own, this only makes the backend available. (As a side effect this
-    will make your `Cargo.lock` significantly larger if you are not already
-    using [`wasm-bindgen`], but otherwise enabling this feature is harmless.)
--   Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` ([see above][opt-in]).
+-   Use the `wasm_js` feature flag to enable the backend (which has the side
+    effect of making `Cargo.lock` significantly larger if you are not already
+    using [`wasm-bindgen`], but is otherwise harmless), **and**
+    set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` to select this backend
+    ([see above][opt-in]).
+-   Use the `assume_wasm_js` feature flag:
+    `getrandom = { version = "0.4", features = ["assume_wasm_js"] }`.
+    This enables `wasm_js` and uses the backend by default on `wasm32` with
+    unknown OS. This feature could cause build issues on non-web WASM platforms,
+    thus it is recommended not to use this feature except where the target
+    platform is known to be web browsers or Node.js.
 
 This backend supports both web browsers (main window and Web Workers)
 and Node.js (v19 or later) environments.
 
-WARNING: It is highly recommended to enable the `wasm_js` feature only for
-binary crates and tests, i.e. avoid unconditionally enabling it in library crates.
+WARNING: enabling the `wasm_js` or `assume_wasm_js` feature will bloat
+`Cargo.lock` on all platforms (where [`wasm-bindgen`] is not an existing
+dependency).
 
 ### Custom backend
 

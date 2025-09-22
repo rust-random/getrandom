@@ -23,6 +23,10 @@ std = []
 # i.e. avoid unconditionally enabling it in library crates.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
+# This flag enables the wasm_js backend and uses it by default on wasm32 where
+# the target_os is unknown. The getrandom_backend cfg may override this.
+assume_wasm_js = ["wasm_js"]
+
 [dependencies]
 cfg-if = "1"
 
