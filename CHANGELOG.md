@@ -6,18 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.4] - UNRELEASED
 
-### Changed
-- Relax MSRV for the `linux_raw` opt-in backend on ARM targets [#688]
-
 ### Added
 - `unsupported` opt-in backend [#667]
+- `windows_legacy` opt-in backend [#724]
+
+### Changed
+- Implement Memory Sanitizer unpoisoning more precisely [#678]
+- Relax MSRV for the `linux_raw` opt-in backend on ARM targets [#688]
+- Use `getrandom` syscall on all RISC-V Linux targets [#699]
+- Replaced `wasi` dependency with `wasip2` [#721]
 
 ### Removed
 - Unstable `rustc-dep-of-std` crate feature [#694]
 
 [#667]: https://github.com/rust-random/getrandom/pull/667
+[#678]: https://github.com/rust-random/getrandom/pull/678
 [#688]: https://github.com/rust-random/getrandom/pull/688
 [#694]: https://github.com/rust-random/getrandom/pull/694
+[#699]: https://github.com/rust-random/getrandom/pull/699
+[#721]: https://github.com/rust-random/getrandom/pull/721
+[#724]: https://github.com/rust-random/getrandom/pull/724
 
 ## [0.3.3] - 2025-05-09
 
