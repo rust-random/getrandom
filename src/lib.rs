@@ -9,7 +9,7 @@
 )]
 #![doc = include_str!("../README.md")]
 #![warn(rust_2018_idioms, unused_lifetimes, missing_docs)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(getrandom_backend = "efi_rng", feature(uefi_std))]
 #![deny(
     clippy::cast_lossless,
