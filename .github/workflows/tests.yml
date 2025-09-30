@@ -157,42 +157,37 @@ jobs:
         with:
           toolchain: nightly-2025-09-28
           components: rust-src
+      # Use --all-targets to skip doctests, which don't work with the -Zsanitizer=memory flag.
+      # See: https://github.com/rust-lang/rust/issues/134172
       - name: default configuration
         env:
           RUSTFLAGS: -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - name: --cfg getrandom_backend="linux_getrandom"
         env:
           RUSTFLAGS: --cfg getrandom_backend="linux_getrandom" -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_backend="linux_getrandom" -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - name: --cfg getrandom_backend="linux_raw"
         env:
           RUSTFLAGS: --cfg getrandom_backend="linux_raw" -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_backend="linux_raw" -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - name: --cfg getrandom_backend="linux_fallback"
         env:
           RUSTFLAGS: --cfg getrandom_backend="linux_fallback" -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_backend="linux_fallback" -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - if: ${{ matrix.arch == 'x86_64' }}
         name: --cfg getrandom_backend="rdrand"
         env:
           RUSTFLAGS: --cfg getrandom_backend="rdrand" -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_backend="rdrand" -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - name: --cfg getrandom_test_linux_fallback
         env:
           RUSTFLAGS: --cfg getrandom_test_linux_fallback -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_test_linux_fallback -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
       - name: --cfg getrandom_test_linux_without_fallback
         env:
           RUSTFLAGS: --cfg getrandom_test_linux_without_fallback -Dwarnings -Zsanitizer=memory
-          RUSTDOCFLAGS: --cfg getrandom_test_linux_without_fallback -Dwarnings -Zsanitizer=memory
-        run: cargo test -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
+        run: cargo test --all-targets -Zbuild-std --target=${{ matrix.arch }}-unknown-linux-gnu
 
   cross:
     name: Cross
