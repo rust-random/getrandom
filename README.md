@@ -84,7 +84,7 @@ of randomness based on their specific needs:
 | `linux_raw`       | Linux, Android       | `*‑linux‑*`              | Same as `linux_getrandom`, but uses raw `asm!`-based syscalls instead of `libc`.
 | `rdrand`          | x86, x86-64          | `x86_64-*`, `i686-*`     | [`RDRAND`] instruction
 | `rndr`            | AArch64              | `aarch64-*`              | [`RNDR`] register
-| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Requires feature `wasm_js` ([see below](#webassembly-support)).
+| `wasm_js`         | Web Browser, Node.js | `wasm32‑unknown‑unknown`, `wasm32v1-none` | [`Crypto.getRandomValues`]. Enabled by the `wasm_js` feature ([see below](#webassembly-support)).
 | `efi_rng`         | UEFI                 | `*-unknown‑uefi`         | [`EFI_RNG_PROTOCOL`] with `EFI_RNG_ALGORITHM_RAW` (requires `std` and Nightly compiler)
 | `windows_legacy`  | Windows              | `*-windows-*`            | [`RtlGenRandom`]
 | `custom`          | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
@@ -138,8 +138,9 @@ requires [`wasm-bindgen`], **bloating `Cargo.lock`** and
 
 To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using the Web
 Crypto methods [described above][opt-in] via [`wasm-bindgen`], enable the
-`wasm_js` feature flag. Optionally, one can also set
-`RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`.
+`wasm_js` feature flag. Setting `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`
+is allowed but is no longer required and does nothing (it was required in a
+prior version of this crate).
 
 WARNING: enabling the `wasm_js` feature will bloat `Cargo.lock` on all platforms
 (where [`wasm-bindgen`] is not an existing dependency) and is known to cause
