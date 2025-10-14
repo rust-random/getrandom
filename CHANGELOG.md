@@ -4,7 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.4] - UNRELEASED
+## [0.3.4] - 2025-10-14
+
+### Major change to `wasm_js` backend
+
+Now, when the `wasm_js` feature is enabled, the `wasm_js` backend will be used
+by default. Users of `wasm32-unknown-unknown` targeting JavaScript environments
+like the Web and Node.js will no longer need to specify:
+```
+--cfg getrandom_backend="wasm_js"
+```
+in `RUSTFLAGS` for the crate to compile. They can now simple enable a feature.
+
+Note: this should not affect non-JS users of the `wasm32-unknown-unknown`
+target. Using `--cfg getrandom_backend` will still override the source of
+randomness _even if_ the `wasm_js` feature is enabled. This includes
+`--cfg getrandom_backend=custom` and `--cfg getrandom_backend=unsupported`.
+
+For more information, see the discussions in [#671], [#675], and [#730].
 
 ### Added
 - `unsupported` opt-in backend [#667]
@@ -15,17 +32,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Relax MSRV for the `linux_raw` opt-in backend on ARM targets [#688]
 - Use `getrandom` syscall on all RISC-V Linux targets [#699]
 - Replaced `wasi` dependency with `wasip2` [#721]
+- Enable `wasm_js` backend by default if the `wasm_js` feature is enabled [#730]
 
 ### Removed
 - Unstable `rustc-dep-of-std` crate feature [#694]
 
 [#667]: https://github.com/rust-random/getrandom/pull/667
+[#671]: https://github.com/rust-random/getrandom/issues/671
+[#675]: https://github.com/rust-random/getrandom/pull/675
 [#678]: https://github.com/rust-random/getrandom/pull/678
 [#688]: https://github.com/rust-random/getrandom/pull/688
 [#694]: https://github.com/rust-random/getrandom/pull/694
 [#699]: https://github.com/rust-random/getrandom/pull/699
 [#721]: https://github.com/rust-random/getrandom/pull/721
 [#724]: https://github.com/rust-random/getrandom/pull/724
+[#730]: https://github.com/rust-random/getrandom/pull/730
 
 ## [0.3.3] - 2025-05-09
 
@@ -33,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doc improvements [#632] [#634] [#635]
 - Add crate version to docs.rs links used in `compile_error!`s [#639]
 
-## Fixed
+### Fixed
 - Error handling in WASI p1 [#661]
 
 [#632]: https://github.com/rust-random/getrandom/pull/632
