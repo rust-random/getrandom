@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `RawOsError` type alias [#739]
+
+[#739]: https://github.com/rust-random/getrandom/pull/739
+
 ## [0.3.4] - 2025-10-14
 
 ### Major change to `wasm_js` backend
@@ -631,6 +638,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[Unreleased]: https://github.com/rust-random/getrandom/compare/v0.3.4...master
 [0.3.4]: https://github.com/rust-random/getrandom/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/rust-random/getrandom/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/rust-random/getrandom/compare/v0.3.1...v0.3.2

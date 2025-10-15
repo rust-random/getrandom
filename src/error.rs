@@ -7,6 +7,7 @@ use core::fmt;
 // https://doc.rust-lang.org/std/io/type.RawOsError.html)
 cfg_if::cfg_if!(
     if #[cfg(target_os = "uefi")] {
+        /// Raw error code
         // See the UEFI spec for more information:
         // https://uefi.org/specs/UEFI/2.10/Apx_D_Status_Codes.html
         pub type RawOsError = usize;
