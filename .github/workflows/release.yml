@@ -17,3 +17,25 @@ jobs:
     - run: cargo publish
       env:
         CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+    # Source: https://medium.com/@usman_qb
+    - name: Create release body
+      id: create_release_body
+      run: |
+        RELEASEVERSION="[${{ '[' + github.ref_name.slice(1) + ']' }}]"
+        echo "Version: $RELEASEVERSION"
+        RELEASEBODY=$(awk -v ver="$RELEASEVERSION" '/^## / { if (p) { exit }; if ($2 == ver) { p=1; next } } p && NF' CHANGELOG.md)
+        {
+        echo 'RELEASEBODY<<EOF'
+        echo "${RELEASEBODY}"
+        echo EOF
+        } >> $GITHUB_OUTPUT
+
+    - name: Create Release
+    env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    run: |
+        echo "Creating release for ${{ github.ref_name }}"
+        echo "${{ steps.create_release_body.outputs.RELEASEBODY }}"
+        gh release create "${{ github.ref_name }}" --title "release_${{ github.ref_name }}" --notes "${{ steps.create_release_body.outputs.RELEASEBODY }}"
+        echo "Release created successfully"
