@@ -39,7 +39,7 @@ mod util;
 #[cfg(feature = "std")]
 mod error_std_impls;
 
-pub use crate::error::Error;
+pub use crate::error::{Error, RawOsError};
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
 ///
