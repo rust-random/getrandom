@@ -3,17 +3,26 @@ extern crate std;
 
 use core::fmt;
 
-// This private alias mirrors `std::io::RawOsError`:
-// https://doc.rust-lang.org/std/io/type.RawOsError.html)
 cfg_if::cfg_if!(
     if #[cfg(target_os = "uefi")] {
         // See the UEFI spec for more information:
         // https://uefi.org/specs/UEFI/2.10/Apx_D_Status_Codes.html
-        type RawOsError = usize;
+
+        /// Raw error code.
+        ///
+        /// This alias mirrors unstable [`std::io::RawOsError`].
+        ///
+        /// [`std::io::RawOsError`]: https://doc.rust-lang.org/std/io/type.RawOsError.html
+        pub type RawOsError = usize;
         type NonZeroRawOsError = core::num::NonZeroUsize;
         const UEFI_ERROR_FLAG: RawOsError = 1 << (RawOsError::BITS - 1);
     } else {
-        type RawOsError = i32;
+        /// Raw error code.
+        ///
+        /// This alias mirrors unstable [`std::io::RawOsError`].
+        ///
+        /// [`std::io::RawOsError`]: https://doc.rust-lang.org/std/io/type.RawOsError.html
+        pub type RawOsError = i32;
         type NonZeroRawOsError = core::num::NonZeroI32;
     }
 );
