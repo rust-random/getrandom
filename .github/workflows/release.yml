@@ -37,5 +37,5 @@ jobs:
     run: |
         echo "Creating release for ${{ github.ref_name }}"
         echo "${{ steps.create_release_body.outputs.RELEASEBODY }}"
-        gh release create "${{ github.ref_name }}" --title "release_${{ github.ref_name }}" --notes "${{ steps.create_release_body.outputs.RELEASEBODY }}"
+        gh release create "${{ github.ref_name }}" --draft --title "release_${{ github.ref_name }}" --notes "${{ steps.create_release_body.outputs.RELEASEBODY }}"
         echo "Release created successfully"
