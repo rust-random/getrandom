@@ -183,7 +183,7 @@ mod sync {
     // be problematic if they are being executed faster than entropy is being
     // collected.
     //
-    // OTOH, reading a byte instead of polling is more compatible with
+    // On the other hand, reading a byte instead of polling is more compatible with
     // sandboxes that disallow `poll()` but which allow reading /dev/random,
     // e.g. sandboxes that assume that `poll()` is for network I/O. This way,
     // fewer applications will have to insert pre-sandbox-initialization logic.
@@ -222,7 +222,7 @@ mod sync {
             }
             let err = last_os_error();
             // Assuming that `poll` is called correctly,
-            // on Linux it can return only EINTR and ENOMEM errors.
+            // on Linux it can return only EINTR or ENOMEM errors.
             match err.raw_os_error() {
                 Some(libc::EINTR) => continue,
                 _ => break Err(err),

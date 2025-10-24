@@ -49,7 +49,7 @@ compile_error!(
 // Fails with probability < 2^(-90) on 32-bit systems
 #[target_feature(enable = "rdrand")]
 unsafe fn self_test() -> bool {
-    // On AMD, RDRAND returns 0xFF...FF on failure, count it as a collision.
+    // On AMD, RDRAND returns 0xFF...FF on failure; count it as a collision.
     let mut prev = !0; // TODO(MSRV 1.43): Move to usize::MAX
     let mut fails = 0;
     for _ in 0..8 {

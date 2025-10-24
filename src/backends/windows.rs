@@ -52,8 +52,8 @@ const TRUE: BOOL = 1;
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let result = unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
     // Since Windows 10, calls to the user-mode RNG are guaranteed to never
-    // fail during runtime (rare windows W); `ProcessPrng` will only ever
-    // return 1 (which is how windows represents TRUE).
+    // fail during runtime (rare Windows failures); `ProcessPrng` will only ever
+    // return 1 (which is how Windows represents TRUE).
     // See the bottom of page 6 of the aforementioned Windows RNG
     // whitepaper for more information.
     debug_assert!(result == TRUE);
