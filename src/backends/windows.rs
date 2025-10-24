@@ -51,9 +51,9 @@ const TRUE: BOOL = 1;
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let result = unsafe { ProcessPrng(dest.as_mut_ptr().cast::<u8>(), dest.len()) };
-    // `ProcessPrng` is documented to always return TRUE.
-    // See the bottom of page 6 of the aforementioned Windows RNG
-    // whitepaper for more information.
+    // `ProcessPrng` is documented to always return TRUE. All potential errors are handled
+    // during loading of `BCryptPrimitive.dll`. See the "Process base PRNG" section
+    // in the aforementioned Windows RNG whitepaper for more information.
     debug_assert!(result == TRUE);
     Ok(())
 }
