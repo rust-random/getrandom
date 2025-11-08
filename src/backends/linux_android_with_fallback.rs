@@ -3,7 +3,7 @@ use super::{sanitizer, use_file};
 use crate::Error;
 use core::{
     ffi::c_void,
-    mem::{transmute, MaybeUninit},
+    mem::{MaybeUninit, transmute},
     ptr::NonNull,
     sync::atomic::{AtomicPtr, Ordering},
 };

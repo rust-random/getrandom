@@ -2,7 +2,7 @@
 extern crate test;
 
 use std::{
-    mem::{size_of, MaybeUninit},
+    mem::{MaybeUninit, size_of},
     slice,
 };
 

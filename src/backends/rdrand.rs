@@ -1,6 +1,6 @@
 //! RDRAND backend for x86(-64) targets
-use crate::{util::slice_as_uninit, Error};
-use core::mem::{size_of, MaybeUninit};
+use crate::{Error, util::slice_as_uninit};
+use core::mem::{MaybeUninit, size_of};
 
 #[path = "../lazy.rs"]
 mod lazy;

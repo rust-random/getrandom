@@ -147,7 +147,7 @@ mod sync {
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sync {
-    use super::{open_readonly, util_libc::last_os_error, Error, FD, FD_ONGOING_INIT};
+    use super::{Error, FD, FD_ONGOING_INIT, open_readonly, util_libc::last_os_error};
 
     /// Wait for atomic `FD` to change value from `FD_ONGOING_INIT` to something else.
     ///
