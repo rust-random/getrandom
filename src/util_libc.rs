@@ -29,7 +29,7 @@ cfg_if! {
     if #[cfg(target_os = "vxworks")] {
         use libc::errnoGet as get_errno;
     } else {
-        unsafe fn get_errno() -> libc::c_int { *errno_location() }
+        unsafe fn get_errno() -> libc::c_int { unsafe { *errno_location() }}
     }
 }
 

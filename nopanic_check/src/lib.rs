@@ -10,7 +10,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     unsafe { panic_nonexistent() }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn getrandom_wrapper(buf_ptr: *mut u8, buf_len: usize) -> u32 {
     let buf = unsafe { core::slice::from_raw_parts_mut(buf_ptr.cast(), buf_len) };
     let res = getrandom::fill_uninit(buf).map(|_| ());
@@ -18,7 +18,7 @@ pub extern "C" fn getrandom_wrapper(buf_ptr: *mut u8, buf_len: usize) -> u32 {
 }
 
 #[cfg(getrandom_backend = "custom")]
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "Rust" fn __getrandom_v03_custom(
     dest: *mut u8,
     len: usize,
