@@ -27,12 +27,14 @@ unsafe fn rndr() -> Option<u64> {
         let mut nzcv: u64;
 
         // AArch64 RNDR register is accessible by s3_3_c2_c4_0
-        asm!(
-            "mrs {x}, RNDR",
-            "mrs {nzcv}, NZCV",
-            x = out(reg) x,
-            nzcv = out(reg) nzcv,
-        );
+        unsafe {
+            asm!(
+                "mrs {x}, RNDR",
+                "mrs {nzcv}, NZCV",
+                x = out(reg) x,
+                nzcv = out(reg) nzcv,
+            );
+        }
 
         // If the hardware returns a genuine random number, PSTATE.NZCV is set to 0b0000
         if nzcv == 0 {
