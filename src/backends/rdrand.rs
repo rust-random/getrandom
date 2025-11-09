@@ -28,6 +28,7 @@ static RDRAND_GOOD: lazy::LazyBool = lazy::LazyBool::new();
 const RETRY_LIMIT: usize = 10;
 
 #[target_feature(enable = "rdrand")]
+#[cfg_attr(target_os = "uefi", allow(unused_unsafe))] // HACK: Rust lint gives false positive on uefi
 unsafe fn rdrand() -> Option<Word> {
     for _ in 0..RETRY_LIMIT {
         let mut val = 0;
