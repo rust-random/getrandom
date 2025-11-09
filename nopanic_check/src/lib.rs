@@ -24,7 +24,7 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
     len: usize,
 ) -> Result<(), getrandom::Error> {
     for i in 0..len {
-        core::ptr::write(dest.add(i), i as u8);
+        unsafe { core::ptr::write(dest.add(i), i as u8) };
     }
     Ok(())
 }
