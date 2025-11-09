@@ -15,7 +15,7 @@ use core::mem::MaybeUninit;
 pub unsafe fn unpoison(buf: &mut [MaybeUninit<u8>]) {
     cfg_if! {
         if #[cfg(getrandom_msan)] {
-            extern "C" {
+            unsafe extern "C" {
                 fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
             }
             let a = buf.as_mut_ptr().cast();
