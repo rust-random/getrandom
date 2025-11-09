@@ -49,14 +49,14 @@ unsafe fn rndr() -> Option<u64> {
 unsafe fn rndr_fill(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     let mut chunks = dest.chunks_exact_mut(size_of::<u64>());
     for chunk in chunks.by_ref() {
-        let src = rndr()?.to_ne_bytes();
+        let src = unsafe { rndr() }?.to_ne_bytes();
         chunk.copy_from_slice(slice_as_uninit(&src));
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        let src = rndr()?.to_ne_bytes();
+        let src = unsafe { rndr() }?.to_ne_bytes();
         tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
     Some(())
