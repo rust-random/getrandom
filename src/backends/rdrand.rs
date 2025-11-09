@@ -31,7 +31,7 @@ const RETRY_LIMIT: usize = 10;
 unsafe fn rdrand() -> Option<Word> {
     for _ in 0..RETRY_LIMIT {
         let mut val = 0;
-        if rdrand_step(&mut val) == 1 {
+        if unsafe { rdrand_step(&mut val) } == 1 {
             return Some(val);
         }
     }
@@ -53,7 +53,7 @@ unsafe fn self_test() -> bool {
     let mut prev = !0; // TODO(MSRV 1.43): Move to usize::MAX
     let mut fails = 0;
     for _ in 0..8 {
-        match rdrand() {
+        match unsafe { rdrand() } {
             Some(val) if val == prev => fails += 1,
             Some(val) => prev = val,
             None => return false,
@@ -108,14 +108,14 @@ unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
     // calls to memcpy to be elided by the compiler.
     let mut chunks = dest.chunks_exact_mut(size_of::<Word>());
     for chunk in chunks.by_ref() {
-        let src = rdrand()?.to_ne_bytes();
+        let src = unsafe { rdrand() }?.to_ne_bytes();
         chunk.copy_from_slice(slice_as_uninit(&src));
     }
 
     let tail = chunks.into_remainder();
     let n = tail.len();
     if n > 0 {
-        let src = rdrand()?.to_ne_bytes();
+        let src = unsafe { rdrand() }?.to_ne_bytes();
         tail.copy_from_slice(slice_as_uninit(&src[..n]));
     }
     Some(())
@@ -124,26 +124,26 @@ unsafe fn rdrand_exact(dest: &mut [MaybeUninit<u8>]) -> Option<()> {
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand_u32() -> Option<u32> {
-    rdrand().map(crate::util::truncate)
+    unsafe { rdrand() }.map(crate::util::truncate)
 }
 
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand_u64() -> Option<u64> {
-    rdrand()
+    unsafe { rdrand() }
 }
 
 #[cfg(target_arch = "x86")]
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand_u32() -> Option<u32> {
-    rdrand()
+    unsafe { rdrand() }
 }
 
 #[cfg(target_arch = "x86")]
 #[target_feature(enable = "rdrand")]
 unsafe fn rdrand_u64() -> Option<u64> {
-    let a = rdrand()?;
-    let b = rdrand()?;
+    let a = unsafe { rdrand() }?;
+    let b = unsafe { rdrand() }?;
     Some((u64::from(a) << 32) | u64::from(b))
 }
 
