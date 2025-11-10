@@ -39,6 +39,13 @@ mod util;
 #[cfg(feature = "std")]
 mod error_std_impls;
 
+#[cfg(feature = "rng")]
+mod rng;
+#[cfg(feature = "rng")]
+pub extern crate rand_core;
+#[cfg(feature = "rng")]
+pub use rng::OsRng;
+
 pub use crate::error::{Error, RawOsError};
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
