@@ -23,8 +23,12 @@ std = []
 # i.e. avoid unconditionally enabling it in library crates.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
+# Provide OsRng over rand_core
+rng = ["dep:rand_core"]
+
 [dependencies]
 cfg-if = "1"
+rand_core = { version = "0.10.0-rc-2", optional = true }
 
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
