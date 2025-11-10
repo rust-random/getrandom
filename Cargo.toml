@@ -12,7 +12,7 @@ categories = ["os", "no-std"]
 exclude = [".*"]
 
 [features]
-# Implement std::error::Error for getrandom::Error and
+# Implement From<getrandom::Error> for std::io::Error and
 # use std to retrieve OS error descriptions
 std = []
 
