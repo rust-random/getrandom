@@ -185,6 +185,8 @@ impl Error {
     }
 }
 
+impl core::error::Error for Error {}
+
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut dbg = f.debug_struct("Error");
