@@ -15,7 +15,7 @@ cfg_if! {
     } else if #[cfg(target_os = "nto")] {
         use libc::__get_errno_ptr as errno_location;
     } else if #[cfg(any(all(target_os = "horizon", target_arch = "arm"), target_os = "vita"))] {
-        extern "C" {
+        unsafe extern "C" {
             // Not provided by libc: https://github.com/rust-lang/libc/issues/1995
             fn __errno() -> *mut libc::c_int;
         }
@@ -29,7 +29,7 @@ cfg_if! {
     if #[cfg(target_os = "vxworks")] {
         use libc::errnoGet as get_errno;
     } else {
-        unsafe fn get_errno() -> libc::c_int { *errno_location() }
+        unsafe fn get_errno() -> libc::c_int { unsafe { *errno_location() }}
     }
 }
 

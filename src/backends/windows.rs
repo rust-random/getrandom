@@ -41,7 +41,7 @@ pub use crate::util::{inner_u32, inner_u64};
     not(target_arch = "x86"),
     link(name = "bcryptprimitives", kind = "raw-dylib")
 )]
-extern "system" {
+unsafe extern "system" {
     fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL;
 }
 #[allow(clippy::upper_case_acronyms, clippy::incompatible_msrv)]

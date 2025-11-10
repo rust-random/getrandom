@@ -100,7 +100,7 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     }
 
     #[cfg(getrandom_msan)]
-    extern "C" {
+    unsafe extern "C" {
         fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
     }
 

@@ -260,7 +260,8 @@ mod custom {
     // This implementation uses current timestamp as a PRNG seed.
     //
     // WARNING: this custom implementation is for testing purposes ONLY!
-    #[no_mangle]
+
+    #[unsafe(no_mangle)]
     unsafe extern "Rust" fn __getrandom_v03_custom(dest: *mut u8, len: usize) -> Result<(), Error> {
         use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -275,13 +276,13 @@ mod custom {
         let mut rng = Xoshiro128PlusPlus::new(ts.as_nanos() as u64);
         for i in 0..len / 4 {
             let val = rng.next_u32();
-            core::ptr::write_unaligned(dest_u32.add(i), val);
+            unsafe { core::ptr::write_unaligned(dest_u32.add(i), val) };
         }
         if len % 4 != 0 {
             let start = 4 * (len / 4);
             for i in start..len {
                 let val = rng.next_u32();
-                core::ptr::write_unaligned(dest.add(i), val as u8);
+                unsafe { core::ptr::write_unaligned(dest.add(i), val as u8) };
             }
         }
         Ok(())
