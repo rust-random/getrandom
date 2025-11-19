@@ -10,11 +10,19 @@ use rand_core::{TryCryptoRng, TryRngCore};
 /// This struct is also available as [`rand::rngs::OsRng`] when using [rand].
 ///
 /// # Usage example
+///
+/// `OsRng` implements [`TryRngCore`]:
 /// ```
-/// use getrandom::{rand_core::{TryRngCore, RngCore}, OsRng};
+/// use getrandom::{rand_core::TryRngCore, OsRng};
 ///
 /// let mut key = [0u8; 32];
 /// OsRng.try_fill_bytes(&mut key).unwrap();
+/// ```
+///
+/// Using it as an [`RngCore`] is possible using [`TryRngCore::unwrap_err`]:
+/// ```
+/// use getrandom::rand_core::{TryRngCore, RngCore};
+/// use getrandom::OsRng;
 ///
 /// let mut rng = OsRng.unwrap_err();
 /// let random_u64 = rng.next_u64();
@@ -22,6 +30,7 @@ use rand_core::{TryCryptoRng, TryRngCore};
 ///
 /// [rand]: https://crates.io/crates/rand
 /// [`rand::rngs::OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
+/// [`RngCore`]: rand_core::RngCore
 #[derive(Clone, Copy, Debug, Default)]
 pub struct OsRng;
 
