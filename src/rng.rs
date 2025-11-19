@@ -46,15 +46,20 @@ impl TryRngCore for OsRng {
 
 impl TryCryptoRng for OsRng {}
 
-#[test]
-fn test_os_rng() {
-    let x = OsRng.try_next_u64().unwrap();
-    let y = OsRng.try_next_u64().unwrap();
-    assert!(x != 0);
-    assert!(x != y);
-}
+#[cfg(test)]
+mod test {
+    use super::*;
 
-#[test]
-fn test_construction() {
-    assert!(OsRng.try_next_u64().unwrap() != 0);
+    #[test]
+    fn test_os_rng() {
+        let x = OsRng.try_next_u64().unwrap();
+        let y = OsRng.try_next_u64().unwrap();
+        assert!(x != 0);
+        assert!(x != y);
+    }
+
+    #[test]
+    fn test_construction() {
+        assert!(OsRng.try_next_u64().unwrap() != 0);
+    }
 }
