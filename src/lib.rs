@@ -42,7 +42,7 @@ mod error_std_impls;
 #[cfg(feature = "rng")]
 mod rng;
 #[cfg(feature = "rng")]
-pub extern crate rand_core;
+pub use rand_core;
 #[cfg(feature = "rng")]
 pub use rng::OsRng;
 
