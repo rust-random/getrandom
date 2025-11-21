@@ -39,8 +39,8 @@ jobs:
       # Make sure enabling the std feature doesn't break anything
       - run: |
           cargo test --features=std
-          cargo test --features=rng
-          cargo test --features=std,rng
+          cargo test --features=sys_rng
+          cargo test --features=std,sys_rng
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
@@ -56,27 +56,27 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=${{ matrix.target }} --features=std,rng
+      - run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test --target=${{ matrix.target }} --features=std,rng
+        run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
-        run: cargo test --target=${{ matrix.target }} --features=std,rng
+        run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-        run: cargo test --features=std,rng
+        run: cargo test --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
-        run: cargo test --features=std,rng
+        run: cargo test --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std,rng
+        run: cargo test --features=std,sys_rng
 
   ios:
     name: iOS Simulator
@@ -126,7 +126,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --features=std,rng
+      - run: cargo test --features=std,sys_rng
 
   windows7:
     name: Windows 7 (on Windows 10)
@@ -139,8 +139,8 @@ jobs:
           toolchain: nightly-2025-09-28
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std,rng
-      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std,rng
+      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std,sys_rng
+      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std,sys_rng
 
   sanitizer-linux:
     name: Sanitizer Linux
@@ -219,7 +219,7 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Test
-        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std,rng
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std,sys_rng
 
   freebsd:
     name: FreeBSD VM
@@ -276,14 +276,14 @@ jobs:
               description: Web,
               version: stable,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
-              args: '--features=std,rng,wasm_js',
+              args: '--features=std,sys_rng,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
               flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std,rng,wasm_js -Zbuild-std=panic_abort,std',
+              args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
       - uses: actions/checkout@v5
