@@ -26,7 +26,7 @@ std = []
 # i.e. avoid unconditionally enabling it in library crates.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
-# Provide OsRng over rand_core
+# Provide SysRng over rand_core
 rng = ["dep:rand_core"]
 
 [dependencies]

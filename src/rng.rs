@@ -5,36 +5,36 @@ use rand_core::{TryCryptoRng, TryRngCore};
 
 /// An RNG over the operating-system's random data source
 ///
-/// This is a zero-sized struct. It can be freely constructed with just `OsRng`.
+/// This is a zero-sized struct. It can be freely constructed with just `SysRng`.
 ///
-/// This struct is also available as [`rand::rngs::OsRng`] when using [rand].
+/// This struct is also available as [`rand::rngs::SysRng`] when using [rand].
 ///
 /// # Usage example
 ///
-/// `OsRng` implements [`TryRngCore`]:
+/// `SysRng` implements [`TryRngCore`]:
 /// ```
-/// use getrandom::{rand_core::TryRngCore, OsRng};
+/// use getrandom::{rand_core::TryRngCore, SysRng};
 ///
 /// let mut key = [0u8; 32];
-/// OsRng.try_fill_bytes(&mut key).unwrap();
+/// SysRng.try_fill_bytes(&mut key).unwrap();
 /// ```
 ///
 /// Using it as an [`RngCore`] is possible using [`TryRngCore::unwrap_err`]:
 /// ```
 /// use getrandom::rand_core::{TryRngCore, RngCore};
-/// use getrandom::OsRng;
+/// use getrandom::SysRng;
 ///
-/// let mut rng = OsRng.unwrap_err();
+/// let mut rng = SysRng.unwrap_err();
 /// let random_u64 = rng.next_u64();
 /// ```
 ///
 /// [rand]: https://crates.io/crates/rand
-/// [`rand::rngs::OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
+/// [`rand::rngs::SysRng`]: https://docs.rs/rand/latest/rand/rngs/struct.SysRng.html
 /// [`RngCore`]: rand_core::RngCore
 #[derive(Clone, Copy, Debug, Default)]
-pub struct OsRng;
+pub struct SysRng;
 
-impl TryRngCore for OsRng {
+impl TryRngCore for SysRng {
     type Error = Error;
 
     #[inline]
@@ -53,7 +53,7 @@ impl TryRngCore for OsRng {
     }
 }
 
-impl TryCryptoRng for OsRng {}
+impl TryCryptoRng for SysRng {}
 
 #[cfg(test)]
 mod test {
@@ -61,14 +61,14 @@ mod test {
 
     #[test]
     fn test_os_rng() {
-        let x = OsRng.try_next_u64().unwrap();
-        let y = OsRng.try_next_u64().unwrap();
+        let x = SysRng.try_next_u64().unwrap();
+        let y = SysRng.try_next_u64().unwrap();
         assert!(x != 0);
         assert!(x != y);
     }
 
     #[test]
     fn test_construction() {
-        assert!(OsRng.try_next_u64().unwrap() != 0);
+        assert!(SysRng.try_next_u64().unwrap() != 0);
     }
 }

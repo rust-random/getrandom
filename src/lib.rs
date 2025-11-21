@@ -44,7 +44,7 @@ mod rng;
 #[cfg(feature = "rng")]
 pub use rand_core;
 #[cfg(feature = "rng")]
-pub use rng::OsRng;
+pub use rng::SysRng;
 
 pub use crate::error::{Error, RawOsError};
 
