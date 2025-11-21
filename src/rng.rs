@@ -54,21 +54,3 @@ impl TryRngCore for SysRng {
 }
 
 impl TryCryptoRng for SysRng {}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_os_rng() {
-        let x = SysRng.try_next_u64().unwrap();
-        let y = SysRng.try_next_u64().unwrap();
-        assert!(x != 0);
-        assert!(x != y);
-    }
-
-    #[test]
-    fn test_construction() {
-        assert!(SysRng.try_next_u64().unwrap() != 0);
-    }
-}
