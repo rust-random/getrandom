@@ -1,5 +1,3 @@
-//! rand_core adapter
-
 use crate::Error;
 use rand_core::{TryCryptoRng, TryRngCore};
 

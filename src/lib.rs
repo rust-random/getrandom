@@ -39,8 +39,10 @@ mod util;
 #[cfg(feature = "std")]
 mod error_std_impls;
 
+/// `rand_core` adapter
 #[cfg(feature = "sys_rng")]
 mod sys_rng;
+
 #[cfg(feature = "sys_rng")]
 pub use rand_core;
 #[cfg(feature = "sys_rng")]
