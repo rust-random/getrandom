@@ -12,7 +12,7 @@ categories = ["os", "no-std"]
 exclude = [".*"]
 
 [package.metadata.docs.rs]
-features = ["std", "rng"]
+features = ["std", "sys_rng"]
 
 [features]
 # Implement From<getrandom::Error> for std::io::Error and
@@ -27,7 +27,7 @@ std = []
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
 # Provide SysRng over rand_core
-rng = ["dep:rand_core"]
+sys_rng = ["dep:rand_core"]
 
 [dependencies]
 cfg-if = "1"
