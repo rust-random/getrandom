@@ -40,11 +40,11 @@ mod util;
 mod error_std_impls;
 
 #[cfg(feature = "sys_rng")]
-mod rng;
+mod sys_rng;
 #[cfg(feature = "sys_rng")]
 pub use rand_core;
 #[cfg(feature = "sys_rng")]
-pub use rng::SysRng;
+pub use sys_rng::SysRng;
 
 pub use crate::error::{Error, RawOsError};
 
