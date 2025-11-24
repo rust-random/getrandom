@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `RawOsError` type alias [#739]
 - `SysRng` behind new feature `sys_rng` [#751]
+- `UnwrappingSysRng` behind new feature `sys_rng` [#754]
 
 ### Changed
 - Use Edition 2024 and MSRV 1.85 [#749]
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#739]: https://github.com/rust-random/getrandom/pull/739
 [#749]: https://github.com/rust-random/getrandom/pull/749
 [#751]: https://github.com/rust-random/getrandom/pull/751
+[#754]: https://github.com/rust-random/getrandom/pull/754
 
 ## [0.3.4] - 2025-10-14
 
