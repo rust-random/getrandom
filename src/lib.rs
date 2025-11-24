@@ -39,6 +39,15 @@ mod util;
 #[cfg(feature = "std")]
 mod error_std_impls;
 
+/// `rand_core` adapter
+#[cfg(feature = "sys_rng")]
+mod sys_rng;
+
+#[cfg(feature = "sys_rng")]
+pub use rand_core;
+#[cfg(feature = "sys_rng")]
+pub use sys_rng::SysRng;
+
 pub use crate::error::{Error, RawOsError};
 
 /// Fill `dest` with random bytes from the system's preferred random number source.

@@ -11,6 +11,9 @@ repository = "https://github.com/rust-random/getrandom"
 categories = ["os", "no-std"]
 exclude = [".*"]
 
+[package.metadata.docs.rs]
+features = ["std", "sys_rng"]
+
 [features]
 # Implement From<getrandom::Error> for std::io::Error and
 # use std to retrieve OS error descriptions
@@ -23,8 +26,12 @@ std = []
 # i.e. avoid unconditionally enabling it in library crates.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
+# Provide SysRng over rand_core
+sys_rng = ["dep:rand_core"]
+
 [dependencies]
 cfg-if = "1"
+rand_core = { version = "0.10.0-rc-2", optional = true }
 
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
@@ -84,9 +91,6 @@ check-cfg = [
   'cfg(getrandom_test_netbsd_fallback)',
   'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
 ]
-
-[package.metadata.docs.rs]
-features = ["std"]
 
 # workaround for https://github.com/cross-rs/cross/issues/1345
 [package.metadata.cross.target.x86_64-unknown-netbsd]
