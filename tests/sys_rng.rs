@@ -1,7 +1,7 @@
 #![cfg(feature = "sys_rng")]
 
-use getrandom::SysRng;
-use getrandom::rand_core::TryRngCore;
+use getrandom::rand_core::{RngCore, TryRngCore};
+use getrandom::{SysRng, UnwrappedSysRng};
 
 #[test]
 fn test_sys_rng() {
@@ -14,4 +14,11 @@ fn test_sys_rng() {
 #[test]
 fn test_construction() {
     assert!(SysRng.try_next_u64().unwrap() != 0);
+}
+
+#[test]
+fn test_unwrapped_sys_rng() {
+    let mut buf = [0u8; 128];
+    UnwrappedSysRng::default().fill_bytes(&mut buf);
+    assert!(buf != [0; 128]);
 }
