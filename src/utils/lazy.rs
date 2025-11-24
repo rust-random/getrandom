@@ -1,64 +1,91 @@
-//! Helpers built around pointer-sized atomics.
-use core::sync::atomic::{AtomicUsize, Ordering};
+//! Lazy caches backed by a single atomic value.
+//!
+//! Each cache starts in an "uninitialized" sentinel state. Initialization is
+//! intentionally unsynchronized: concurrent callers may race and run `init`
+//! more than once. Once a non-sentinel value is produced, it is cached and
+//! reused by subsequent calls.
+//!
+//! For fallible initialization (`try_unsync_init`), only successful values are
+//! cached; errors are returned to the caller and are not cached.
+//!
+//! These helpers use `Ordering::Relaxed` because they are only intended to
+//! publish the cached value itself. Callers must not rely on this mechanism to
+//! synchronize unrelated memory side effects performed by `init`.
 
-// This structure represents a lazily initialized static usize value. Useful
-// when it is preferable to just rerun initialization instead of locking.
-// unsync_init will invoke an init() function until it succeeds, then return the
-// cached value for future calls.
-//
-// unsync_init supports init() "failing". If the init() method returns UNINIT,
-// that value will be returned as normal, but will not be cached.
-//
-// Users should only depend on the _value_ returned by init() functions.
-// Specifically, for the following init() function:
-//      fn init() -> usize {
-//          a();
-//          let v = b();
-//          c();
-//          v
-//      }
-// the effects of c() or writes to shared memory will not necessarily be
-// observed and additional synchronization methods may be needed.
-struct LazyUsize(AtomicUsize);
+#![allow(dead_code)]
 
-impl LazyUsize {
-    // The initialization is not completed.
-    const UNINIT: usize = usize::MAX;
+use core::{
+    ptr::{self, NonNull},
+    sync::atomic::{AtomicPtr, AtomicUsize, Ordering},
+};
 
-    const fn new() -> Self {
-        Self(AtomicUsize::new(Self::UNINIT))
+pub(crate) struct LazyNonNull<T>(AtomicPtr<T>);
+
+impl<T> LazyNonNull<T> {
+    pub const fn new() -> Self {
+        Self(AtomicPtr::new(ptr::null_mut()))
     }
 
-    // Runs the init() function at most once, returning the value of some run of
-    // init(). Multiple callers can run their init() functions in parallel.
-    // init() should always return the same value, if it succeeds.
-    fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
-        #[cold]
-        fn do_init(this: &LazyUsize, init: impl FnOnce() -> usize) -> usize {
-            let val = init();
-            this.0.store(val, Ordering::Relaxed);
-            val
-        }
+    #[cold]
+    fn do_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
+        let val = init();
+        self.0.store(val.as_ptr(), Ordering::Relaxed);
+        val
+    }
 
-        // Relaxed ordering is fine, as we only have a single atomic variable.
-        let val = self.0.load(Ordering::Relaxed);
-        if val != Self::UNINIT {
-            val
-        } else {
-            do_init(self, init)
+    #[cold]
+    fn try_do_init<E>(
+        &self,
+        init: impl FnOnce() -> Result<NonNull<T>, E>,
+    ) -> Result<NonNull<T>, E> {
+        let val = init()?;
+        self.0.store(val.as_ptr(), Ordering::Relaxed);
+        Ok(val)
+    }
+
+    #[inline]
+    pub fn unsync_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
+        match NonNull::new(self.0.load(Ordering::Relaxed)) {
+            Some(val) => val,
+            None => self.do_init(init),
+        }
+    }
+
+    #[inline]
+    pub fn try_unsync_init<E>(
+        &self,
+        init: impl FnOnce() -> Result<NonNull<T>, E>,
+    ) -> Result<NonNull<T>, E> {
+        match NonNull::new(self.0.load(Ordering::Relaxed)) {
+            Some(val) => Ok(val),
+            None => self.try_do_init(init),
         }
     }
 }
 
-// Identical to LazyUsize except with bool instead of usize.
-pub(crate) struct LazyBool(LazyUsize);
+pub(crate) struct LazyBool(AtomicUsize);
 
 impl LazyBool {
+    const UNINIT: usize = usize::MAX;
+
     pub const fn new() -> Self {
-        Self(LazyUsize::new())
+        Self(AtomicUsize::new(Self::UNINIT))
     }
 
+    #[cold]
+    fn do_init(&self, init: impl FnOnce() -> bool) -> bool {
+        let val = usize::from(init());
+        self.0.store(val, Ordering::Relaxed);
+        val != 0
+    }
+
+    #[inline]
     pub fn unsync_init(&self, init: impl FnOnce() -> bool) -> bool {
-        self.0.unsync_init(|| usize::from(init())) != 0
+        let val = self.0.load(Ordering::Relaxed);
+        if val != Self::UNINIT {
+            val != 0
+        } else {
+            self.do_init(init)
+        }
     }
 }

@@ -71,6 +71,7 @@ fn is_rndr_available() -> bool {
 fn is_rndr_available() -> bool {
     #[path = "../utils/lazy.rs"]
     mod lazy;
+
     static RNDR_GOOD: lazy::LazyBool = lazy::LazyBool::new();
 
     cfg_if::cfg_if! {
