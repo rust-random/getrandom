@@ -26,9 +26,7 @@ use core::mem::MaybeUninit;
 pub use crate::util::{inner_u32, inner_u64};
 
 // Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
-// bcryptprimitives.dll lacks an import library, we use "raw-dylib". This
-// was added in Rust 1.65 for x86_64/aarch64 and in Rust 1.71 for x86.
-// We don't need MSRV 1.71, as we only use this backend on Rust 1.78 and later.
+// bcryptprimitives.dll lacks an import library, we use "raw-dylib".
 #[cfg_attr(
     target_arch = "x86",
     link(
