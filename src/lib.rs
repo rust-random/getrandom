@@ -46,7 +46,7 @@ mod sys_rng;
 #[cfg(feature = "sys_rng")]
 pub use rand_core;
 #[cfg(feature = "sys_rng")]
-pub use sys_rng::{SysRng, UnwrappedSysRng};
+pub use sys_rng::SysRng;
 
 pub use crate::error::{Error, RawOsError};
 

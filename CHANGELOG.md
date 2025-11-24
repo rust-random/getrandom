@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `RawOsError` type alias [#739]
-- `SysRng` and `UnwrappedSysRng` behind new feature `sys_rng` [#751]
+- `SysRng` behind new feature `sys_rng` [#751]
 
 ### Changed
 - Use Edition 2024 and MSRV 1.85 [#749]

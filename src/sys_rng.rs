@@ -52,10 +52,3 @@ impl TryRngCore for SysRng {
 }
 
 impl TryCryptoRng for SysRng {}
-
-/// An [`RngCore`](rand_core::RngCore) interface over the system's preferred random number source
-///
-/// # Panics
-///
-/// This wrapper will panic on error (see [crate docs](crate#error-handling)).
-pub type UnwrappedSysRng = rand_core::UnwrapErr<SysRng>;
