@@ -1,13 +1,12 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
 use super::{sanitizer, use_file};
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{
     ffi::c_void,
     mem::{MaybeUninit, transmute},
     ptr::NonNull,
     sync::atomic::{AtomicPtr, Ordering},
 };
-use use_file::util_libc;
 
 pub use crate::util::{inner_u32, inner_u64};
 

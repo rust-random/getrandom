@@ -33,8 +33,13 @@ extern crate cfg_if;
 use core::mem::MaybeUninit;
 
 mod backends;
+#[allow(dead_code, reason = "not used in all backends")]
 mod error;
+#[allow(dead_code, reason = "not used in all backends")]
+mod lazy;
+#[allow(dead_code, reason = "not used in all backends")]
 mod util;
+mod util_libc;
 
 #[cfg(feature = "std")]
 mod error_std_impls;

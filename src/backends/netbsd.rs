@@ -3,7 +3,7 @@
 //! `getrandom(2)` was introduced in NetBSD 10. To support older versions we
 //! implement our own weak linkage to it, and provide a fallback based on the
 //! KERN_ARND sysctl.
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{
     cmp,
     ffi::c_void,
@@ -13,9 +13,6 @@ use core::{
 };
 
 pub use crate::util::{inner_u32, inner_u64};
-
-#[path = "../util_libc.rs"]
-mod util_libc;
 
 unsafe extern "C" fn polyfill_using_kern_arand(
     buf: *mut c_void,

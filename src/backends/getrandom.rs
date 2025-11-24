@@ -15,13 +15,10 @@
 //! GRND_RANDOM is not recommended. On NetBSD/FreeBSD/Dragonfly/3ds, it does
 //! nothing. On illumos, the default pool is used to implement getentropy(2),
 //! so we assume it is acceptable here.
-use crate::Error;
+use crate::{Error, util_libc};
 use core::mem::MaybeUninit;
 
 pub use crate::util::{inner_u32, inner_u64};
-
-#[path = "../util_libc.rs"]
-mod util_libc;
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
