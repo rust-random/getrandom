@@ -1,7 +1,7 @@
 //! Implementations that just need to read from a file
 use crate::Error;
 use core::{
-    ffi::c_void,
+    ffi::{CStr, c_void},
     mem::MaybeUninit,
     sync::atomic::{AtomicI32, Ordering},
 };
@@ -18,7 +18,7 @@ pub(super) mod util_libc;
 ///   - On Redox, only /dev/urandom is provided.
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
-const FILE_PATH: &[u8] = b"/dev/urandom\0";
+const FILE_PATH: &CStr = c"/dev/urandom";
 
 // File descriptor is a "nonnegative integer", so we can safely use negative sentinel values.
 const FD_UNINIT: libc::c_int = -1;
@@ -52,20 +52,9 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 /// Open a file in read-only mode.
-///
-/// # Panics
-/// If `path` does not contain any zeros.
-// TODO: Move `path` to `CStr` and use `CStr::from_bytes_until_nul` (MSRV 1.69)
-// or C-string literals (MSRV 1.77) for statics
-fn open_readonly(path: &[u8]) -> Result<libc::c_int, Error> {
-    assert!(path.contains(&0));
+fn open_readonly(path: &CStr) -> Result<libc::c_int, Error> {
     loop {
-        let fd = unsafe {
-            libc::open(
-                path.as_ptr().cast::<libc::c_char>(),
-                libc::O_RDONLY | libc::O_CLOEXEC,
-            )
-        };
+        let fd = unsafe { libc::open(path.as_ptr(), libc::O_RDONLY | libc::O_CLOEXEC) };
         if fd >= 0 {
             return Ok(fd);
         }
@@ -205,7 +194,7 @@ mod sync {
     //
     // libsodium uses `libc::poll` similarly to this.
     pub(super) fn wait_until_rng_ready() -> Result<(), Error> {
-        let fd = open_readonly(b"/dev/random\0")?;
+        let fd = open_readonly(c"/dev/random")?;
         let mut pfd = libc::pollfd {
             fd,
             events: libc::POLLIN,
