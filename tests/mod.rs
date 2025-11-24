@@ -40,12 +40,6 @@ fn num_diff_bits<T: DiffBits>(s1: &[T], s2: &[T]) -> usize {
     s1.iter().zip(s2.iter()).map(T::diff_bits).sum()
 }
 
-// TODO: use `[const { MaybeUninit::uninit() }; N]` after MSRV is bumped to 1.79+
-// or `MaybeUninit::uninit_array`
-fn uninit_vec(n: usize) -> Vec<MaybeUninit<u8>> {
-    vec![MaybeUninit::uninit(); n]
-}
-
 // Tests the quality of calling getrandom on two large buffers
 #[test]
 fn test_diff() {
@@ -55,8 +49,8 @@ fn test_diff() {
     fill(&mut v1).unwrap();
     fill(&mut v2).unwrap();
 
-    let mut t1 = uninit_vec(N);
-    let mut t2 = uninit_vec(N);
+    let mut t1 = [MaybeUninit::uninit(); N];
+    let mut t2 = [MaybeUninit::uninit(); N];
     let r1 = fill_uninit(&mut t1).unwrap();
     let r2 = fill_uninit(&mut t2).unwrap();
     assert_eq!(r1.len(), N);
@@ -148,8 +142,8 @@ fn test_small_uninit() {
         let mut num_bytes = 0;
         let mut diff_bits = 0;
         while num_bytes < 256 {
-            let mut buf1 = uninit_vec(N);
-            let mut buf2 = uninit_vec(N);
+            let mut buf1 = [MaybeUninit::uninit(); N];
+            let mut buf2 = [MaybeUninit::uninit(); N];
 
             let s1 = &mut buf1[..size];
             let s2 = &mut buf2[..size];
@@ -176,7 +170,7 @@ fn test_huge() {
 #[test]
 fn test_huge_uninit() {
     const N: usize = 100_000;
-    let mut huge = uninit_vec(N);
+    let mut huge = [MaybeUninit::uninit(); N];
     let res = fill_uninit(&mut huge).unwrap();
     assert_eq!(res.len(), N);
 }

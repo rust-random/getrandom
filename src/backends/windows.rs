@@ -26,9 +26,7 @@ use core::mem::MaybeUninit;
 pub use crate::util::{inner_u32, inner_u64};
 
 // Binding to the Windows.Win32.Security.Cryptography.ProcessPrng API. As
-// bcryptprimitives.dll lacks an import library, we use "raw-dylib". This
-// was added in Rust 1.65 for x86_64/aarch64 and in Rust 1.71 for x86.
-// We don't need MSRV 1.71, as we only use this backend on Rust 1.78 and later.
+// bcryptprimitives.dll lacks an import library, we use "raw-dylib".
 #[cfg_attr(
     target_arch = "x86",
     link(
@@ -44,8 +42,8 @@ pub use crate::util::{inner_u32, inner_u64};
 unsafe extern "system" {
     fn ProcessPrng(pbdata: *mut u8, cbdata: usize) -> BOOL;
 }
-#[allow(clippy::upper_case_acronyms, clippy::incompatible_msrv)]
-type BOOL = core::ffi::c_int; // MSRV 1.64, similarly OK for this backend.
+#[expect(clippy::upper_case_acronyms)]
+type BOOL = core::ffi::c_int;
 const TRUE: BOOL = 1;
 
 #[inline]

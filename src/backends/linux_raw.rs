@@ -12,8 +12,11 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
 
     // Based on `rustix` and `linux-raw-sys` code.
     cfg_if! {
-        if #[cfg(target_arch = "arm")] {
-            // TODO(MSRV-1.78): Also check `target_abi = "eabi"`.
+        if #[cfg(all(
+            target_arch = "arm",
+            any(target_abi = "eabi", target_abi = "eabihf"),
+        ))] {
+            const __NR_getrandom: u32 = 384;
             // In thumb-mode, r7 is the frame pointer and is not permitted to be used in
             // an inline asm operand, so we have to use a different register and copy it
             // into r7 inside the inline asm.
@@ -23,19 +26,21 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             unsafe {
                 core::arch::asm!(
                     "mov {tmp}, r7",
-                    // TODO(MSRV-1.82): replace with `nr = const __NR_getrandom,`
-                    "mov r7, #384",
+                    "mov r7, {nr}",
                     "svc 0",
                     "mov r7, {tmp}",
                     tmp = out(reg) _,
+                    nr = const __NR_getrandom,
                     inlateout("r0") buf => r0,
                     in("r1") buflen,
                     in("r2") flags,
                     options(nostack, preserves_flags)
                 );
             }
-        } else if #[cfg(target_arch = "aarch64")] {
-            // TODO(MSRV-1.78): Also check `any(target_abi = "", target_abi = "ilp32")` above.
+        } else if #[cfg(all(
+            target_arch = "aarch64",
+            any(target_abi = "", target_abi = "ilp32"),
+        ))] {
             // According to the ILP32 patch for the kernel that hasn't yet
             // been merged into the mainline, "AARCH64/ILP32 ABI uses standard
             // syscall table [...] with the exceptions listed below," where
@@ -51,8 +56,10 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                     options(nostack, preserves_flags)
                 );
             }
-        } else if #[cfg(target_arch = "loongarch64")] {
-            // TODO(MSRV-1.78): Also check `any(target_abi = "", target_abi = "ilp32")` above.
+        } else if #[cfg(all(
+            target_arch = "loongarch64",
+            any(target_abi = "", target_abi = "ilp32"),
+        ))] {
             const __NR_getrandom: u32 = 278;
             unsafe {
                 core::arch::asm!(
@@ -104,8 +111,10 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
                     options(nostack, preserves_flags)
                 );
             }
-        } else if #[cfg(target_arch = "x86_64")] {
-            // TODO(MSRV-1.78): Add `any(target_abi = "", target_abi = "x32")` above.
+        } else if #[cfg(all(
+            target_arch = "x86_64",
+            any(target_abi = "", target_abi = "x32"),
+        ))] {
             const __X32_SYSCALL_BIT: u32 = 0x40000000;
             const OFFSET: u32 = if cfg!(target_pointer_width = "32") { __X32_SYSCALL_BIT } else { 0 };
             const __NR_getrandom: u32 = OFFSET + 318;
