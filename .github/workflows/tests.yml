@@ -30,7 +30,7 @@ jobs:
           - os: macos-14
             toolchain: stable
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -51,7 +51,7 @@ jobs:
       matrix:
         target: [x86_64-unknown-linux-musl, i686-unknown-linux-musl]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -82,7 +82,7 @@ jobs:
     name: iOS Simulator
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.88.0
@@ -121,7 +121,7 @@ jobs:
           stable-i686-msvc,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -132,7 +132,7 @@ jobs:
     name: Windows 7 (on Windows 10)
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # Win7 targets are Tier3, so pin a nightly where libstd builds.
       - uses: dtolnay/rust-toolchain@master
         with:
@@ -155,7 +155,7 @@ jobs:
           - arch: x86_64
             runner: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-09-28
@@ -211,7 +211,7 @@ jobs:
           #wasm32-unknown-emscripten,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -225,7 +225,7 @@ jobs:
     name: FreeBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in FreeBSD
         uses: vmactions/freebsd-vm@v1
         with:
@@ -239,7 +239,7 @@ jobs:
     name: OpenBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in OpenBSD
         uses: vmactions/openbsd-vm@v1
         with:
@@ -253,7 +253,7 @@ jobs:
     name: NetBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in NetBSD
         uses: vmactions/netbsd-vm@v1
         with:
@@ -286,7 +286,7 @@ jobs:
               args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust.version }}
@@ -340,7 +340,7 @@ jobs:
     name: WASI
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85
