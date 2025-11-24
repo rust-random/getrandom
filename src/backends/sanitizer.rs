@@ -20,7 +20,6 @@ pub unsafe fn unpoison(buf: &mut [MaybeUninit<u8>]) {
             }
             let a = buf.as_mut_ptr().cast();
             let size = buf.len();
-            #[allow(unused_unsafe)] // TODO(MSRV 1.65): Remove this.
             unsafe {
                 __msan_unpoison(a, size);
             }
@@ -50,10 +49,7 @@ pub unsafe fn unpoison(buf: &mut [MaybeUninit<u8>]) {
 pub unsafe fn unpoison_linux_getrandom_result(buf: &mut [MaybeUninit<u8>], ret: isize) {
     if let Ok(bytes_written) = usize::try_from(ret) {
         if let Some(written) = buf.get_mut(..bytes_written) {
-            #[allow(unused_unsafe)] // TODO(MSRV 1.65): Remove this.
-            unsafe {
-                unpoison(written)
-            }
+            unsafe { unpoison(written) }
         }
     }
 }
