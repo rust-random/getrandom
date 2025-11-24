@@ -12,13 +12,10 @@
 //! For more information, see the man page linked in lib.rs and this blog post:
 //! https://blogs.oracle.com/solaris/post/solaris-new-system-calls-getentropy2-and-getrandom2
 //! which also explains why this crate should not use getentropy(2).
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{ffi::c_void, mem::MaybeUninit};
 
 pub use crate::util::{inner_u32, inner_u64};
-
-#[path = "../util_libc.rs"]
-mod util_libc;
 
 const MAX_BYTES: usize = 1024;
 
