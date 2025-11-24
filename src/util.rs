@@ -7,7 +7,7 @@ use core::{mem::MaybeUninit, ptr, slice};
 /// been initialized.
 #[inline(always)]
 pub unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &mut [T] {
-    let ptr = ptr_from_mut::<[MaybeUninit<T>]>(slice) as *mut [T];
+    let ptr = ptr::from_mut(slice) as *mut [T];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     unsafe { &mut *ptr }
 }
@@ -20,7 +20,7 @@ pub fn uninit_slice_fill_zero(slice: &mut [MaybeUninit<u8>]) -> &mut [u8] {
 
 #[inline(always)]
 pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
-    let ptr = ptr_from_ref::<[T]>(slice) as *const [MaybeUninit<T>];
+    let ptr = ptr::from_ref(slice) as *const [MaybeUninit<T>];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     unsafe { &*ptr }
 }
@@ -31,19 +31,9 @@ pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
 /// `slice`, which would be undefined behavior.
 #[inline(always)]
 pub unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
-    let ptr = ptr_from_mut::<[T]>(slice) as *mut [MaybeUninit<T>];
+    let ptr = ptr::from_mut(slice) as *mut [MaybeUninit<T>];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
     unsafe { &mut *ptr }
-}
-
-// TODO: MSRV(1.76.0): Replace with `core::ptr::from_mut`.
-fn ptr_from_mut<T: ?Sized>(r: &mut T) -> *mut T {
-    r
-}
-
-// TODO: MSRV(1.76.0): Replace with `core::ptr::from_ref`.
-fn ptr_from_ref<T: ?Sized>(r: &T) -> *const T {
-    r
 }
 
 /// Default implementation of `inner_u32` on top of `fill_uninit`
