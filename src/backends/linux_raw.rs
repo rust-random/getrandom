@@ -16,6 +16,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             target_arch = "arm",
             any(target_abi = "eabi", target_abi = "eabihf"),
         ))] {
+            const __NR_getrandom: u32 = 384;
             // In thumb-mode, r7 is the frame pointer and is not permitted to be used in
             // an inline asm operand, so we have to use a different register and copy it
             // into r7 inside the inline asm.
@@ -25,11 +26,11 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
             unsafe {
                 core::arch::asm!(
                     "mov {tmp}, r7",
-                    // TODO(MSRV-1.82): replace with `nr = const __NR_getrandom,`
-                    "mov r7, #384",
+                    "mov r7, {nr}",
                     "svc 0",
                     "mov r7, {tmp}",
                     tmp = out(reg) _,
+                    nr = const __NR_getrandom,
                     inlateout("r0") buf => r0,
                     in("r1") buflen,
                     in("r2") flags,
