@@ -47,9 +47,9 @@ fn test_unwrapping_sys_rng() {
     assert!(x != y);
 
     let mut x = [0u8; N];
-    UnwrappingSysRng.try_fill_bytes(&mut x);
+    UnwrappingSysRng.fill_bytes(&mut x);
     let mut y = [0u8; N];
-    UnwrappingSysRng.try_fill_bytes(&mut y);
+    UnwrappingSysRng.fill_bytes(&mut y);
 
     assert_ne!(x, [0; N]);
     assert_ne!(y, [0; N]);
