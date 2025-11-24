@@ -51,7 +51,7 @@ compile_error!(
 #[target_feature(enable = "rdrand")]
 unsafe fn self_test() -> bool {
     // On AMD, RDRAND returns 0xFF...FF on failure, count it as a collision.
-    let mut prev = !0; // TODO(MSRV 1.43): Move to usize::MAX
+    let mut prev = Word::MAX;
     let mut fails = 0;
     for _ in 0..8 {
         match unsafe { rdrand() } {
