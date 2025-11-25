@@ -40,22 +40,23 @@ type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint)
 
 #[cold]
 #[inline(never)]
-fn init() -> usize {
-    let mut ptr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, c"getrandom".as_ptr()) };
+fn init() -> *mut c_void {
+    let ptr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, c"getrandom".as_ptr()) };
     if ptr.is_null() || cfg!(getrandom_test_netbsd_fallback) {
         // Verify `polyfill_using_kern_arand` has the right signature.
         const POLYFILL: GetRandomFn = polyfill_using_kern_arand;
-        ptr = POLYFILL as *mut c_void;
+        POLYFILL as *mut c_void
+    } else {
+        ptr
     }
-    ptr as usize
 }
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    static GETRANDOM_FN: lazy::LazyUsize = lazy::LazyUsize::new();
+    static GETRANDOM_FN: lazy::LazyPtr<c_void> = lazy::LazyPtr::new();
 
     let fptr = GETRANDOM_FN.unsync_init(init);
-    let fptr = unsafe { mem::transmute::<usize, GetRandomFn>(fptr) };
+    let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
     util_libc::sys_fill_exact(dest, |buf| unsafe {
         fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
     })

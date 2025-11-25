@@ -13,22 +13,22 @@ type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint)
 
 /// Sentinel value which indicates that `libc::getrandom` either not available,
 /// or not supported by kernel.
-const NOT_AVAILABLE: usize = usize::MAX;
+const NOT_AVAILABLE: *mut c_void = usize::MAX as *mut c_void;
 
 #[cold]
 #[inline(never)]
-fn init() -> usize {
+fn init() -> *mut c_void {
     // Use static linking to `libc::getrandom` on MUSL targets and `dlsym` everywhere else
     #[cfg(not(target_env = "musl"))]
-    let fptr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, c"getrandom".as_ptr()) } as usize;
+    let fptr = unsafe { libc::dlsym(libc::RTLD_DEFAULT, c"getrandom".as_ptr()) };
     #[cfg(target_env = "musl")]
     let fptr = {
         let fptr: GetRandomFn = libc::getrandom;
-        unsafe { transmute::<GetRandomFn, usize>(fptr) }
+        unsafe { transmute::<GetRandomFn, *mut c_void>(fptr) }
     };
 
-    let res_ptr = if fptr != 0 {
-        let getrandom_fn = unsafe { transmute::<usize, GetRandomFn>(fptr) };
+    let res_ptr = if !fptr.is_null() {
+        let getrandom_fn = unsafe { transmute::<*mut c_void, GetRandomFn>(fptr) };
         // Check that `getrandom` syscall is supported by kernel
         let res = unsafe { getrandom_fn(ptr::dangling_mut(), 0, 0) };
         if cfg!(getrandom_test_linux_fallback) {
@@ -66,14 +66,14 @@ fn use_file_fallback(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
-    static GETRANDOM_FN: lazy::LazyUsize = lazy::LazyUsize::new();
+    static GETRANDOM_FN: lazy::LazyPtr<c_void> = lazy::LazyPtr::new();
     let fptr = GETRANDOM_FN.unsync_init(init);
 
     if fptr == NOT_AVAILABLE {
         use_file_fallback(dest)
     } else {
         // note: `transmute` is currently the only way to convert a pointer into a function reference
-        let getrandom_fn = unsafe { transmute::<usize, GetRandomFn>(fptr) };
+        let getrandom_fn = unsafe { transmute::<*mut c_void, GetRandomFn>(fptr) };
         util_libc::sys_fill_exact(dest, |buf| unsafe {
             let ret = getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0);
             sanitizer::unpoison_linux_getrandom_result(buf, ret);
