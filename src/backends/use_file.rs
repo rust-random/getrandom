@@ -1,5 +1,5 @@
 //! Implementations that just need to read from a file
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{
     ffi::{CStr, c_void},
     mem::MaybeUninit,
@@ -8,9 +8,6 @@ use core::{
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 pub use crate::util::{inner_u32, inner_u64};
-
-#[path = "../util_libc.rs"]
-pub(super) mod util_libc;
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
