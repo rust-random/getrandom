@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::Error;
 use core::{mem::MaybeUninit, ptr, slice};
 

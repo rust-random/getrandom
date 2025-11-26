@@ -1,13 +1,10 @@
 //! Implementation for VxWorks
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{
     cmp::Ordering::{Equal, Greater, Less},
     mem::MaybeUninit,
     sync::atomic::{AtomicBool, Ordering::Relaxed},
 };
-
-#[path = "../util_libc.rs"]
-mod util_libc;
 
 pub use crate::util::{inner_u32, inner_u64};
 
