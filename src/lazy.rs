@@ -19,20 +19,20 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 //      }
 // the effects of c() or writes to shared memory will not necessarily be
 // observed and additional synchronization methods may be needed.
-struct LazyUsize(AtomicUsize);
+pub(crate) struct LazyUsize(AtomicUsize);
 
 impl LazyUsize {
     // The initialization is not completed.
     const UNINIT: usize = usize::MAX;
 
-    const fn new() -> Self {
+    pub const fn new() -> Self {
         Self(AtomicUsize::new(Self::UNINIT))
     }
 
     // Runs the init() function at most once, returning the value of some run of
     // init(). Multiple callers can run their init() functions in parallel.
     // init() should always return the same value, if it succeeds.
-    fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
+    pub fn unsync_init(&self, init: impl FnOnce() -> usize) -> usize {
         #[cold]
         fn do_init(this: &LazyUsize, init: impl FnOnce() -> usize) -> usize {
             let val = init();
