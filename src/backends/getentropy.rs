@@ -7,13 +7,10 @@
 //!   - vita newlib since Dec 2021
 //!
 //! For these targets, we use getentropy(2) because getrandom(2) doesn't exist.
-use crate::Error;
+use crate::{Error, util_libc};
 use core::{ffi::c_void, mem::MaybeUninit};
 
 pub use crate::util::{inner_u32, inner_u64};
-
-#[path = "../util_libc.rs"]
-mod util_libc;
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
