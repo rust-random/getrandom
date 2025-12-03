@@ -32,6 +32,10 @@ extern crate cfg_if;
 
 use core::mem::MaybeUninit;
 
+mod impl_utils;
+#[allow(unused_imports, reason = "not used in all backends")]
+pub(crate) use impl_utils::impl_utils;
+
 mod backends;
 mod error;
 mod util;
@@ -106,11 +110,6 @@ pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
 pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     if !dest.is_empty() {
         backends::fill_inner(dest)?;
-    }
-
-    #[cfg(getrandom_msan)]
-    unsafe extern "C" {
-        fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);
     }
 
     // SAFETY: `dest` has been fully initialized by `imp::fill_inner`

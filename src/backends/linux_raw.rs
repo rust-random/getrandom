@@ -1,5 +1,4 @@
 //! Implementation for Linux / Android using `asm!`-based syscalls.
-use super::sanitizer;
 pub use crate::util::{inner_u32, inner_u64};
 use crate::{Error, MaybeUninit};
 
@@ -140,6 +139,8 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
     r0
 }
 
+crate::impl_utils!(unpoison_linux_getrandom_result);
+
 #[inline]
 pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // Value of this error code is stable across all target arches.
@@ -147,7 +148,7 @@ pub fn fill_inner(mut dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 
     loop {
         let ret = unsafe { getrandom_syscall(dest.as_mut_ptr().cast(), dest.len(), 0) };
-        unsafe { sanitizer::unpoison_linux_getrandom_result(dest, ret) };
+        unsafe { unpoison_linux_getrandom_result(dest, ret) };
         match usize::try_from(ret) {
             Ok(0) => return Err(Error::UNEXPECTED),
             Ok(len) => {

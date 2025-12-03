@@ -14,8 +14,7 @@ use core::{
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[path = "../util_libc.rs"]
-mod util_libc;
+crate::impl_utils!(get_errno, last_os_error, sys_fill_exact);
 
 unsafe extern "C" fn polyfill_using_kern_arand(
     buf: *mut c_void,
@@ -72,7 +71,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         fptr = init();
     }
     let fptr = unsafe { mem::transmute::<*mut c_void, GetRandomFn>(fptr) };
-    util_libc::sys_fill_exact(dest, |buf| unsafe {
+    sys_fill_exact(dest, |buf| unsafe {
         fptr(buf.as_mut_ptr().cast::<c_void>(), buf.len(), 0)
     })
 }

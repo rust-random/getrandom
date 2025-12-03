@@ -9,9 +9,6 @@ use core::{
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 pub use crate::util::{inner_u32, inner_u64};
 
-#[path = "../util_libc.rs"]
-pub(super) mod util_libc;
-
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
 ///   - On Linux, "/dev/urandom is preferred and sufficient in all use cases".
@@ -40,13 +37,15 @@ const FD_ONGOING_INIT: libc::c_int = -2;
 // `Ordering::Acquire` to synchronize with it.
 static FD: AtomicI32 = AtomicI32::new(FD_UNINIT);
 
+crate::impl_utils!(get_errno, last_os_error, sys_fill_exact);
+
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let mut fd = FD.load(Ordering::Acquire);
     if fd == FD_UNINIT || fd == FD_ONGOING_INIT {
         fd = open_or_wait()?;
     }
-    util_libc::sys_fill_exact(dest, |buf| unsafe {
+    sys_fill_exact(dest, |buf| unsafe {
         libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
     })
 }
@@ -58,7 +57,7 @@ fn open_readonly(path: &CStr) -> Result<libc::c_int, Error> {
         if fd >= 0 {
             return Ok(fd);
         }
-        let err = util_libc::last_os_error();
+        let err = last_os_error();
         // We should try again if open() was interrupted.
         if err.raw_os_error() != Some(libc::EINTR) {
             return Err(err);
@@ -136,7 +135,7 @@ mod sync {
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sync {
-    use super::{Error, FD, FD_ONGOING_INIT, open_readonly, util_libc::last_os_error};
+    use super::{Error, FD, FD_ONGOING_INIT, last_os_error, open_readonly};
 
     /// Wait for atomic `FD` to change value from `FD_ONGOING_INIT` to something else.
     ///
