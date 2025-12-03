@@ -12,15 +12,14 @@ use core::{ffi::c_void, mem::MaybeUninit};
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[path = "../util_libc.rs"]
-mod util_libc;
+crate::impl_utils!(get_errno, last_os_error);
 
 #[inline]
 pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(256) {
         let ret = unsafe { libc::getentropy(chunk.as_mut_ptr().cast::<c_void>(), chunk.len()) };
         if ret != 0 {
-            return Err(util_libc::last_os_error());
+            return Err(last_os_error());
         }
     }
     Ok(())

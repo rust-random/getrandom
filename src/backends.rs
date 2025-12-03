@@ -3,7 +3,7 @@
 //! This module should provide `fill_inner` with the signature
 //! `fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>`.
 //! The function MUST fully initialize `dest` when `Ok(())` is returned;
-//! the function may need to use `sanitizer::unpoison` as well.
+//! the function may need to use `unpoison` as well.
 //! The function MUST NOT ever write uninitialized bytes into `dest`,
 //! regardless of what value it returns.
 
@@ -13,11 +13,9 @@ cfg_if! {
         pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod getrandom;
-        mod sanitizer;
         pub use getrandom::*;
     } else if #[cfg(getrandom_backend = "linux_raw")] {
         mod linux_raw;
-        mod sanitizer;
         pub use linux_raw::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
@@ -49,7 +47,6 @@ cfg_if! {
         pub use unsupported::*;
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
-        mod sanitizer;
         pub use linux_raw::*;
     } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
@@ -117,7 +114,6 @@ cfg_if! {
     ))] {
         mod use_file;
         mod linux_android_with_fallback;
-        mod sanitizer;
         pub use linux_android_with_fallback::*;
     } else if #[cfg(any(
         target_os = "android",
@@ -132,8 +128,6 @@ cfg_if! {
         all(target_os = "horizon", target_arch = "arm"),
     ))] {
         mod getrandom;
-        #[cfg(any(target_os = "android", target_os = "linux"))]
-        mod sanitizer;
         pub use getrandom::*;
     } else if #[cfg(target_os = "solaris")] {
         mod solaris;

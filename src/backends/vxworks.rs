@@ -6,12 +6,12 @@ use core::{
     sync::atomic::{AtomicBool, Ordering::Relaxed},
 };
 
-#[path = "../util_libc.rs"]
-mod util_libc;
-
 pub use crate::util::{inner_u32, inner_u64};
 
 static RNG_INIT: AtomicBool = AtomicBool::new(false);
+
+use libc::errnoGet as get_errno;
+crate::impl_utils!(last_os_error);
 
 #[cold]
 fn init() -> Result<(), Error> {
@@ -42,7 +42,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         let p: *mut libc::c_uchar = chunk.as_mut_ptr().cast();
         let ret = unsafe { libc::randABytes(p, chunk_len) };
         if ret != 0 {
-            return Err(util_libc::last_os_error());
+            return Err(last_os_error());
         }
     }
     Ok(())

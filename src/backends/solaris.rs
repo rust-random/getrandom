@@ -17,8 +17,7 @@ use core::{ffi::c_void, mem::MaybeUninit};
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[path = "../util_libc.rs"]
-mod util_libc;
+crate::impl_utils!(get_errno, last_os_error);
 
 const MAX_BYTES: usize = 1024;
 
@@ -33,7 +32,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             // Good. Keep going.
             Ok(ret) if ret == chunk.len() => {}
             // The syscall failed.
-            Ok(0) => return Err(util_libc::last_os_error()),
+            Ok(0) => return Err(last_os_error()),
             // All other cases should be impossible.
             _ => return Err(Error::UNEXPECTED),
         }

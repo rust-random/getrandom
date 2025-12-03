@@ -1,5 +1,5 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use super::{sanitizer, use_file};
+use super::use_file::{self, last_os_error, sys_fill_exact};
 use crate::Error;
 use core::{
     ffi::c_void,
@@ -7,7 +7,6 @@ use core::{
     ptr::NonNull,
     sync::atomic::{AtomicPtr, Ordering},
 };
-use use_file::util_libc;
 
 pub use crate::util::{inner_u32, inner_u64};
 
@@ -18,6 +17,8 @@ type GetRandomFn = unsafe extern "C" fn(*mut c_void, libc::size_t, libc::c_uint)
 const NOT_AVAILABLE: NonNull<c_void> = unsafe { NonNull::new_unchecked(usize::MAX as *mut c_void) };
 
 static GETRANDOM_FN: AtomicPtr<c_void> = AtomicPtr::new(core::ptr::null_mut());
+
+crate::impl_utils!(unpoison_linux_getrandom_result);
 
 #[cold]
 #[inline(never)]
@@ -44,7 +45,7 @@ fn init() -> NonNull<c_void> {
             if cfg!(getrandom_test_linux_fallback) {
                 NOT_AVAILABLE
             } else if res.is_negative() {
-                match util_libc::last_os_error().raw_os_error() {
+                match last_os_error().raw_os_error() {
                     Some(libc::ENOSYS) => NOT_AVAILABLE, // No kernel support
                     // The fallback on EPERM is intentionally not done on Android since this workaround
                     // seems to be needed only for specific Linux-based products that aren't based
@@ -94,9 +95,9 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     } else {
         // note: `transmute` is currently the only way to convert a pointer into a function reference
         let getrandom_fn = unsafe { transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
-        util_libc::sys_fill_exact(dest, |buf| unsafe {
+        sys_fill_exact(dest, |buf| unsafe {
             let ret = getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0);
-            sanitizer::unpoison_linux_getrandom_result(buf, ret);
+            unpoison_linux_getrandom_result(buf, ret);
             ret
         })
     }
