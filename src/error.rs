@@ -57,7 +57,25 @@ impl Error {
     /// Custom errors can be in the range of 2^17..(2^17 + 2^16)
     const CUSTOM_START: RawOsError = 1 << 17;
 
-    /// Creates a new instance of an `Error` from a negative error code.
+    /// Creates a new `Error` instance from a positive error code.
+    ///
+    /// Returns [`Error::ERRNO_NOT_POSITIVE`] for zero and negative error codes.
+    #[cfg(not(target_os = "uefi"))]
+    #[allow(dead_code)]
+    pub(super) fn from_errno(errno: i32) -> Self {
+        if errno > 0 {
+            let code = errno
+                .checked_neg()
+                .expect("Positive number can be always negated");
+            Error::from_neg_error_code(code)
+        } else {
+            Error::ERRNO_NOT_POSITIVE
+        }
+    }
+
+    /// Creates a new `Error` instance from a negative error code.
+    ///
+    /// Returns [`Error::UNEXPECTED`] for zero and positive error codes.
     #[cfg(not(target_os = "uefi"))]
     #[allow(dead_code)]
     pub(super) fn from_neg_error_code(code: RawOsError) -> Self {
