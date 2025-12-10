@@ -1,5 +1,4 @@
 //! Implementation for Linux / Android using `asm!`-based syscalls.
-use super::sanitizer;
 pub use crate::util::{inner_u32, inner_u64};
 use crate::{Error, MaybeUninit};
 
