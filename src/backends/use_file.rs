@@ -9,8 +9,8 @@ use core::{
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
 pub use crate::util::{inner_u32, inner_u64};
 
-#[path = "../util_libc.rs"]
-pub(super) mod util_libc;
+#[path = "../utils/sys_fill_exact.rs"]
+pub(super) mod utils;
 
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
@@ -46,7 +46,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if fd == FD_UNINIT || fd == FD_ONGOING_INIT {
         fd = open_or_wait()?;
     }
-    util_libc::sys_fill_exact(dest, |buf| unsafe {
+    utils::sys_fill_exact(dest, |buf| unsafe {
         libc::read(fd, buf.as_mut_ptr().cast::<c_void>(), buf.len())
     })
 }
@@ -58,10 +58,10 @@ fn open_readonly(path: &CStr) -> Result<libc::c_int, Error> {
         if fd >= 0 {
             return Ok(fd);
         }
-        let err = util_libc::last_os_error();
+        let errno = utils::get_errno();
         // We should try again if open() was interrupted.
-        if err.raw_os_error() != Some(libc::EINTR) {
-            return Err(err);
+        if errno != libc::EINTR {
+            return Err(Error::from_errno(errno));
         }
     }
 }
@@ -136,7 +136,7 @@ mod sync {
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sync {
-    use super::{Error, FD, FD_ONGOING_INIT, open_readonly, util_libc::last_os_error};
+    use super::{Error, FD, FD_ONGOING_INIT, open_readonly, utils};
 
     /// Wait for atomic `FD` to change value from `FD_ONGOING_INIT` to something else.
     ///
@@ -152,7 +152,7 @@ mod sync {
         debug_assert!({
             match ret {
                 0 => true,
-                -1 => last_os_error().raw_os_error() == Some(libc::EAGAIN),
+                -1 => utils::get_errno() == libc::EAGAIN,
                 _ => false,
             }
         });
@@ -209,12 +209,12 @@ mod sync {
                 debug_assert_eq!(res, 1);
                 break Ok(());
             }
-            let err = last_os_error();
+            let errno = utils::get_errno();
             // Assuming that `poll` is called correctly,
             // on Linux it can return only EINTR and ENOMEM errors.
-            match err.raw_os_error() {
-                Some(libc::EINTR) => continue,
-                _ => break Err(err),
+            match errno {
+                libc::EINTR => continue,
+                _ => break Err(Error::from_errno(errno)),
             }
         };
         unsafe { libc::close(fd) };
