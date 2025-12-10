@@ -58,6 +58,7 @@ impl Error {
     const CUSTOM_START: RawOsError = 1 << 17;
 
     /// Creates a new instance of an `Error` from a positive error code.
+    #[cfg(not(target_os = "uefi"))]
     #[allow(dead_code)]
     pub(super) fn from_errno(errno: i32) -> Self {
         if errno > 0 {
