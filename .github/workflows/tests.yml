@@ -275,14 +275,13 @@ jobs:
           - {
               description: Web,
               version: stable,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
               args: '--features=std,sys_rng,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
+              flags: '-Dwarnings -Ctarget-feature=+atomics,+bulk-memory',
               args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:

@@ -165,8 +165,6 @@ jobs:
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
     runs-on: ubuntu-24.04
-    env:
-        RUSTFLAGS: --cfg getrandom_backend="wasm_js" ${{ matrix.atomic.flags }}
     strategy:
       fail-fast: false
       matrix:
