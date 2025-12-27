@@ -29,19 +29,6 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "windows_legacy")] {
         mod windows_legacy;
         pub use windows_legacy::*;
-    } else if #[cfg(getrandom_backend = "wasm_js")] {
-        cfg_if! {
-            if #[cfg(feature = "wasm_js")] {
-                mod wasm_js;
-                pub use wasm_js::*;
-            } else {
-                compile_error!(concat!(
-                    "The \"wasm_js\" backend requires the `wasm_js` feature \
-                    for `getrandom`. For more information see: \
-                    https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
-                ));
-            }
-        }
     } else if #[cfg(getrandom_backend = "unsupported")] {
         mod unsupported;
         pub use unsupported::*;
@@ -187,8 +174,7 @@ cfg_if! {
             } else {
                 compile_error!(concat!(
                     "The wasm32-unknown-unknown targets are not supported by default; \
-                    you may need to enable the \"wasm_js\" configuration flag. Note \
-                    that enabling the `wasm_js` feature flag alone is insufficient. \
+                    you may need to enable the \"wasm_js\" crate feature. \
                     For more information see: \
                     https://docs.rs/getrandom/", env!("CARGO_PKG_VERSION"), "/#webassembly-support"
                 ));
