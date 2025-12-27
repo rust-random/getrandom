@@ -20,11 +20,16 @@ features = ["std", "sys_rng"]
 std = []
 
 # Optional backend: wasm_js
+#
 # This flag enables the wasm_js backend and uses it by default on wasm32 where
 # the target_os is unknown. The getrandom_backend cfg may override this.
-# WARNING: It is highly recommended to enable this feature only for binary crates and tests,
-# i.e. avoid enabling it in library crates. The only exception to this rule if your crate already
-# unconditionally depends on `wasm-bindgen` or `js-sys` on "unknown" WASM targets.
+#
+# WARNING: This feature SHOULD be enabled ONLY for binary crates and tests. In other words,
+# avoid enabling it in library crates whether unconditionally or gated on a crate feature.
+# By not following this reccomendation you may break builds for users targeting non-Web WASM.
+#
+# The only exception to this rule: if your crate already unconditionally depends on `wasm-bindgen`
+# or `js-sys` on "unknown" WASM targets then it's acceptable to enable this feature unconditionally.
 wasm_js = ["dep:wasm-bindgen", "dep:js-sys"]
 
 # Provide SysRng over rand_core
