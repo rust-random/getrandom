@@ -89,7 +89,7 @@ To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using
 
 WARNING: This feature SHOULD be enabled ONLY for binary crates and tests. In other words,
 avoid enabling it in library crates whether unconditionally or gated on a crate feature.
-By not following this reccomendation you may break builds for users targeting non-Web WASM
+By not following this recommendation you may break builds for users targeting non-Web WASM
 even when a different backend is selected via `getrandom_backend`.
 
 The only exception to this rule: if your crate already unconditionally depends on `wasm-bindgen`
