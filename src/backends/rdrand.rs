@@ -77,6 +77,8 @@ fn is_rdrand_good() -> bool {
     {
         // SAFETY: All Rust x86 targets are new enough to have CPUID, and we
         // check that leaf 1 is supported before using it.
+        //
+        // TODO(MSRV 1.94): remove allow(unused_unsafe) and the unsafe blocks for `__cpuid`.
         #[allow(unused_unsafe)]
         let cpuid0 = unsafe { arch::__cpuid(0) };
         if cpuid0.eax < 1 {
