@@ -1,5 +1,5 @@
 //! Implementation for Linux / Android with `/dev/urandom` fallback
-use super::{sanitizer, use_file};
+use super::use_file;
 use crate::Error;
 use core::{
     ffi::c_void,
@@ -7,7 +7,7 @@ use core::{
     ptr::NonNull,
     sync::atomic::{AtomicPtr, Ordering},
 };
-use use_file::util_libc;
+use use_file::utils;
 
 pub use crate::util::{inner_u32, inner_u64};
 
@@ -44,13 +44,13 @@ fn init() -> NonNull<c_void> {
             if cfg!(getrandom_test_linux_fallback) {
                 NOT_AVAILABLE
             } else if res.is_negative() {
-                match util_libc::last_os_error().raw_os_error() {
-                    Some(libc::ENOSYS) => NOT_AVAILABLE, // No kernel support
+                match utils::get_errno() {
+                    libc::ENOSYS => NOT_AVAILABLE, // No kernel support
                     // The fallback on EPERM is intentionally not done on Android since this workaround
                     // seems to be needed only for specific Linux-based products that aren't based
                     // on Android. See https://github.com/rust-random/getrandom/issues/229.
                     #[cfg(target_os = "linux")]
-                    Some(libc::EPERM) => NOT_AVAILABLE, // Blocked by seccomp
+                    libc::EPERM => NOT_AVAILABLE, // Blocked by seccomp
                     _ => fptr,
                 }
             } else {
@@ -94,10 +94,8 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     } else {
         // note: `transmute` is currently the only way to convert a pointer into a function reference
         let getrandom_fn = unsafe { transmute::<NonNull<c_void>, GetRandomFn>(fptr) };
-        util_libc::sys_fill_exact(dest, |buf| unsafe {
-            let ret = getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0);
-            sanitizer::unpoison_linux_getrandom_result(buf, ret);
-            ret
+        utils::sys_fill_exact(dest, |buf| unsafe {
+            getrandom_fn(buf.as_mut_ptr().cast(), buf.len(), 0)
         })
     }
 }

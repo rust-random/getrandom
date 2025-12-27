@@ -2,7 +2,7 @@
 use crate::{Error, util::slice_as_uninit};
 use core::mem::{MaybeUninit, size_of};
 
-#[path = "../lazy.rs"]
+#[path = "../utils/lazy.rs"]
 mod lazy;
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
