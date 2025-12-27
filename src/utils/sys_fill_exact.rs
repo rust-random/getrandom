@@ -6,6 +6,11 @@ mod sanitizer;
 
 pub(crate) use get_errno::get_errno;
 
+/// Fill a buffer by repeatedly invoking `sys_fill`.
+///
+/// The `sys_fill` function:
+///   - should return -1 and set errno on failure
+///   - should return the number of bytes written on success
 pub(crate) fn sys_fill_exact(
     mut buf: &mut [MaybeUninit<u8>],
     sys_fill: impl Fn(&mut [MaybeUninit<u8>]) -> libc::ssize_t,
