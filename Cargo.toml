@@ -102,3 +102,6 @@ pre-build = [
   "rm base.tar.xz",
   "rm -rf /tmp/netbsd",
 ]
+
+[patch.crates-io]
+rand_core = { git = "https://github.com/rust-random/rand_core.git", branch = "merge_rng_traits" }
