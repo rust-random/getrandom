@@ -25,7 +25,7 @@ std = []
 # the target_os is unknown. The getrandom_backend cfg may override this.
 #
 # WARNING: We recommend strongly against enabling this feature in libraries (except for tests)
-# since it is known to break some non-Web WASM builds and further since the usage of `wasm-bindgen`
+# since it is known to break non-Web WASM builds and further since the usage of `wasm-bindgen`
 # causes significant bloat to `Cargo.lock` (on all targets).
 #
 # The only exception to this rule: if your crate already unconditionally depends on `wasm-bindgen`
