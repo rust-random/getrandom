@@ -169,8 +169,7 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 [[package]]
 name = "rand_core"
 version = "0.10.0-rc-3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f66ee92bc15280519ef199a274fe0cafff4245d31bc39aaa31c011ad56cb1f05"
+source = "git+https://github.com/rust-random/rand_core.git?branch=merge_rng_traits#85f7d9ba0a13f69e16248166abf72bff29b00de0"
 
 [[package]]
 name = "rustversion"
