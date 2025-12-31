@@ -275,6 +275,7 @@ jobs:
           - {
               description: Web,
               version: stable,
+              flags: '-Dwarnings',
               args: '--features=std,sys_rng,wasm_js',
             }
           - {
