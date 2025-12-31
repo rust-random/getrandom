@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.17] - 2026-01-02
+### Fixed
+- Use `doc_cfg` instead of `doc_auto_cfg` (partial backport of [#732]) [#768]
+
+[#732]: https://github.com/rust-random/getrandom/pull/732
+[#768]: https://github.com/rust-random/getrandom/pull/768
+
 ## [0.2.16] - 2025-04-22
 ### Added
 - Cygwin support (backport of [#626]) [#654]
@@ -461,6 +468,7 @@ Publish initial implementation.
 ## [0.0.0] - 2019-01-19
 Publish an empty template library.
 
+[0.2.17]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.2.17
 [0.2.16]: https://github.com/rust-random/getrandom/compare/v0.2.15...v0.2.16
 [0.2.15]: https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/rust-random/getrandom/compare/v0.2.13...v0.2.14
