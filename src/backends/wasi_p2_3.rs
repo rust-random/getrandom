@@ -1,7 +1,10 @@
 //! Implementation for WASI Preview 2.
 use crate::Error;
 use core::{mem::MaybeUninit, ptr::copy_nonoverlapping};
+#[cfg(target_env = "p2")]
 use wasip2::random::random::get_random_u64;
+#[cfg(target_env = "p3")]
+use wasip3::random::random::get_random_u64;
 
 #[inline]
 pub fn inner_u32() -> Result<u32, Error> {
