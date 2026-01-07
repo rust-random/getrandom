@@ -87,7 +87,7 @@ We do not include support for this target in the default configuration because o
 To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using
 [`Crypto.getRandomValues`] via [`wasm-bindgen`], enable the `wasm_js` crate feature.
 
-WARNING: We recommend strongly against enabling this feature in libraries (except for tests)
+WARNING: We strongly recommend against enabling this feature in libraries (except for tests)
 since it is known to break non-Web WASM builds and further since the usage of `wasm-bindgen`
 causes significant bloat to `Cargo.lock` (on all targets).
 
