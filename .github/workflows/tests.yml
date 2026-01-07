@@ -390,4 +390,4 @@ jobs:
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -Zbuild-std --target wasm32-wasip3
+      - run: cargo test -Zbuild-std=std,panic_abort --target wasm32-wasip3
