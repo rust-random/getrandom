@@ -151,14 +151,9 @@ cfg_if! {
             if #[cfg(target_env = "p1")] {
                 mod wasi_p1;
                 pub use wasi_p1::*;
-            } else if #[cfg(any(target_env = "p2", target_env = "p3"))] {
+            } else {
                 mod wasi_p2_3;
                 pub use wasi_p2_3::*;
-            } else {
-                compile_error!(
-                    "Unknown version of WASI (only previews 1 and 2 are supported) \
-                    or Rust version older than 1.80 was used"
-                );
             }
         }
     } else if #[cfg(target_os = "hermit")] {
