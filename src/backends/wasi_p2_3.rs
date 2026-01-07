@@ -1,7 +1,21 @@
-//! Implementation for WASI Preview 2.
+//! Implementation for WASIp2 and WASIp3.
 use crate::Error;
 use core::{mem::MaybeUninit, ptr::copy_nonoverlapping};
-use wasip2::random::random::get_random_u64;
+
+#[cfg(target_env = "p2")]
+use wasip2 as wasi;
+
+// Workaround to silence `unexpected_cfgs` warning
+// on Rust version between 1.85 and 1.91
+#[cfg(not(target_env = "p2"))]
+#[cfg(target_env = "p3")]
+use wasip3 as wasi;
+
+#[cfg(not(target_env = "p2"))]
+#[cfg(not(target_env = "p3"))]
+compile_error!("Unknown version of WASI (only previews 1, 2 and 3 are supported)");
+
+use wasi::random::random::get_random_u64;
 
 #[inline]
 pub fn inner_u32() -> Result<u32, Error> {
