@@ -11,7 +11,7 @@ extern "system" {
         pBuffer: *mut u8,
         cbBuffer: u32,
         dwFlags: u32,
-    ) -> u32;
+    ) -> i32;
 }
 
 // Forbidden when targetting UWP
@@ -34,6 +34,7 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
                 BCRYPT_USE_SYSTEM_PREFERRED_RNG,
             )
         };
+        let ret = ret as u32;
         // NTSTATUS codes use the two highest bits for severity status.
         if ret >> 30 == 0b11 {
             // Failed. Try RtlGenRandom as a fallback.
