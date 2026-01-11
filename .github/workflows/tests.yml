@@ -372,22 +372,21 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target wasm32-wasip2
 
-  wasi_p3:
-    name: WASIp3
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          # TODO: switch to stable after pre-built
-          # `std` is published for wasm32-wasip3
-          toolchain: nightly-2026-01-07
-          components: rust-src
-      - name: Install Wasmtime
-        run: |
-          VERSION=v40.0.0
-          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
-          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
-          wasmtime --version
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test -Zbuild-std=std,panic_abort --target wasm32-wasip3
+  # TODO: enable after pre-built std will be provided by Rust 
+  # wasi_p3:
+  #   name: WASIp3
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: 1.90
+  #         targets: wasm32-wasip3
+  #     - name: Install Wasmtime
+  #       run: |
+  #         VERSION=v40.0.0
+  #         URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+  #         wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+  #         wasmtime --version
+  #     - uses: Swatinem/rust-cache@v2
+  #     - run: cargo test --target wasm32-wasip3
