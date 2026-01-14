@@ -75,9 +75,13 @@ libc = { version = "0.2.154", default-features = false }
 [target.'cfg(target_os = "vxworks")'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
-# wasi_p2
+# wasi_p2_3
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies]
 wasip2 = { version = "1", default-features = false }
+
+# wasi_p2_3
+[target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p3"))'.dependencies]
+wasip3 = { version = "0.3", default-features = false }
 
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]

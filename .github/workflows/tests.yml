@@ -336,23 +336,57 @@ jobs:
         # Firefox doesn't support module service workers and therefor can't import scripts
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
-  wasi:
-    name: WASI
+  wasi_p1:
+    name: WASIp1
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85
-          targets: wasm32-wasip1,wasm32-wasip2
+          targets: wasm32-wasip1
       - name: Install Wasmtime
         run: |
-          VERSION=v24.0.0
+          VERSION=v40.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - name: WASI 0.1 Test
-        run: cargo test --target wasm32-wasip1
-      - name: WASI 0.2 Test
-        run: cargo test --target wasm32-wasip2
+      - run: cargo test --target wasm32-wasip1
+
+  wasi_p2:
+    name: WASIp2
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85
+          targets: wasm32-wasip2
+      - name: Install Wasmtime
+        run: |
+          VERSION=v40.0.0
+          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+          wasmtime --version
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --target wasm32-wasip2
+
+  # TODO: enable after pre-built std will be provided by Rust 
+  # wasi_p3:
+  #   name: WASIp3
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: 1.90
+  #         targets: wasm32-wasip3
+  #     - name: Install Wasmtime
+  #       run: |
+  #         VERSION=v40.0.0
+  #         URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+  #         wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+  #         wasmtime --version
+  #     - uses: Swatinem/rust-cache@v2
+  #     - run: cargo test --target wasm32-wasip3
