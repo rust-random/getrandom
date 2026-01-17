@@ -1,7 +1,7 @@
 use crate::Error;
-use rand_core::{TryCryptoRng, TryRngCore};
+use rand_core::{CryptoRng, TryRng};
 
-/// A [`TryRngCore`] interface over the system's preferred random number source
+/// A [`TryRng`] interface over the system's preferred random number source
 ///
 /// This is a zero-sized struct. It can be freely constructed with just `SysRng`.
 ///
@@ -9,30 +9,30 @@ use rand_core::{TryCryptoRng, TryRngCore};
 ///
 /// # Usage example
 ///
-/// `SysRng` implements [`TryRngCore`]:
+/// `SysRng` implements [`TryRng`]:
 /// ```
-/// use getrandom::{rand_core::TryRngCore, SysRng};
+/// use getrandom::{rand_core::TryRng, SysRng};
 ///
 /// let mut key = [0u8; 32];
 /// SysRng.try_fill_bytes(&mut key).unwrap();
 /// ```
 ///
-/// Using it as an [`RngCore`] is possible using [`TryRngCore::unwrap_err`]:
+/// Using it as an [`InfallibleRng`] is possible using [`TryRng::unwrap_err`]:
 /// ```
-/// use getrandom::rand_core::{TryRngCore, RngCore};
+/// use getrandom::rand_core::TryRng;
 /// use getrandom::SysRng;
 ///
 /// let mut rng = SysRng.unwrap_err();
-/// let random_u64 = rng.next_u64();
+/// let random_u64 = rng.try_next_u64();
 /// ```
 ///
 /// [rand]: https://crates.io/crates/rand
 /// [`rand::rngs::SysRng`]: https://docs.rs/rand/latest/rand/rngs/struct.SysRng.html
-/// [`RngCore`]: rand_core::RngCore
+/// [`TryRng`]: rand_core::TryRng
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SysRng;
 
-impl TryRngCore for SysRng {
+impl TryRng for SysRng {
     type Error = Error;
 
     #[inline]
@@ -51,4 +51,4 @@ impl TryRngCore for SysRng {
     }
 }
 
-impl TryCryptoRng for SysRng {}
+impl CryptoRng for SysRng {}
