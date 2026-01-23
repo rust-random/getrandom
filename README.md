@@ -213,6 +213,7 @@ from the `implementation` module.
 ```rust
 use core::mem::MaybeUninit;
 
+#[cfg(getrandom_extern_item_impls)]
 #[getrandom::implementation::fill_uninit]
 fn my_fill_uninit_implementation(
     dest: &mut [MaybeUninit<u8>]
