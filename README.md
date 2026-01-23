@@ -208,7 +208,7 @@ it is possible to provide a custom backend for `getrandom`, even to override
 an existing first-party implementation. First, enable the `getrandom_extern_item_impls`
 Rust flag to allow usage of this nightly feature. Then, you may provide
 implementations for `fill_uninit`, `u32`, and/or u64` with an attribute macro
-from the `implemtation` module.
+from the `implementation` module.
 
 ```rust
 use core::mem::MaybeUninit;
@@ -222,7 +222,7 @@ fn my_fill_uninit_implementation(
 }
 ```
 
-If `getrandom` is able to provide a backend implemtation, it will be a weak
+If `getrandom` is able to provide a backend implementation, it will be a weak
 symbol that can be overridden as above. If no implementation is available,
 a compilation error will be raised with instructions for how to provide
 an implementation.

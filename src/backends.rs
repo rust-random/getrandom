@@ -22,7 +22,7 @@ pub(crate) fn inner_u64() -> Result<u64, crate::Error> {
 macro_rules! implementation {
     () => {
         use $crate::util::{inner_u32 as default_u32, inner_u64 as default_u64};
-        
+
         /// Declares this function as an external implementation of [`fill_uninit`](crate::fill_uninit).
         #[cfg_attr(getrandom_extern_item_impls, eii(fill_uninit))]
         pub(crate) fn fill_inner(
@@ -31,7 +31,7 @@ macro_rules! implementation {
     };
     ($backend:ident) => {
         use $backend::{inner_u32 as default_u32, inner_u64 as default_u64};
-        
+
         /// Declares this function as an external implementation of [`fill_uninit`](crate::fill_uninit).
         #[cfg_attr(getrandom_extern_item_impls, eii(fill_uninit))]
         pub(crate) fn fill_inner(

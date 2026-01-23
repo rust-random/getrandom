@@ -53,7 +53,7 @@ pub use crate::error::{Error, RawOsError};
 
 #[cfg(getrandom_extern_item_impls)]
 pub mod implementation {
-    //! Provides Externally Implementable Iterfaces for the core functionality of this crate.
+    //! Provides Externally Implementable Interfaces for the core functionality of this crate.
     //! This allows `getrandom` to provide a default implementation and a common interface
     //! for all crates to use, while giving users a safe way to override that default where required.
     //!
