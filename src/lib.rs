@@ -26,6 +26,7 @@
     clippy::unnecessary_cast,
     clippy::useless_conversion
 )]
+#![cfg_attr(getrandom_extern_item_impls, feature(extern_item_impls))]
 
 #[macro_use]
 extern crate cfg_if;
@@ -49,6 +50,32 @@ pub use rand_core;
 pub use sys_rng::SysRng;
 
 pub use crate::error::{Error, RawOsError};
+
+#[cfg(getrandom_extern_item_impls)]
+pub mod implementation {
+    //! Provides Externally Implementable Iterfaces for the core functionality of this crate.
+    //! This allows `getrandom` to provide a default implementation and a common interface
+    //! for all crates to use, while giving users a safe way to override that default where required.
+    //!
+    //! Must be enabled via the `getrandom_extern_item_impls` compiler flag, as this functionality
+    //! is currently limited to nightly.
+    //!
+    //! # Examples
+    //!
+    //! ```rust
+    //! # use core::mem::MaybeUninit;
+    //! #[getrandom::implementation::fill_uninit]
+    //! fn my_fill_uninit_implementation(
+    //!     dest: &mut [MaybeUninit<u8>]
+    //! ) -> Result<(), getrandom::Error> {
+    //!     // ...
+    //! #   let _ = dest;
+    //! #   Err(Error::UNSUPPORTED)
+    //! }
+    //! ```
+
+    pub use crate::backends::{fill_uninit, u32, u64};
+}
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
 ///

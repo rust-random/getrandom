@@ -201,6 +201,32 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 }
 ```
 
+### Externally Implemented Interface (Nightly)
+
+Using the nightly-only feature [`extern_item_impls`](https://github.com/rust-lang/rust/issues/125418)
+it is possible to provide a custom backend for `getrandom`, even to override
+an existing first-party implementation. First, enable the `getrandom_extern_item_impls`
+Rust flag to allow usage of this nightly feature. Then, you may provide
+implementations for `fill_uninit`, `u32`, and/or u64` with an attribute macro
+from the `implemtation` module.
+
+```rust
+use core::mem::MaybeUninit;
+
+#[getrandom::implementation::fill_uninit]
+fn my_fill_uninit_implementation(
+    dest: &mut [MaybeUninit<u8>]
+) -> Result<(), getrandom::Error> {
+    // ...
+    Ok(())
+}
+```
+
+If `getrandom` is able to provide a backend implemtation, it will be a weak
+symbol that can be overridden as above. If no implementation is available,
+a compilation error will be raised with instructions for how to provide
+an implementation.
+
 ### Unsupported backend
 
 In some rare scenarios, you might be compiling this crate for an unsupported
