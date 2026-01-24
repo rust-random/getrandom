@@ -79,7 +79,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "getrandom"
-version = "0.4.0-rc.0"
+version = "0.4.0-rc.1"
 dependencies = [
  "cfg-if",
  "js-sys",
