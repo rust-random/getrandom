@@ -29,6 +29,7 @@ use rand_core::{TryCryptoRng, TryRng};
 /// [rand]: https://crates.io/crates/rand
 /// [`rand::rngs::SysRng`]: https://docs.rs/rand/latest/rand/rngs/struct.SysRng.html
 /// [`Rng`]: rand_core::Rng
+/// [`UnwrapErr`]: rand_core::UnwrapErr
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SysRng;
 
