@@ -102,7 +102,7 @@ jobs:
       - name: fmt
         run: cargo fmt --all -- --check
 
-  check-doc:
+  doc:
     name: rustdoc
     runs-on: ubuntu-24.04
     steps:
@@ -115,7 +115,7 @@ jobs:
       - name: Generate Docs
         env:
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
-        run: cargo doc --no-deps --features std
+        run: cargo doc --no-deps --features std,sys_rng
 
   typos:
     runs-on: ubuntu-latest
