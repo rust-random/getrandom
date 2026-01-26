@@ -361,7 +361,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.87
+          toolchain: 1.85
           targets: wasm32-wasip2
       - name: Install Wasmtime
         run: |
@@ -370,6 +370,9 @@ jobs:
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
+      - name: Generate MSRV-compatible Cargo.lock
+        env: CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS="fallback"
+        run: cargo update
       - run: cargo test --target wasm32-wasip2
 
   # TODO: enable after pre-built std will be provided by Rust 
