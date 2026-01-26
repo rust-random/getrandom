@@ -7,72 +7,40 @@
 //! The function MUST NOT ever write uninitialized bytes into `dest`,
 //! regardless of what value it returns.
 
-/// Declares this function as an external implementation of [`u32`](crate::u32).
-#[cfg_attr(getrandom_extern_item_impls, eii(u32))]
-pub(crate) fn inner_u32() -> Result<u32, crate::Error> {
-    default_u32()
-}
-
-/// Declares this function as an external implementation of [`u64`](crate::u64).
-#[cfg_attr(getrandom_extern_item_impls, eii(u64))]
-pub(crate) fn inner_u64() -> Result<u64, crate::Error> {
-    default_u64()
-}
-
-macro_rules! implementation {
-    () => {
-        use $crate::util::{inner_u32 as default_u32, inner_u64 as default_u64};
-
-        /// Declares this function as an external implementation of [`fill_uninit`](crate::fill_uninit).
-        #[cfg_attr(getrandom_extern_item_impls, eii(fill_uninit))]
-        pub(crate) fn fill_inner(
-            dest: &mut [::core::mem::MaybeUninit<u8>],
-        ) -> Result<(), $crate::Error>;
-    };
-    ($backend:ident) => {
-        use $backend::{inner_u32 as default_u32, inner_u64 as default_u64};
-
-        /// Declares this function as an external implementation of [`fill_uninit`](crate::fill_uninit).
-        #[cfg_attr(getrandom_extern_item_impls, eii(fill_uninit))]
-        pub(crate) fn fill_inner(
-            dest: &mut [::core::mem::MaybeUninit<u8>],
-        ) -> Result<(), $crate::Error> {
-            $backend::fill_inner(dest)
-        }
-    };
-}
-
 cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
         mod custom;
-        implementation!(custom);
+        pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {
         mod getrandom;
-        implementation!(getrandom);
+        pub use getrandom::*;
     } else if #[cfg(getrandom_backend = "linux_raw")] {
         mod linux_raw;
-        implementation!(linux_raw);
+        pub use linux_raw::*;
     } else if #[cfg(getrandom_backend = "rdrand")] {
         mod rdrand;
-        implementation!(rdrand);
+        pub use rdrand::*;
     } else if #[cfg(getrandom_backend = "rndr")] {
         mod rndr;
-        implementation!(rndr);
+        pub use rndr::*;
     } else if #[cfg(getrandom_backend = "efi_rng")] {
         mod efi_rng;
-        implementation!(efi_rng);
+        pub use efi_rng::*;
     } else if #[cfg(getrandom_backend = "windows_legacy")] {
         mod windows_legacy;
-        implementation!(windows_legacy);
+        pub use windows_legacy::*;
     } else if #[cfg(getrandom_backend = "unsupported")] {
         mod unsupported;
-        implementation!(unsupported);
+        pub use unsupported::*;
+    } else if #[cfg(getrandom_backend = "extern_item_impls")] {
+        pub(crate) mod extern_item_impls;
+        pub use extern_item_impls::*;
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
-        implementation!(linux_raw);
+        pub use linux_raw::*;
     } else if #[cfg(target_os = "espidf")] {
         mod esp_idf;
-        implementation!(esp_idf);
+        pub use esp_idf::*;
     } else if #[cfg(any(
         target_os = "haiku",
         target_os = "redox",
@@ -80,7 +48,7 @@ cfg_if! {
         target_os = "aix",
     ))] {
         mod use_file;
-        implementation!(use_file);
+        pub use use_file::*;
     } else if #[cfg(any(
         target_os = "macos",
         target_os = "openbsd",
@@ -88,7 +56,7 @@ cfg_if! {
         target_os = "emscripten",
     ))] {
         mod getentropy;
-        implementation!(getentropy);
+        pub use getentropy::*;
     } else if #[cfg(any(
         // Rust supports Android API level 19 (KitKat) [0] and the next upgrade targets
         // level 21 (Lollipop) [1], while `getrandom(2)` was added only in
@@ -136,7 +104,7 @@ cfg_if! {
     ))] {
         mod use_file;
         mod linux_android_with_fallback;
-        implementation!(linux_android_with_fallback);
+        pub use linux_android_with_fallback::*;
     } else if #[cfg(any(
         target_os = "android",
         target_os = "linux",
@@ -150,16 +118,16 @@ cfg_if! {
         all(target_os = "horizon", target_arch = "arm"),
     ))] {
         mod getrandom;
-        implementation!(getrandom);
+        pub use getrandom::*;
     } else if #[cfg(target_os = "solaris")] {
         mod solaris;
-        implementation!(solaris);
+        pub use solaris::*;
     } else if #[cfg(target_os = "netbsd")] {
         mod netbsd;
-        implementation!(netbsd);
+        pub use netbsd::*;
     } else if #[cfg(target_os = "fuchsia")] {
         mod fuchsia;
-        implementation!(fuchsia);
+        pub use fuchsia::*;
     } else if #[cfg(any(
         target_os = "ios",
         target_os = "visionos",
@@ -167,42 +135,40 @@ cfg_if! {
         target_os = "tvos",
     ))] {
         mod apple_other;
-        implementation!(apple_other);
+        pub use apple_other::*;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         cfg_if! {
             if #[cfg(target_env = "p1")] {
                 mod wasi_p1;
-                implementation!(wasi_p1);
+                pub use wasi_p1::*;
             } else {
                 mod wasi_p2_3;
-                implementation!(wasi_p2_3);
+                pub use wasi_p2_3::*;
             }
         }
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
-        implementation!(hermit);
+        pub use hermit::*;
     } else if #[cfg(target_os = "vxworks")] {
         mod vxworks;
-        implementation!(vxworks);
+        pub use vxworks::*;
     } else if #[cfg(target_os = "solid_asp3")] {
         mod solid;
-        implementation!(solid);
+        pub use solid::*;
     } else if #[cfg(all(windows, target_vendor = "win7"))] {
         mod windows_legacy;
-        implementation!(windows_legacy);
+        pub use windows_legacy::*;
     } else if #[cfg(windows)] {
         mod windows;
-        implementation!(windows);
+        pub use windows::*;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
-        implementation!(rdrand);
+        pub use rdrand::*;
     } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
                 mod wasm_js;
-                implementation!(wasm_js);
-            } else if #[cfg(getrandom_extern_item_impls)] {
-                implementation!();
+                pub use wasm_js::*;
             } else {
                 compile_error!(concat!(
                     "The wasm32-unknown-unknown targets are not supported by default; \
@@ -212,8 +178,6 @@ cfg_if! {
                 ));
             }
         }
-    } else if #[cfg(getrandom_extern_item_impls)] {
-        implementation!();
     } else {
         compile_error!(concat!(
             "target is not supported. You may need to define a custom backend see: \

@@ -205,15 +205,15 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 
 Using the nightly-only feature [`extern_item_impls`](https://github.com/rust-lang/rust/issues/125418)
 it is possible to provide a custom backend for `getrandom`, even to override
-an existing first-party implementation. First, enable the `getrandom_extern_item_impls`
-Rust flag to allow usage of this nightly feature. Then, you may provide
-implementations for `fill_uninit`, `u32`, and/or u64` with an attribute macro
+an existing first-party implementation. First, enable the `gextern_item_impls`
+opt-in backend to allow usage of this nightly feature. Then, you may provide
+implementations for `fill_uninit`, `u32`, and/or `u64` with an attribute macro
 from the `implementation` module.
 
 ```rust
 use core::mem::MaybeUninit;
 
-#[cfg(getrandom_extern_item_impls)]
+#[cfg(getrandom_backend = "extern_item_impls")]
 #[getrandom::implementation::fill_uninit]
 fn my_fill_uninit_implementation(
     dest: &mut [MaybeUninit<u8>]
@@ -223,8 +223,9 @@ fn my_fill_uninit_implementation(
 }
 ```
 
-If `getrandom` is able to provide a backend implementation, it will be a weak
-symbol that can be overridden as above. If no implementation is available,
+`getrandom` will provide a default implementation for `u32` and `u64`, but does
+not currently provide a default for `fill_uninit`, even if one is normally
+available for the current target. If no implementation is available,
 a compilation error will be raised with instructions for how to provide
 an implementation.
 
