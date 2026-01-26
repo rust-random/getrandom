@@ -291,3 +291,36 @@ mod custom {
         assert!(res.is_err());
     }
 }
+
+#[cfg(getrandom_backend = "extern_item_impls")]
+mod extern_item_impls {
+    use core::mem::MaybeUninit;
+    use getrandom::Error;
+
+    // This implementation for fill_uninit will always fail.
+    //
+    // WARNING: this custom implementation is for testing purposes ONLY!
+
+    #[getrandom::implementation::fill_uninit]
+    fn my_fill_uninit_implementation(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+        Err(Error::new_custom(4))
+    }
+
+    // This implementation returns a fixed value to demonstrate overriding defaults.
+    //
+    // WARNING: this custom implementation is for testing purposes ONLY!
+
+    #[getrandom::implementation::u32]
+    fn my_u32_implementation() -> Result<u32, Error> {
+        // Chosen by fair dice roll
+        Ok(4)
+    }
+
+    // Test that enabling the custom feature indeed uses the custom implementation
+    #[test]
+    fn test_extern_item_impls() {
+        let mut buf = [0u8; 123];
+        assert_eq!(getrandom::fill(&mut buf), Err(Error::new_custom(4)));
+        assert_eq!(getrandom::u32(), Ok(4));
+    }
+}

@@ -77,6 +77,10 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
         run: cargo test --features=std,sys_rng
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_item_impls"
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="extern_item_impls"
+        run: cargo test --target=${{ matrix.target }} --features=std --test mod extern_item_impls
 
   ios:
     name: iOS Simulator
