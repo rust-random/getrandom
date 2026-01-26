@@ -1,3 +1,4 @@
+//! Tests for `SysRng`
 #![cfg(feature = "sys_rng")]
 
 use getrandom::SysRng;
