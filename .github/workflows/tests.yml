@@ -371,7 +371,8 @@ jobs:
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
       - name: Generate MSRV-compatible Cargo.lock
-        env: CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS="fallback"
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: "fallback"
         run: cargo update
       - run: cargo test --target wasm32-wasip2
 
