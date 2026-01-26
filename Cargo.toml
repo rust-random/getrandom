@@ -1,6 +1,6 @@
 [package]
 name = "getrandom"
-version = "0.4.0-rc.0"
+version = "0.4.0-rc.1"
 edition = "2024"
 rust-version = "1.85" # Sync tests.yml and README.md.
 authors = ["The Rand Project Developers"]
@@ -37,7 +37,7 @@ sys_rng = ["dep:rand_core"]
 
 [dependencies]
 cfg-if = "1"
-rand_core = { version = "0.10.0-rc-3", optional = true }
+rand_core = { version = "0.10.0-rc-6", optional = true }
 
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
@@ -81,7 +81,7 @@ wasip2 = { version = "1", default-features = false }
 
 # wasi_p2_3
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p3"))'.dependencies]
-wasip3 = { version = "0.3", default-features = false }
+wasip3 = "0.4"
 
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
@@ -101,6 +101,25 @@ check-cfg = [
   'cfg(getrandom_test_netbsd_fallback)',
   'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
 ]
+
+[lints.rust]
+unused_lifetimes = "warn"
+missing_docs = "warn"
+
+[lints.clippy]
+cast_lossless = "warn"
+cast_possible_truncation = "warn"
+cast_possible_wrap = "warn"
+cast_precision_loss = "warn"
+cast_ptr_alignment = "warn"
+cast_sign_loss = "warn"
+char_lit_as_u8 = "warn"
+checked_conversions = "warn"
+fn_to_numeric_cast = "warn"
+fn_to_numeric_cast_with_truncation = "warn"
+ptr_as_ptr = "warn"
+unnecessary_cast = "warn"
+useless_conversion = "warn"
 
 # workaround for https://github.com/cross-rs/cross/issues/1345
 [package.metadata.cross.target.x86_64-unknown-netbsd]

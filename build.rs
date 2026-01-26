@@ -1,3 +1,5 @@
+//! Build script for memory sanitization support
+
 fn main() {
     // Automatically detect cfg(sanitize = "memory") even if cfg(sanitize) isn't
     // supported. Build scripts get cfg() info, even if the cfg is unstable.

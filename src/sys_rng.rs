@@ -1,7 +1,7 @@
 use crate::Error;
-use rand_core::{TryCryptoRng, TryRngCore};
+use rand_core::{TryCryptoRng, TryRng};
 
-/// A [`TryRngCore`] interface over the system's preferred random number source
+/// A [`TryRng`] interface over the system's preferred random number source
 ///
 /// This is a zero-sized struct. It can be freely constructed with just `SysRng`.
 ///
@@ -9,30 +9,31 @@ use rand_core::{TryCryptoRng, TryRngCore};
 ///
 /// # Usage example
 ///
-/// `SysRng` implements [`TryRngCore`]:
+/// `SysRng` implements [`TryRng`]:
 /// ```
-/// use getrandom::{rand_core::TryRngCore, SysRng};
+/// use getrandom::{rand_core::TryRng, SysRng};
 ///
 /// let mut key = [0u8; 32];
 /// SysRng.try_fill_bytes(&mut key).unwrap();
 /// ```
 ///
-/// Using it as an [`RngCore`] is possible using [`TryRngCore::unwrap_err`]:
+/// Using it as an [`Rng`] is possible using [`UnwrapErr`]:
 /// ```
-/// use getrandom::rand_core::{TryRngCore, RngCore};
+/// use getrandom::rand_core::{Rng, UnwrapErr};
 /// use getrandom::SysRng;
 ///
-/// let mut rng = SysRng.unwrap_err();
+/// let mut rng = UnwrapErr(SysRng);
 /// let random_u64 = rng.next_u64();
 /// ```
 ///
 /// [rand]: https://crates.io/crates/rand
 /// [`rand::rngs::SysRng`]: https://docs.rs/rand/latest/rand/rngs/struct.SysRng.html
-/// [`RngCore`]: rand_core::RngCore
+/// [`Rng`]: rand_core::Rng
+/// [`UnwrapErr`]: rand_core::UnwrapErr
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SysRng;
 
-impl TryRngCore for SysRng {
+impl TryRng for SysRng {
     type Error = Error;
 
     #[inline]

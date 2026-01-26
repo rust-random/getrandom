@@ -1,7 +1,8 @@
+//! Tests for `SysRng`
 #![cfg(feature = "sys_rng")]
 
 use getrandom::SysRng;
-use getrandom::rand_core::TryRngCore;
+use getrandom::rand_core::TryRng;
 
 #[test]
 fn test_sys_rng() {

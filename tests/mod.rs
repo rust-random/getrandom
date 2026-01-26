@@ -1,3 +1,4 @@
+//! Main `getrandom` tests
 use core::mem::MaybeUninit;
 use getrandom::{fill, fill_uninit};
 
