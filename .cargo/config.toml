@@ -5,7 +5,12 @@ runner = 'wasm-bindgen-test-runner'
 runner = 'wasmtime'
 [target.wasm32-wasip2]
 runner = 'wasmtime'
+[target.wasm32-wasip3]
+runner = 'wasmtime'
 
 # Just run on node by default (that's where emscripten is tested)
 [target.'cfg(target_os = "emscripten")']
 runner = 'node'
+
+[resolver]
+incompatible-rust-versions = "allow"
