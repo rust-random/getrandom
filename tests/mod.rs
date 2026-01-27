@@ -302,7 +302,7 @@ mod extern_item_impls {
     // WARNING: this custom implementation is for testing purposes ONLY!
 
     #[getrandom::implementation::fill_uninit]
-    fn my_fill_uninit_implementation(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
+    fn my_fill_uninit_implementation(_dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         Err(Error::new_custom(4))
     }
 
