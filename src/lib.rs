@@ -10,6 +10,7 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(getrandom_backend = "efi_rng", feature(uefi_std))]
+#![cfg_attr(getrandom_backend = "extern_item_impls", feature(extern_item_impls))]
 
 #[macro_use]
 extern crate cfg_if;
@@ -33,6 +34,32 @@ pub use rand_core;
 pub use sys_rng::SysRng;
 
 pub use crate::error::{Error, RawOsError};
+
+/// Provides Externally Implementable Interfaces for the core functionality of this crate.
+/// This allows `getrandom` to provide a default implementation and a common interface
+/// for all crates to use, while giving users a safe way to override that default where required.
+///
+/// Must be enabled via the `extern_item_impls` opt-in backend, as this functionality
+/// is currently limited to nightly.
+///
+/// # Examples
+///
+/// ```rust
+/// # use core::mem::MaybeUninit;
+/// # #[cfg(getrandom_backend = "extern_item_impls")]
+/// #[getrandom::implementation::fill_uninit]
+/// fn my_fill_uninit_implementation(
+///     dest: &mut [MaybeUninit<u8>]
+/// ) -> Result<(), getrandom::Error> {
+///     // ...
+/// #   let _ = dest;
+/// #   Err(Error::UNSUPPORTED)
+/// }
+/// ```
+#[cfg(getrandom_backend = "extern_item_impls")]
+pub mod implementation {
+    pub use crate::backends::extern_item_impls::{fill_uninit, u32, u64};
+}
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
 ///
