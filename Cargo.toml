@@ -13,6 +13,7 @@ exclude = [".*"]
 
 [package.metadata.docs.rs]
 features = ["std", "sys_rng"]
+rustdoc-args = ["--cfg getrandom_backend=\"extern_impl\""]
 
 [features]
 # Implement From<getrandom::Error> for std::io::Error and
@@ -94,7 +95,7 @@ wasm-bindgen-test = "0.3"
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "windows_legacy", "unsupported", "extern_item_impls"))',
+  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "windows_legacy", "unsupported", "extern_impl"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_linux_without_fallback)',
