@@ -82,6 +82,20 @@ jobs:
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="extern_item_impls"
         run: cargo test --target=${{ matrix.target }} --features=std --test mod extern_item_impls
 
+  extern_item_impls:
+    name: Extern Item Implementations
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@v2
+      - env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_item_impls"
+          RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="extern_item_impls"
+        run: cargo test --features=std --test mod extern_item_impls
+
   ios:
     name: iOS Simulator
     runs-on: macos-14
