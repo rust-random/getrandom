@@ -32,9 +32,9 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "unsupported")] {
         mod unsupported;
         pub use unsupported::*;
-    } else if #[cfg(getrandom_backend = "extern_item_impls")] {
-        pub(crate) mod extern_item_impls;
-        pub use extern_item_impls::*;
+    } else if #[cfg(getrandom_backend = "extern_impl")] {
+        pub(crate) mod extern_impl;
+        pub use extern_impl::*;
     } else if #[cfg(all(target_os = "linux", target_env = ""))] {
         mod linux_raw;
         pub use linux_raw::*;

@@ -1,0 +1,17 @@
+[package]
+name = "custom_impl_test"
+description = "Helper crate for testing custom implementations"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+getrandom = { path = ".." }
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+  'cfg(getrandom_backend, values("custom", "extern_impl"))',
+]
