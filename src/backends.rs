@@ -149,6 +149,9 @@ cfg_if! {
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::*;
+    } else if #[cfg(all(target_arch = "x86_64", target_os = "motor"))] {
+        mod rdrand;
+        pub use rdrand::*;
     } else if #[cfg(target_os = "vxworks")] {
         mod vxworks;
         pub use vxworks::*;

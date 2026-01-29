@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RawOsError` type alias [#739]
 - `SysRng` behind new feature `sys_rng` [#751]
 - WASIp3 support [#779]
+- Motor OS support [#797]
 
 ### Changed
 - Use Edition 2024 and MSRV 1.85 [#749]

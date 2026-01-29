@@ -70,6 +70,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | QNX Neutrino       | `*‑nto-qnx*`       | [`/dev/urandom`][14] (identical to `/dev/random`)
 | AIX                | `*-ibm-aix`        | [`/dev/urandom`][15]
 | Cygwin             | `*-cygwin`         | [`getrandom`][20] (based on [`RtlGenRandom`])
+| Motor OS           | `x86_64-unknown-motor` | [`RDRAND`]
 
 Pull Requests that add support for new targets to `getrandom` are always welcome.
 
