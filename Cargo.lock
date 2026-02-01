@@ -104,7 +104,7 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.4.0-rc.1"
+version = "0.4.0"
 dependencies = [
  "cfg-if",
  "js-sys",
@@ -291,9 +291,9 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rand_core"
-version = "0.10.0-rc-6"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70765ff7112b0fb2d272d24d9a2f907fc206211304328fe58b2db15a5649ef28"
+checksum = "0c8d0fd677905edcbeedbf2edb6494d676f0e98d54d5cf9bda0b061cb8fb8aba"
 
 [[package]]
 name = "rustversion"
