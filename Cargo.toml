@@ -101,6 +101,7 @@ check-cfg = [
   'cfg(getrandom_test_linux_without_fallback)',
   'cfg(getrandom_test_netbsd_fallback)',
   'cfg(target_os, values("cygwin"))', # TODO(MSRV 1.86): Remove this.
+  'cfg(target_os, values("motor"))',
 ]
 
 [lints.rust]
