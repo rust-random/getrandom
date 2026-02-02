@@ -81,19 +81,22 @@ jobs:
   custom_impl:
     name: Custom and External Implementations
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: custom_impl_test
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
       - uses: Swatinem/rust-cache@v2
-      - env:
+      - name: Test getrandom_backend="custom"
+        env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
-        working_directory: custom_impl_test
         run: cargo test
-      - env:
+      - name: Test getrandom_backend="extern_impl"
+        env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_impl"
-        working_directory: custom_impl_test
         run: cargo test
 
   ios:
