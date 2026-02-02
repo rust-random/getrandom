@@ -13,7 +13,7 @@ exclude = [".*"]
 
 [package.metadata.docs.rs]
 features = ["std", "sys_rng"]
-rustdoc-args = ["--cfg getrandom_backend=\"extern_impl\""]
+rustdoc-args = ["--cfg", "getrandom_backend=\"extern_impl\""]
 
 [features]
 # Implement From<getrandom::Error> for std::io::Error and
