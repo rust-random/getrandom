@@ -114,7 +114,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
-          RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
+          RUSTDOCFLAGS: -Dwarnings --cfg docsrs --cfg getrandom_backend="extern_impl"
         run: cargo doc --no-deps --features std,sys_rng
 
   typos:

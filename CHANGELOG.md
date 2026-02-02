@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RawOsError` type alias [#739]
 - `SysRng` behind new feature `sys_rng` [#751]
 - WASIp3 support [#779]
+- `extern_impl` opt-in backend [#786] [#794]
 - Motor OS support [#797]
 
 ### Changed
@@ -19,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#749]: https://github.com/rust-random/getrandom/pull/749
 [#751]: https://github.com/rust-random/getrandom/pull/751
 [#779]: https://github.com/rust-random/getrandom/pull/779
+[#786]: https://github.com/rust-random/getrandom/pull/786
+[#794]: https://github.com/rust-random/getrandom/pull/794
 
 ## [0.3.4] - 2025-10-14
 

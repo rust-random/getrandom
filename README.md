@@ -110,7 +110,7 @@ of randomness based on their specific needs:
 | `windows_legacy`    | Windows              | `*-windows-*`            | [`RtlGenRandom`]
 | `custom`            | All targets          | `*`                      | User-provided custom implementation (see [custom backend])
 | `unsupported`       | All targets          | `*`                      | Always returns `Err(Error::UNSUPPORTED)` (see [unsupported backend])
-| `extern_item_impls` | All targets          | `*`                      | User or library provided custom implementation (see [externally implemented interface])
+| `extern_impl`       | All targets          | `*`                      | Externally-provided custom implementation (see [externally implemented interface])
 
 Opt-in backends can be enabled using the `getrandom_backend` configuration flag.
 The flag can be set either by specifying the `rustflags` field in [`.cargo/config.toml`]:
@@ -205,17 +205,18 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 
 ### Externally Implemented Interface
 
-Using the nightly-only feature [`extern_item_impls`](https://github.com/rust-lang/rust/issues/125418)
-it is possible to provide a custom backend for `getrandom`, even to override
-an existing first-party implementation. First, enable the `extern_item_impls`
-opt-in backend to allow usage of this nightly feature. Then, you may provide
-implementations for `fill_uninit`, `u32`, and/or `u64` with an attribute macro
-from the `implementation` module.
+Using the nightly-only feature [`extern_item_impls`] it is possible to provide
+a custom backend for `getrandom`, even to override an existing first-party implementation.
+First, enable the `extern_impl` opt-in backend to allow usage of this nightly feature.
+Then, you may provide implementations for `fill_uninit`, `u32`, and/or `u64`
+with an attribute macro from the `implementation` module.
+
+[`extern_item_impls`]: https://github.com/rust-lang/rust/issues/125418
 
 ```rust
 use core::mem::MaybeUninit;
 
-#[cfg(getrandom_backend = "extern_item_impls")]
+#[cfg(getrandom_backend = "extern_impl")]
 #[getrandom::implementation::fill_uninit]
 fn my_fill_uninit_implementation(
     dest: &mut [MaybeUninit<u8>]
