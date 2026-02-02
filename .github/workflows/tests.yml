@@ -90,10 +90,12 @@ jobs:
         with:
           toolchain: nightly
       - uses: Swatinem/rust-cache@v2
-      - env:
+      - name: Test getrandom_backend="custom"
+        env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
         run: cargo test
-      - env:
+      - name: Test getrandom_backend="extern_impl"
+        env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_impl"
         run: cargo test
 
