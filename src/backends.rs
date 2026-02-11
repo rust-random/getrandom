@@ -64,7 +64,7 @@ cfg_if! {
                             ),
                         ),
                     ),
-                ),
+                )
             )] {
                 mod use_file;
                 mod linux_android_with_fallback;
@@ -108,7 +108,7 @@ cfg_if! {
                     target_arch = "arm",
                     target_arch = "x86",
                     target_arch = "x86_64",
-                ),
+                )
             )] {
                 mod use_file;
                 mod linux_android_with_fallback;
@@ -219,7 +219,7 @@ cfg_if! {
     ))] {
         cfg_if! {
             if #[cfg(any(
-                target_arch = "x86"
+                target_arch = "x86",
                 target_arch = "x86_64",
             ))] {
                 mod rdrand;
