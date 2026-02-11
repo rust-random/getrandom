@@ -24,7 +24,7 @@ impl<T> LazyPtr<T> {
         Self(AtomicPtr::new(ptr::null_mut()))
     }
 
-    /// Call the `init` closure and return the result after caching it in the case of succeess.
+    /// Call the `init` closure and return the result after caching it in the case of success.
     #[cold]
     fn cold_init<E>(&self, init: impl FnOnce() -> Result<NonNull<T>, E>) -> Result<NonNull<T>, E> {
         let val = init()?;
@@ -33,7 +33,7 @@ impl<T> LazyPtr<T> {
     }
 
     /// Retrieve the cached value if it was already initialized or call the potentially fallible
-    /// `init` closure and return the result after caching it in the case of succeess.
+    /// `init` closure and return the result after caching it in the case of success.
     #[inline]
     pub fn try_unsync_init<E>(
         &self,
@@ -49,6 +49,7 @@ impl<T> LazyPtr<T> {
     /// Retrieve the cached value if it was already initialized or call the `init` closure
     /// and return the result after caching it.
     #[inline]
+    #[allow(dead_code, reason = "Some modules use only `try_unsync_init`")]
     pub fn unsync_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
         let Ok(p): Result<_, Infallible> = self.try_unsync_init(|| Ok(init()));
         p
