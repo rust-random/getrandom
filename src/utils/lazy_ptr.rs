@@ -1,65 +1,56 @@
-//! Lazily caches a non-null pointer in an `AtomicPtr`.
-//!
-//! Initialization is intentionally unsynchronized: concurrent callers may race
-//! and run `init` more than once. Once a value is produced, it is cached and
-//! reused by subsequent calls.
-//!
-//! For fallible initialization (`try_unsync_init`), only successful values are
-//! cached; errors are returned to the caller and are not cached.
-//!
-//! Uses `Ordering::Relaxed` because this helper only publishes the cached
-//! pointer value. Callers must not rely on this mechanism to synchronize
-//! unrelated memory side effects performed by `init`.
-
 use core::{
+    convert::Infallible,
     ptr::{self, NonNull},
-    sync::atomic::{AtomicPtr, Ordering},
+    sync::atomic::{AtomicPtr, Ordering::Relaxed},
 };
 
+/// Lazily caches a non-null pointer in an `AtomicPtr`.
+///
+/// Initialization is intentionally unsynchronized: concurrent callers may race
+/// and run `init` more than once. Once a value is produced, it is cached and
+/// reused by subsequent calls.
+///
+/// For fallible initialization (`try_unsync_init`), only successful values are
+/// cached; errors are returned to the caller and are not cached.
+///
+/// Uses `Ordering::Relaxed` because this helper only publishes the cached
+/// pointer value. Callers must not rely on this mechanism to synchronize
+/// unrelated memory side effects performed by `init`.
 pub(crate) struct LazyPtr<T>(AtomicPtr<T>);
 
-#[allow(
-    dead_code,
-    reason = "callers typically use only one of `{try_,}unsync_init`"
-)]
 impl<T> LazyPtr<T> {
+    /// Create new `LazyPtr`.
     pub const fn new() -> Self {
         Self(AtomicPtr::new(ptr::null_mut()))
     }
 
+    /// Call the `init` closure and return the result after caching it in the case of succeess.
     #[cold]
-    fn do_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
-        let val = init();
-        self.0.store(val.as_ptr(), Ordering::Relaxed);
-        val
-    }
-
-    #[cold]
-    fn try_do_init<E>(
-        &self,
-        init: impl FnOnce() -> Result<NonNull<T>, E>,
-    ) -> Result<NonNull<T>, E> {
+    fn cold_init<E>(&self, init: impl FnOnce() -> Result<NonNull<T>, E>) -> Result<NonNull<T>, E> {
         let val = init()?;
-        self.0.store(val.as_ptr(), Ordering::Relaxed);
+        self.0.store(val.as_ptr(), Relaxed);
         Ok(val)
     }
 
-    #[inline]
-    pub fn unsync_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
-        match NonNull::new(self.0.load(Ordering::Relaxed)) {
-            Some(val) => val,
-            None => self.do_init(init),
-        }
-    }
-
+    /// Retrieve the cached value if it was already initialized or call the potentially fallible
+    /// `init` closure and return the result after caching it in the case of succeess.
     #[inline]
     pub fn try_unsync_init<E>(
         &self,
         init: impl FnOnce() -> Result<NonNull<T>, E>,
     ) -> Result<NonNull<T>, E> {
-        match NonNull::new(self.0.load(Ordering::Relaxed)) {
+        let p = self.0.load(Relaxed);
+        match NonNull::new(p) {
             Some(val) => Ok(val),
-            None => self.try_do_init(init),
+            None => self.cold_init(init),
         }
+    }
+
+    /// Retrieve the cached value if it was already initialized or call the `init` closure
+    /// and return the result after caching it.
+    #[inline]
+    pub fn unsync_init(&self, init: impl FnOnce() -> NonNull<T>) -> NonNull<T> {
+        let Ok(p): Result<_, Infallible> = self.try_unsync_init(|| Ok(init()));
+        p
     }
 }
