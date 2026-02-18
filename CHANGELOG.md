@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `r-efi` dependency to v6 [#814]
 
 ### Fixed
+- Read `errno` only when it is set [#810]
 - Check the return value of `ProcessPrng` on Windows [#811]
 
 [Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.1...master
+[#810]: https://github.com/rust-random/getrandom/pull/810
 [#811]: https://github.com/rust-random/getrandom/pull/811
 [#814]: https://github.com/rust-random/getrandom/pull/814
 
