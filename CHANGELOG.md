@@ -6,12 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.1...master
+### Changed
+- Bump `r-efi` dependency to v6 [#814]
 
 ### Fixed
 - Check the return value of `ProcessPrng` on Windows [#811]
 
+[Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.1...master
 [#811]: https://github.com/rust-random/getrandom/pull/811
+[#814]: https://github.com/rust-random/getrandom/pull/814
 
 ## [0.4.1] - 2026-02-03
 
