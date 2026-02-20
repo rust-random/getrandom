@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#779]: https://github.com/rust-random/getrandom/pull/779
 [#786]: https://github.com/rust-random/getrandom/pull/786
 [#794]: https://github.com/rust-random/getrandom/pull/794
+[#797]: https://github.com/rust-random/getrandom/pull/797
 
 ## [0.3.4] - 2025-10-14
 
