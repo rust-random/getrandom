@@ -67,11 +67,13 @@ libc = { version = "0.2.154", default-features = false }
 wasip2 = { version = "1", default-features = false }
 
 # wasm_js
-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
-js-sys = { version = "0.3.77", default-features = false, optional = true }
-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))'.dependencies.js-sys]
+version = "0.3.77"
+default-features = false
+optional = true
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 
 [lints.rust.unexpected_cfgs]
