@@ -21,7 +21,7 @@ jobs:
     # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: aarch64-apple-darwin, aarch64-apple-ios
@@ -48,7 +48,7 @@ jobs:
           x86_64-unknown-illumos,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -70,7 +70,7 @@ jobs:
           x86_64-fortanix-unknown-sgx,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -100,7 +100,7 @@ jobs:
           # x86_64-pc-cygwin,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
@@ -116,7 +116,7 @@ jobs:
       matrix:
         target: [x86_64-unknown-linux-gnux32]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -153,7 +153,7 @@ jobs:
           x86_64-unknown-linux-gnux32,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-09-28
@@ -165,8 +165,6 @@ jobs:
   web:
     name: ${{ matrix.target.description }} ${{ matrix.feature.description }} ${{ matrix.atomic.description }}
     runs-on: ubuntu-24.04
-    env:
-        RUSTFLAGS: --cfg getrandom_backend="wasm_js" ${{ matrix.atomic.flags }}
     strategy:
       fail-fast: false
       matrix:
@@ -186,7 +184,7 @@ jobs:
           - target: { target: wasm32v1-none }
             feature: { std: true }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           targets: ${{ matrix.target.target }}
@@ -207,7 +205,7 @@ jobs:
           i686-unknown-uefi,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly # Required to build libstd
         with:
           components: rust-src
@@ -226,7 +224,7 @@ jobs:
           i686-unknown-uefi,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly # Required to build libcore
         with:
           components: rust-src
@@ -242,7 +240,7 @@ jobs:
     name: RNDR
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
@@ -265,20 +263,20 @@ jobs:
     name: No Atomics
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: riscv32i-unknown-none-elf
       - uses: Swatinem/rust-cache@v2
       - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
         run: cargo build --target riscv32i-unknown-none-elf
 
   unsupported:
     name: Runtime error
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown

@@ -16,7 +16,7 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: dtolnay/rust-toolchain@master
       with:
         # We need Nightly for -Zbuild-std.
@@ -94,7 +94,7 @@ jobs:
     name: rustfmt
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -102,23 +102,31 @@ jobs:
       - name: fmt
         run: cargo fmt --all -- --check
 
-  check-doc:
+  doc:
     name: rustdoc
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
-          # We need Nightly for doc_auto_cfg
-          toolchain: nightly-2025-09-28
+          # We need Nightly for doc_cfg
+          toolchain: nightly-2026-01-25
       - uses: Swatinem/rust-cache@v2
       - name: Generate Docs
         env:
-          RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
-        run: cargo doc --no-deps --features std
+          RUSTDOCFLAGS: -Dwarnings --cfg docsrs --cfg getrandom_backend="extern_impl"
+        run: cargo doc --no-deps --features std,sys_rng
 
   typos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: crate-ci/typos@v1
+
+  lockfile:
+    name: Check Cargo.lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --workspace --locked

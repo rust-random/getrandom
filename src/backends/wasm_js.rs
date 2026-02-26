@@ -56,7 +56,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
 }
 
 #[wasm_bindgen]
-extern "C" {
+unsafe extern "C" {
     // Crypto.getRandomValues()
     #[cfg(not(target_feature = "atomics"))]
     #[wasm_bindgen(js_namespace = ["globalThis", "crypto"], js_name = getRandomValues, catch)]

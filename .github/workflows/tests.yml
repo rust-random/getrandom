@@ -23,21 +23,24 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-24.04, windows-2022]
-        toolchain: [nightly, beta, stable, "1.63"]
+        toolchain: [nightly, beta, stable, "1.85"]
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
           # aarch64-apple-darwin.
           - os: macos-14
             toolchain: stable
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
       # Make sure enabling the std feature doesn't break anything
-      - run: cargo test --features=std
+      - run: |
+          cargo test --features=std
+          cargo test --features=sys_rng
+          cargo test --features=std,sys_rng
       - if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo test --benches
 
@@ -48,38 +51,59 @@ jobs:
       matrix:
         target: [x86_64-unknown-linux-musl, i686-unknown-linux-musl]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=${{ matrix.target }} --features=std
+      - run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_getrandom"
-        run: cargo test --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
-        run: cargo test --target=${{ matrix.target }} --features=std
+        run: cargo test --target=${{ matrix.target }} --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_fallback
-        run: cargo test --features=std
+        run: cargo test --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_test_linux_without_fallback
-        run: cargo test --features=std
+        run: cargo test --features=std,sys_rng
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
           RUSTDOCFLAGS: -Dwarnings --cfg getrandom_backend="rdrand"
-        run: cargo test --features=std
+        run: cargo test --features=std,sys_rng
+
+  custom_impl:
+    name: Custom and External Implementations
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: custom_impl_test
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@v2
+      - name: Test getrandom_backend="custom"
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
+        run: cargo test
+      - name: Test getrandom_backend="extern_impl"
+        env:
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_impl"
+        run: cargo test
 
   ios:
     name: iOS Simulator
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.88.0
@@ -118,26 +142,26 @@ jobs:
           stable-i686-msvc,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --features=std
+      - run: cargo test --features=std,sys_rng
 
   windows7:
     name: Windows 7 (on Windows 10)
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # Win7 targets are Tier3, so pin a nightly where libstd builds.
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-09-28
           components: rust-src
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std
-      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std
+      - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std,sys_rng
+      - run: cargo test --target=i686-win7-windows-msvc -Z build-std --features=std,sys_rng
 
   sanitizer-linux:
     name: Sanitizer Linux
@@ -152,7 +176,7 @@ jobs:
           - arch: x86_64
             runner: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-09-28
@@ -208,7 +232,7 @@ jobs:
           #wasm32-unknown-emscripten,
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install precompiled cross
         run: |
           VERSION=v0.2.5
@@ -216,13 +240,13 @@ jobs:
           wget -O - $URL | tar -xz -C ~/.cargo/bin
           cross --version
       - name: Test
-        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std
+        run: cross test --no-fail-fast --target=${{ matrix.target }} --features=std,sys_rng
 
   freebsd:
     name: FreeBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in FreeBSD
         uses: vmactions/freebsd-vm@v1
         with:
@@ -236,7 +260,7 @@ jobs:
     name: OpenBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in OpenBSD
         uses: vmactions/openbsd-vm@v1
         with:
@@ -250,7 +274,7 @@ jobs:
     name: NetBSD VM
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Test in NetBSD
         uses: vmactions/netbsd-vm@v1
         with:
@@ -272,18 +296,18 @@ jobs:
           - {
               description: Web,
               version: stable,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js"',
-              args: '--features=std,wasm_js',
+              flags: '-Dwarnings',
+              args: '--features=std,sys_rng,wasm_js',
             }
           - {
               description: Web with Atomics,
               version: nightly,
               components: rust-src,
-              flags: '-Dwarnings --cfg getrandom_backend="wasm_js" -Ctarget-feature=+atomics,+bulk-memory',
-              args: '--features=std,wasm_js -Zbuild-std=panic_abort,std',
+              flags: '-Dwarnings -Ctarget-feature=+atomics,+bulk-memory',
+              args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
             }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust.version }}
@@ -333,23 +357,61 @@ jobs:
         # Firefox doesn't support module service workers and therefor can't import scripts
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
 
-  wasi:
-    name: WASI
+  wasi_p1:
+    name: WASIp1
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.82
-          targets: wasm32-wasip1,wasm32-wasip2
+          toolchain: 1.85
+          targets: wasm32-wasip1
       - name: Install Wasmtime
         run: |
-          VERSION=v24.0.0
+          VERSION=v40.0.0
           URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      - name: WASI 0.1 Test
-        run: cargo test --target wasm32-wasip1
-      - name: WASI 0.2 Test
-        run: cargo test --target wasm32-wasip2
+      - run: cargo test --target wasm32-wasip1
+
+  wasi_p2:
+    name: WASIp2
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85
+          targets: wasm32-wasip2
+      - name: Install Wasmtime
+        run: |
+          VERSION=v40.0.0
+          URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+          wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+          wasmtime --version
+      - uses: Swatinem/rust-cache@v2
+      - name: Generate MSRV-compatible Cargo.lock
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: "fallback"
+        run: cargo update
+      - run: cargo test --target wasm32-wasip2
+
+  # TODO: enable after pre-built std will be provided by Rust 
+  # wasi_p3:
+  #   name: WASIp3
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: 1.90
+  #         targets: wasm32-wasip3
+  #     - name: Install Wasmtime
+  #       run: |
+  #         VERSION=v40.0.0
+  #         URL=https://github.com/bytecodealliance/wasmtime/releases/download/${VERSION}/wasmtime-${VERSION}-x86_64-linux.tar.xz
+  #         wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
+  #         wasmtime --version
+  #     - uses: Swatinem/rust-cache@v2
+  #     - run: cargo test --target wasm32-wasip3
