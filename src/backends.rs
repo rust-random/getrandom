@@ -185,7 +185,7 @@ cfg_if! {
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
         mod rdrand;
         pub use rdrand::*;
-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
+    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
                 mod wasm_js;
