@@ -19,16 +19,7 @@ library like [`rand`].
 
 [`rand`]: https://crates.io/crates/rand
 
-## Usage
-
-Add the `getrandom` dependency to your `Cargo.toml` file:
-
-```toml
-[dependencies]
-getrandom = "0.4"
-```
-
-Then invoke the `fill` function on a byte buffer to fill it with random data:
+## Examples
 
 ```rust
 fn get_random_u128() -> Result<u128, getrandom::Error> {
