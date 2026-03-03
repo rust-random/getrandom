@@ -25,7 +25,7 @@ Add the `getrandom` dependency to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-getrandom = "0.3"
+getrandom = "0.4"
 ```
 
 Then invoke the `fill` function on a byte buffer to fill it with random data:
