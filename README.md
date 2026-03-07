@@ -326,6 +326,13 @@ RUSTFLAGS="-Zsanitizer=memory" cargo test -Zbuild-std --target=x86_64-unknown-li
 
 This crate requires Rust 1.85 or later.
 
+The most reliable way to get an MSRV-respecting behavior is to set
+`CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=fallback` when doing
+`cargo update -p getrandom`, like so:
+```sh
+CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=fallback cargo update -p getrandom
+```
+
 ## License
 
 The `getrandom` library is distributed under either of

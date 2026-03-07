@@ -82,7 +82,8 @@ wasip2 = { version = "1", default-features = false }
 
 # wasi_p2_3
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p3"))'.dependencies]
-wasip3 = "0.4"
+# TODO: remove 0.3 after MSRV bumped to 1.87+.
+wasip3 = ">=0.3, <=0.4"
 
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]

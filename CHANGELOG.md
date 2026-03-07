@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Restore MSRV to 1.85 for wasm32-wasip3 targets. [#824]
+
+[Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.2...master
+[#824]: https://github.com/rust-random/getrandom/pull/824
+
 ## [0.4.2] - 2026-03-03
 
 ### Changed
