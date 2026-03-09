@@ -3,7 +3,7 @@ use crate::Error;
 use core::{mem::MaybeUninit, ptr::copy_nonoverlapping};
 
 #[cfg(target_env = "p2")]
-#[allow(clippy::all)]
+#[allow(clippy::cast_sign_loss, clippy::cast_ptr_alignment)]
 mod p2 {
     include!("./wasi_p2_3/p2/imports.rs");
     #[inline(never)]
@@ -17,6 +17,7 @@ use p2::*;
 #[cfg(not(target_env = "p2"))]
 #[cfg(target_env = "p3")]
 #[allow(clippy::all)]
+#[allow(clippy::cast_sign_loss, clippy::cast_ptr_alignment)]
 mod p3 {
     include!("./wasi_p2_3/p3/imports.rs");
     #[inline(never)]
