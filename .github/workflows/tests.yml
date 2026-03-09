@@ -391,14 +391,9 @@ jobs:
           wget -O - $URL | tar -xJ --strip-components=1 -C ~/.cargo/bin
           wasmtime --version
       - uses: Swatinem/rust-cache@v2
-      # TODO(MSRV-1.87): Remove this step.
-      - name: Generate MSRV-compatible Cargo.lock
-        env:
-          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: "fallback"
-        run: cargo update -p wasip2
       - run: cargo test --target wasm32-wasip2
 
-  # TODO: enable after pre-built std will be provided by Rust 
+  # TODO: enable after pre-built std will be provided by Rust
   # wasi_p3:
   #   name: WASIp3
   #   runs-on: ubuntu-24.04
@@ -416,3 +411,19 @@ jobs:
   #         wasmtime --version
   #     - uses: Swatinem/rust-cache@v2
   #     - run: cargo test --target wasm32-wasip3
+
+  wasi_bindings:
+    name: WASI bindings up-to-date
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install wit-bindgen
+        run: |
+          VERSION=0.53.1
+          URL=https://github.com/bytecodealliance/wit-bindgen/releases/download/v${VERSION}/wit-bindgen-${VERSION}-x86_64-linux.tar.gz
+          wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
+          wit-bindgen --version
+      - name: Generate bindings
+        run: sh .github/regenerate-wasi-bindings.sh
+      - name: Ensure generated files up-to-date
+        run: git diff --exit-code
