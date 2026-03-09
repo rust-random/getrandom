@@ -1,6 +1,7 @@
 [files]
 extend-exclude = [
-    ".git/"
+    ".git/",
+    "src/backends/wasi_p2_3",
 ]
 
 [default.extend-words]
