@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Restore MSRV to 1.85 for wasm32-wasip3 targets. [#824]
+### Changed
+- Drop `wasip2` and `wasip3` dependencies in favor of manual bindings [#830]
 
 [Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.2...master
-[#824]: https://github.com/rust-random/getrandom/pull/824
+[#830]: https://github.com/rust-random/getrandom/pull/830
 
 ## [0.4.2] - 2026-03-03
 
