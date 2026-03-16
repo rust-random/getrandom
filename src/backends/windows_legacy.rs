@@ -14,7 +14,7 @@ use core::{ffi::c_void, mem::MaybeUninit};
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "cygwin")))]
 compile_error!("`windows_legacy` backend can be enabled only for Windows targets!");
 
 // Binding to the Windows.Win32.Security.Authentication.Identity.RtlGenRandom

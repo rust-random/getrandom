@@ -112,7 +112,6 @@ cfg_if! {
         target_os = "freebsd",
         target_os = "hurd",
         target_os = "illumos",
-        target_os = "cygwin",
         // Check for target_arch = "arm" to only include the 3DS. Does not
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
@@ -161,7 +160,7 @@ cfg_if! {
     } else if #[cfg(all(windows, target_vendor = "win7"))] {
         mod windows_legacy;
         pub use windows_legacy::*;
-    } else if #[cfg(windows)] {
+    } else if #[cfg(any(windows, target_os = "cygwin"))] {
         mod windows;
         pub use windows::*;
     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
