@@ -20,6 +20,11 @@ rustdoc-args = ["--cfg", "getrandom_backend=\"extern_impl\""]
 # use std to retrieve OS error descriptions
 std = []
 
+# Feature to enable deterministic testing -- has an MSRV of 1.85
+#
+# WARNING: This should only be enabled in dev-dependencies as it is for deterministic testing only.
+unsafe_deterministic_testing = ["dep:rand_core", "dep:chacha20"]
+
 # Optional backend: wasm_js
 #
 # This flag enables the wasm_js backend and uses it by default on wasm32 where
@@ -43,6 +48,11 @@ rand_core = { version = "0.10.0", optional = true }
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
+
+# deterministic_testing
+[target.'cfg(getrandom_backend = "deterministic_testing")'.dependencies]
+chacha20 = { version = "0.10.0", features = ["rng"], optional = true }
+
 
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
@@ -96,7 +106,7 @@ wasm-bindgen-test = "0.3"
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
-  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "windows_legacy", "unsupported", "extern_impl"))',
+  'cfg(getrandom_backend, values("custom", "efi_rng", "rdrand", "rndr", "linux_getrandom", "linux_raw", "windows_legacy", "unsupported", "extern_impl", "deterministic_testing"))',
   'cfg(getrandom_msan)',
   'cfg(getrandom_test_linux_fallback)',
   'cfg(getrandom_test_linux_without_fallback)',

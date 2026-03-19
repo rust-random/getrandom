@@ -8,7 +8,10 @@
 //! regardless of what value it returns.
 
 cfg_if! {
-    if #[cfg(getrandom_backend = "custom")] {
+    if #[cfg(all(getrandom_backend = "deterministic_testing", feature = "unsafe_deterministic_testing"))] {
+        mod deterministic;
+        pub use deterministic::*;
+    } else if #[cfg(getrandom_backend = "custom")] {
         mod custom;
         pub use custom::*;
     } else if #[cfg(getrandom_backend = "linux_getrandom")] {

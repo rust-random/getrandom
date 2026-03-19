@@ -14,3 +14,5 @@ runner = 'node'
 
 [resolver]
 incompatible-rust-versions = "allow"
+[build]
+rustflags = ['--cfg', 'getrandom_backend="deterministic_testing"']
