@@ -76,15 +76,6 @@ libc = { version = "0.2.154", default-features = false }
 [target.'cfg(target_os = "vxworks")'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
-# wasi_p2_3
-[target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies]
-wasip2 = { version = "1", default-features = false }
-
-# wasi_p2_3
-[target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p3"))'.dependencies]
-# TODO: remove 0.3 after MSRV bumped to 1.87+.
-wasip3 = ">=0.3, <=0.4"
-
 # wasm_js
 [target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
