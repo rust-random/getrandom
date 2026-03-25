@@ -16,6 +16,7 @@ features = ["std", "sys_rng"]
 rustdoc-args = ["--cfg", "getrandom_backend=\"extern_impl\""]
 
 [features]
+default = ["unsafe_deterministic_testing"]
 # Implement From<getrandom::Error> for std::io::Error and
 # use std to retrieve OS error descriptions
 std = []
