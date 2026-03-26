@@ -61,7 +61,7 @@ mod tests {
     use std::thread;
     #[test]
     fn test_deterministic_multithread() {
-        thread::spawn(|| {
+        let jh = thread::spawn(|| {
             let mut buf = [0u8; 32];
             crate::fill(&mut buf).unwrap();
             assert_eq!(
@@ -73,7 +73,7 @@ mod tests {
                 buf
             );
         });
-        thread::spawn(|| {
+        let jh2 = thread::spawn(|| {
             let mut buf = [0u8; 32];
             crate::fill(&mut buf).unwrap();
             assert_eq!(
@@ -85,5 +85,8 @@ mod tests {
                 buf
             );
         });
+
+        jh.join().unwrap();
+        jh2.join().unwrap();
     }
 }
