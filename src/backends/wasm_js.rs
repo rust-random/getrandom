@@ -4,10 +4,7 @@ use core::mem::MaybeUninit;
 
 pub use crate::util::{inner_u32, inner_u64};
 
-#[cfg(not(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
-    any(target_os = "unknown", target_os = "none"),
-)))]
+#[cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"),)))]
 compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
 
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
