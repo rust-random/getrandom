@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Restore MSRV to 1.85 for wasm32-wasip3 targets. [#824]
+### Added
+- `wasm64-unknown-unknown` target support for `wasm_js` backend [#848]
+
+### Changed
+- Restore MSRV to 1.85 for wasm32-wasip3 targets [#824]
 
 [Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.2...master
 [#824]: https://github.com/rust-random/getrandom/pull/824
+[#848]: https://github.com/rust-random/getrandom/pull/848
 
 ## [0.4.2] - 2026-03-03
 

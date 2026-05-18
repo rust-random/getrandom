@@ -67,16 +67,16 @@ Pull Requests that add support for new targets to `getrandom` are always welcome
 
 ### WebAssembly support
 
-This crate fully supports the [WASI] and [Emscripten] targets. However,
-the `wasm32-unknown-unknown` target (i.e. the target used by `wasm-pack`)
-is not automatically supported since, from the target name alone, we cannot deduce
+This crate fully supports the [WASI] and [Emscripten] targets. However, the `wasm32-unknown-unknown`
+and `wasm64-unknown-unknown` targets (i.e. the target used by `wasm-pack`)
+are not automatically supported since, from the target name alone, we cannot deduce
 which JavaScript interface should be used (or if JavaScript is available at all).
 
-We do not include support for this target in the default configuration because our JS backend
+We do not include support for these targets in the default configuration because our JS backend
 (supporting web browsers, web workers and Node.js v19 or later) requires [`wasm-bindgen`],
 **bloating `Cargo.lock`** and **potentially breaking builds** on non-web WASM platforms.
 
-To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using
+To enable `getrandom`'s functionality on `wasm32/64-unknown-unknown` using
 [`Crypto.getRandomValues`] via [`wasm-bindgen`], enable the `wasm_js` crate feature.
 
 WARNING: We strongly recommend against enabling this feature in libraries (except for tests)

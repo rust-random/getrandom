@@ -294,18 +294,30 @@ jobs:
       matrix:
         rust:
           - {
-              description: Web,
+              description: wasm32,
               version: stable,
+              target: wasm32-unknown-unknown,
               flags: '-Dwarnings',
               args: '--features=std,sys_rng,wasm_js',
             }
           - {
-              description: Web with Atomics,
+              description: wasm32 with Atomics,
               version: nightly,
+              target: wasm32-unknown-unknown,
               components: rust-src,
               flags: '-Dwarnings -Ctarget-feature=+atomics,+bulk-memory',
               args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
             }
+          # wasm64 support in wasm-pack is currently broken:
+          # https://github.com/wasm-bindgen/wasm-pack/issues/1576
+          # - {
+          #     description: wasm64,
+          #     version: nightly,
+          #     target: wasm64-unknown-unknown,
+          #     components: rust-src,
+          #     flags: '-Dwarnings',
+          #     args: '--features=std,sys_rng,wasm_js -Zbuild-std=panic_abort,std',
+          #   }
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
@@ -315,7 +327,7 @@ jobs:
       - name: Install precompiled wasm-pack
         shell: bash
         run: |
-          VERSION=v0.13.1
+          VERSION=v0.15.0
           URL=https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
           wasm-pack --version
@@ -324,38 +336,39 @@ jobs:
         env:
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
-        run: wasm-pack test --node -- ${{ matrix.rust.args }}
+        run: wasm-pack test --node ${{ matrix.rust.pack_args }} --
+          --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
       - name: Test (Firefox)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --firefox -- --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
       - name: Test (Chrome)
         env:
           WASM_BINDGEN_USE_BROWSER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --chrome -- --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
       - name: Test (dedicated worker)
         env:
           WASM_BINDGEN_USE_DEDICATED_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --firefox -- --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
       - name: Test (shared worker)
         env:
           WASM_BINDGEN_USE_SHARED_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
-        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --firefox -- --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
       - name: Test (service worker)
         env:
           WASM_BINDGEN_USE_SERVICE_WORKER: 1
           RUSTFLAGS: ${{ matrix.rust.flags }}
           RUSTDOCFLAGS: ${{ matrix.rust.flags }}
         # Firefox doesn't support module service workers and therefor can't import scripts
-        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.args }}
+        run: wasm-pack test --headless --chrome -- --target ${{ matrix.rust.target }} ${{ matrix.rust.args }}
 
   wasi_p1:
     name: WASIp1
