@@ -4,14 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.3] - 2026-06-17
 ### Added
 - `wasm64-unknown-unknown` target support for `wasm_js` backend [#848]
 
 ### Changed
 - Drop `wasip2` and `wasip3` dependencies in favor of manual bindings [#830]
 
-[Unreleased]: https://github.com/rust-random/getrandom/compare/v0.4.2...master
+[0.4.3]: https://github.com/rust-random/getrandom/compare/v0.4.2...v0.4.3
 [#830]: https://github.com/rust-random/getrandom/pull/830
 [#848]: https://github.com/rust-random/getrandom/pull/848
 
