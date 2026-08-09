@@ -46,6 +46,7 @@ cfg_if! {
         target_os = "redox",
         target_os = "nto",
         target_os = "aix",
+        target_os = "zos",
     ))] {
         mod use_file;
         pub use use_file::*;

@@ -69,7 +69,7 @@ libc = { version = "0.2.154", default-features = false }
 libc = { version = "0.2.154", default-features = false }
 
 # use_file
-[target.'cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))'.dependencies]
+[target.'cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix", target_os = "zos"))'.dependencies]
 libc = { version = "0.2.154", default-features = false }
 
 # vxworks
