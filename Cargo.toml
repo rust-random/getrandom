@@ -42,11 +42,11 @@ rand_core = { version = "0.10.0", optional = true }
 
 # getrandom / linux_android_with_fallback
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # apple-other
 [target.'cfg(any(target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # efi_rng
 [target.'cfg(all(target_os = "uefi", getrandom_backend = "efi_rng"))'.dependencies]
@@ -54,27 +54,27 @@ r-efi = { version = "6", default-features = false }
 
 # getentropy
 [target.'cfg(any(target_os = "macos", target_os = "openbsd", target_os = "vita", target_os = "emscripten"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # getrandom
-[target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", target_os = "cygwin", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+[target.'cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "hurd", target_os = "illumos", target_os = "cygwin", target_os = "nuttx", all(target_os = "horizon", target_arch = "arm")))'.dependencies]
+libc = { version = "0.2.176", default-features = false }
 
 # netbsd
 [target.'cfg(target_os = "netbsd")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # solaris
 [target.'cfg(target_os = "solaris")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # use_file
 [target.'cfg(any(target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix"))'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # vxworks
 [target.'cfg(target_os = "vxworks")'.dependencies]
-libc = { version = "0.2.154", default-features = false }
+libc = { version = "0.2.176", default-features = false }
 
 # wasm_js
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
