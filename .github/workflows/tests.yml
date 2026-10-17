@@ -27,7 +27,7 @@ jobs:
         # Only Test macOS on stable to reduce macOS CI jobs
         include:
           # aarch64-apple-darwin.
-          - os: macos-14
+          - os: macos-15
             toolchain: stable
     steps:
       - uses: actions/checkout@v7
@@ -101,7 +101,7 @@ jobs:
 
   ios:
     name: iOS Simulator
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
