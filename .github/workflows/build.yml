@@ -19,7 +19,7 @@ jobs:
   macos:
     name: Apple Other
     # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@nightly
