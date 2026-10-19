@@ -8,8 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Apache NuttX support ([#861])
 
+### Fixed
+- Deprecation warning for `libc::INT_MAX` [#868]
+
 [0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
 [#861]: https://github.com/rust-random/getrandom/pull/861
+[#868]: https://github.com/rust-random/getrandom/pull/868
 
 ## [0.4.3] - 2026-06-17
 ### Added
