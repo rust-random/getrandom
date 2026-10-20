@@ -96,7 +96,7 @@ jobs:
         run: cargo test
       - name: Test getrandom_backend="extern_impl"
         env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_impl"
+          RUSTFLAGS: -Dwarnings -Aincomplete_features --cfg getrandom_backend="extern_impl"
         run: cargo test
 
   ios:
@@ -129,7 +129,7 @@ jobs:
           echo "device=$SIM_ID" >> $GITHUB_ENV
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test
+        run: RUST_BACKTRACE=1 cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test -- --nocapture
 
   windows:
     name: Windows
