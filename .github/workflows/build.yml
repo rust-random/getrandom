@@ -19,7 +19,7 @@ jobs:
   macos:
     name: Apple Other
     # visionOS requires Xcode 15.2+, which is only available on the arm64 runners.
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@nightly
@@ -32,7 +32,7 @@ jobs:
       - run: cargo test --no-run --target=aarch64-apple-tvos -Zbuild-std --features=std
       - run: cargo test --no-run --target=aarch64-apple-watchos -Zbuild-std --features=std
       # visionOS requires Xcode 15.2+, GitHub Actions defaults to an older version.
-      - run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+      - run: sudo xcode-select -switch /Applications/Xcode_16.app
       # std is broken on visionOS right now
       #- run: cargo test --no-run --target=aarch64-apple-visionos -Zbuild-std --features=std
 
