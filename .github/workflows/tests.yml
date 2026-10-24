@@ -96,7 +96,7 @@ jobs:
         run: cargo test
       - name: Test getrandom_backend="extern_impl"
         env:
-          RUSTFLAGS: -Dwarnings -Aincomplete_features --cfg getrandom_backend="extern_impl"
+          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="extern_impl"
         run: cargo test
 
   ios:
