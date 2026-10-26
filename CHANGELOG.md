@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Deprecation warning for `libc::INT_MAX` [#868]
 
+### Changed
+- Bumped `r-efi` dependency to v7 ([#869])
+
 [0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
 [#861]: https://github.com/rust-random/getrandom/pull/861
 [#868]: https://github.com/rust-random/getrandom/pull/868
+[#869]: https://github.com/rust-random/getrandom/pull/869
 
 ## [0.4.3] - 2026-06-17
 ### Added
