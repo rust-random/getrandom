@@ -81,8 +81,6 @@ libc = { version = "0.2.176", default-features = false }
 wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
 js-sys = { version = "0.3.77", default-features = false, optional = true }
-[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
-wasm-bindgen-test = "0.3"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
