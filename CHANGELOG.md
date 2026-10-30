@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bumped `r-efi` dependency to v7 ([#869])
+- Removed `wasm-bindgen-test` dev dependency ([#870])
 
 [0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
 [#861]: https://github.com/rust-random/getrandom/pull/861
 [#868]: https://github.com/rust-random/getrandom/pull/868
 [#869]: https://github.com/rust-random/getrandom/pull/869
+[#870]: https://github.com/rust-random/getrandom/pull/870
 
 ## [0.4.3] - 2026-06-17
 ### Added
