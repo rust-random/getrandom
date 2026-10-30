@@ -45,7 +45,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | Solaris            | `*‑solaris`        | [`getrandom`][11] with `GRND_RANDOM`
 | illumos            | `*‑illumos`        | [`getrandom`][12]
 | Fuchsia OS         | `*‑fuchsia`        | [`cprng_draw`]
-| Redox              | `*‑redox`          | `/dev/urandom`
+| Redox              | `*‑redox`          | `getrandom`
 | Haiku              | `*‑haiku`          | `/dev/urandom` (identical to `/dev/random`)
 | Hermit             | `*-hermit`         | [`sys_read_entropy`]
 | Hurd               | `*-hurd-*`         | [`getrandom`][17]

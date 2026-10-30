@@ -15,7 +15,6 @@ pub(super) mod utils;
 /// For all platforms, we use `/dev/urandom` rather than `/dev/random`.
 /// For more information see the linked man pages in lib.rs.
 ///   - On Linux, "/dev/urandom is preferred and sufficient in all use cases".
-///   - On Redox, only /dev/urandom is provided.
 ///   - On AIX, /dev/urandom will "provide cryptographically secure output".
 ///   - On Haiku and QNX Neutrino they are identical.
 const FILE_PATH: &CStr = c"/dev/urandom";

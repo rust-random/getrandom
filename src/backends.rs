@@ -43,7 +43,6 @@ cfg_if! {
         pub use esp_idf::*;
     } else if #[cfg(any(
         target_os = "haiku",
-        target_os = "redox",
         target_os = "nto",
         target_os = "aix",
     ))] {
@@ -114,6 +113,7 @@ cfg_if! {
         target_os = "illumos",
         target_os = "cygwin",
         target_os = "nuttx",
+        target_os = "redox",
         // Check for target_arch = "arm" to only include the 3DS. Does not
         // include the Nintendo Switch (which is target_arch = "aarch64").
         all(target_os = "horizon", target_arch = "arm"),
