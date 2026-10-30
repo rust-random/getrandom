@@ -112,6 +112,7 @@ jobs:
         run: |
           VERSION=0.8.6
           URL="https://github.com/sonos/dinghy/releases/download/${VERSION}/cargo-dinghy-macos-${VERSION}.tgz"
+          mkdir -p ~/.cargo/bin
           wget -O - $URL | tar -xz --strip-components=1 -C ~/.cargo/bin
       - name: Check cargo-dinghy version.
         run: cargo dinghy --version
