@@ -81,12 +81,12 @@ libc = { version = "0.2.176", default-features = false }
 libc = { version = "0.2.176", default-features = false }
 
 # wasm_js
+# Note: on major version bump update version of `wasm-bindgen-test`
+# used by the Web WASM job in `.github/workflows/tests.yml`
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.98", default-features = false, optional = true }
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies]
 js-sys = { version = "0.3.77", default-features = false, optional = true }
-[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
-wasm-bindgen-test = "0.3"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
