@@ -178,10 +178,7 @@ impl Error {
             Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
             #[cfg(target_os = "vxworks")]
             Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
-            #[cfg(any(
-                getrandom_backend = "windows_legacy",
-                target_vendor = "win7",
-            ))]
+            #[cfg(any(getrandom_backend = "windows_legacy", target_vendor = "win7",))]
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
             #[cfg(all(
                 feature = "wasm_js",
@@ -228,10 +225,7 @@ impl Error {
     pub(crate) const VXWORKS_RAND_SECURE: Error = Self::new_internal(11);
 
     /// Call to Windows `RtlGenRandom` failed.
-    #[cfg(any(
-        getrandom_backend = "windows_legacy",
-        target_vendor = "win7",
-    ))]
+    #[cfg(any(getrandom_backend = "windows_legacy", target_vendor = "win7",))]
     pub(crate) const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(12);
 
     /// The environment does not support the Web Crypto API.
