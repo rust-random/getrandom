@@ -271,8 +271,8 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
         run: cargo build --target riscv32i-unknown-none-elf
 
-  unsupported:
-    name: Wasm backend override (${{ matrix.backend }})
+  wasm_override:
+    name: Web WASM override (${{ matrix.backend }})
     runs-on: ubuntu-24.04
     strategy:
       matrix:
