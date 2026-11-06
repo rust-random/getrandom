@@ -271,15 +271,19 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
         run: cargo build --target riscv32i-unknown-none-elf
 
-  unsupported:
-    name: Runtime error
+  wasm_override:
+    name: Web WASM override (${{ matrix.backend }})
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        backend: [unsupported, custom]
+    env:
+      RUSTFLAGS: -Dwarnings --cfg getrandom_backend="${{ matrix.backend }}"
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
-        run: cargo build --target wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown --features wasm_js
