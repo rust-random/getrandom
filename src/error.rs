@@ -179,6 +179,11 @@ impl Error {
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
             #[cfg(all(
                 feature = "wasm_js",
+                not(any(
+                    getrandom_backend = "unsupported",
+                    getrandom_backend = "custom",
+                    getrandom_backend = "extern_impl",
+                )),
                 target_arch = "wasm32",
                 any(target_os = "unknown", target_os = "none")
             ))]
