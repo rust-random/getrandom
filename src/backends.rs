@@ -26,10 +26,7 @@ cfg_if! {
     } else if #[cfg(getrandom_backend = "efi_rng")] {
         mod efi_rng;
         pub use efi_rng::*;
-    } else if #[cfg(any(
-        getrandom_backend = "windows_legacy",
-        target_vendor = "win7",
-    ))] {
+    } else if #[cfg(getrandom_backend = "windows_legacy")] {
         mod windows_legacy;
         pub use windows_legacy::*;
     } else if #[cfg(getrandom_backend = "unsupported")] {
@@ -162,6 +159,9 @@ cfg_if! {
     } else if #[cfg(target_os = "solid_asp3")] {
         mod solid;
         pub use solid::*;
+    } else if #[cfg(all(windows, target_vendor = "win7"))] {
+        mod windows_legacy;
+        pub use windows_legacy::*;
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::*;
