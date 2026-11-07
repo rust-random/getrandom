@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Deprecation warning for `libc::INT_MAX` [#868]
+- Compilation error caused by custom backend errors when backend is
+  overridden using `getrandom_backend` configuration flag ([#876])
 
 ### Changed
 - Bumped `r-efi` dependency to v7 ([#869])
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#869]: https://github.com/rust-random/getrandom/pull/869
 [#870]: https://github.com/rust-random/getrandom/pull/870
 [#871]: https://github.com/rust-random/getrandom/pull/871
+[#876]: https://github.com/rust-random/getrandom/pull/876
 
 ## [0.4.3] - 2026-06-17
 ### Added
