@@ -44,6 +44,7 @@ cfg_if! {
     } else if #[cfg(any(
         target_os = "haiku",
         target_os = "nto",
+        target_os = "qnx",
         target_os = "aix",
     ))] {
         mod use_file;

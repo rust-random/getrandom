@@ -9,7 +9,7 @@ cfg_if! {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;
-    } else if #[cfg(target_os = "nto")] {
+    } else if #[cfg(any(target_os = "nto", target_os = "qnx"))] {
         use libc::__get_errno_ptr as errno_location;
     } else if #[cfg(any(all(target_os = "horizon", target_arch = "arm"), target_os = "vita"))] {
         unsafe extern "C" {
