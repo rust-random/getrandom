@@ -36,7 +36,7 @@ fn get_random_u128() -> Result<u128, getrandom::Error> {
 | Linux, Android     | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`
 | Windows 10+        | `*‑windows‑*`      | [`ProcessPrng`]
 | Windows 7, 8       | `*-win7‑windows‑*` | [`RtlGenRandom`]
-| macOS              | `*‑apple‑darwin`   | [`getentropy`][3]
+| macOS              | `*‑apple‑darwin`   | [`CCRandomGenerateBytes`]
 | iOS, tvOS, watchOS | `*‑apple‑{ios,tvos,watchos}` | [`CCRandomGenerateBytes`]
 | FreeBSD            | `*‑freebsd`        | [`getrandom`][5]
 | OpenBSD            | `*‑openbsd`        | [`getentropy`][7]
@@ -365,7 +365,6 @@ dual licensed as above, without any additional terms or conditions.
 
 [1]: https://manned.org/getrandom.2
 [2]: https://manned.org/urandom.4
-[3]: https://www.unix.com/man-page/mojave/2/getentropy/
 [4]: https://www.unix.com/man-page/mojave/4/urandom/
 [5]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 [7]: https://man.openbsd.org/getentropy.2

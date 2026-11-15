@@ -128,9 +128,9 @@ jobs:
       
       # We do not need the grep check since linker fails
       # if `panic_nonexistent` can not be eliminated
-      - name: Build (getentropy.rs)
+      - name: Build (apple_other.rs, macOS)
         run: cargo build --release --target=aarch64-apple-darwin
-      - name: Build (apple-other.rs)
+      - name: Build (apple_other.rs, iOS)
         run: cargo build --release --target=aarch64-apple-ios
 
   windows:

@@ -170,12 +170,13 @@ impl Error {
             Error::UNEXPECTED => "unexpected situation",
 
             #[cfg(any(
+                target_os = "macos",
                 target_os = "ios",
                 target_os = "visionos",
                 target_os = "watchos",
                 target_os = "tvos",
             ))]
-            Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
+            Error::IOS_RANDOM_GEN => "CCRandomGenerateBytes: Apple CommonCrypto failure",
             #[cfg(target_os = "vxworks")]
             Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
             #[cfg(any(
@@ -221,6 +222,7 @@ impl Error {
 impl Error {
     /// Call to `CCRandomGenerateBytes` failed.
     #[cfg(any(
+        target_os = "macos",
         target_os = "ios",
         target_os = "visionos",
         target_os = "watchos",

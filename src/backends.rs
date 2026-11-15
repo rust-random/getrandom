@@ -49,7 +49,6 @@ cfg_if! {
         mod use_file;
         pub use use_file::*;
     } else if #[cfg(any(
-        target_os = "macos",
         target_os = "openbsd",
         target_os = "vita",
         target_os = "emscripten",
@@ -130,6 +129,7 @@ cfg_if! {
         mod fuchsia;
         pub use fuchsia::*;
     } else if #[cfg(any(
+        target_os = "macos",
         target_os = "ios",
         target_os = "visionos",
         target_os = "watchos",

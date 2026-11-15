@@ -1,4 +1,4 @@
-//! Implementation for iOS, tvOS, and watchOS where `getentropy` is unavailable.
+//! Implementation for Apple targets using `CCRandomGenerateBytes`.
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
