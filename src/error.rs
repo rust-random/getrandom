@@ -157,7 +157,7 @@ impl Error {
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
-    pub(crate) const fn new_internal(n: u16) -> Error {
+    const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding `n` won't overflow `RawOsError`.
         let code = Error::INTERNAL_START + (n as RawOsError);
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
