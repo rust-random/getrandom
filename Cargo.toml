@@ -44,7 +44,7 @@ rand_core = { version = "0.10.0", optional = true }
 [target.'cfg(all(any(target_os = "linux", target_os = "android"), not(any(all(target_os = "linux", target_env = ""), getrandom_backend = "custom", getrandom_backend = "linux_raw", getrandom_backend = "rdrand", getrandom_backend = "rndr"))))'.dependencies]
 libc = { version = "0.2.176", default-features = false }
 
-# apple-other
+# apple
 [target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "visionos", target_os = "watchos", target_os = "tvos"))'.dependencies]
 libc = { version = "0.2.176", default-features = false }
 

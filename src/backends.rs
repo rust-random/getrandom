@@ -135,8 +135,8 @@ cfg_if! {
         target_os = "watchos",
         target_os = "tvos",
     ))] {
-        mod apple_other;
-        pub use apple_other::*;
+        mod apple;
+        pub use apple::*;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         cfg_if! {
             if #[cfg(target_env = "p1")] {
