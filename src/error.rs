@@ -197,7 +197,7 @@ impl Error {
             Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
             #[cfg(any(
                 getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
+                all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
             ))]
             Error::NO_RDRAND => "RDRAND: instruction not supported",
 
@@ -252,7 +252,7 @@ impl Error {
     /// RDRAND instruction unsupported on this target.
     #[cfg(any(
         getrandom_backend = "rdrand",
-        all(target_arch = "x86_64", target_env = "sgx")
+        all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
     ))]
     pub(crate) const NO_RDRAND: Error = Self::new_internal(15);
 
