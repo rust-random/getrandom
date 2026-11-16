@@ -11,6 +11,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if ret == libc::kCCSuccess {
         Ok(())
     } else {
-        Err(Error::IOS_RANDOM_GEN)
+        Err(Error::APPLE_RANDOM_GEN)
     }
 }
