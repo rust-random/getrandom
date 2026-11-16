@@ -185,14 +185,14 @@ impl Error {
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
             #[cfg(all(
                 feature = "wasm_js",
-                target_arch = "wasm32",
+                target_family = "wasm",
                 any(target_os = "unknown", target_os = "none")
             ))]
             Error::WEB_CRYPTO => "Web Crypto API is unavailable",
 
             #[cfg(any(
                 getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
+                all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
             ))]
             Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
             #[cfg(any(
@@ -237,7 +237,7 @@ impl Error {
     /// The environment does not support the Web Crypto API.
     #[cfg(all(
         feature = "wasm_js",
-        target_arch = "wasm32",
+        target_family = "wasm",
         any(target_os = "unknown", target_os = "none")
     ))]
     pub(crate) const WEB_CRYPTO: Error = Self::new_internal(13);
@@ -245,7 +245,7 @@ impl Error {
     /// RDRAND instruction failed due to a hardware issue.
     #[cfg(any(
         getrandom_backend = "rdrand",
-        all(target_arch = "x86_64", target_env = "sgx")
+        all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
     ))]
     pub(crate) const FAILED_RDRAND: Error = Self::new_internal(14);
 

@@ -150,7 +150,7 @@ cfg_if! {
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::*;
-    } else if #[cfg(all(target_arch = "x86_64", target_os = "motor"))] {
+    } else if #[cfg(all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")))] {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(target_os = "vxworks")] {
@@ -165,9 +165,6 @@ cfg_if! {
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::*;
-    } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        mod rdrand;
-        pub use rdrand::*;
     } else if #[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {
