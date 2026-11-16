@@ -91,6 +91,7 @@ jobs:
           armv7-sony-vita-newlibeabihf,
           i686-unknown-hurd-gnu,
           riscv32imc-esp-espidf,
+          x86_64-unknown-motor,
           x86_64-unknown-hermit,
           x86_64-wrs-vxworks,
           x86_64-unknown-dragonfly,
@@ -187,7 +188,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           targets: ${{ matrix.target.target }}
-          toolchain: nightly-2025-09-28
+          toolchain: nightly-2026-11-15
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build
@@ -271,15 +272,30 @@ jobs:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
         run: cargo build --target riscv32i-unknown-none-elf
 
-  unsupported:
-    name: Runtime error
+  wasm_override:
+    name: Web WASM override (${{ matrix.backend }})
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        backend: [unsupported, custom]
+    env:
+      RUSTFLAGS: -Dwarnings --cfg getrandom_backend="${{ matrix.backend }}"
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - env:
-          RUSTFLAGS: -Dwarnings --cfg getrandom_backend="unsupported"
-        run: cargo build --target wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown --features wasm_js
+
+  wasm64:
+    name: 64-bit WASM
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -Zbuild-std=core,alloc --target wasm64-unknown-unknown --features wasm_js

@@ -115,8 +115,3 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
         Ok(())
     }
 }
-
-impl Error {
-    pub(crate) const BOOT_SERVICES_UNAVAILABLE: Error = Self::new_internal(10);
-    pub(crate) const NO_RNG_HANDLE: Error = Self::new_internal(11);
-}

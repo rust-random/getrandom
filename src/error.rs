@@ -157,7 +157,7 @@ impl Error {
     }
 
     /// Creates a new instance of an `Error` from a particular internal error code.
-    pub(crate) const fn new_internal(n: u16) -> Error {
+    const fn new_internal(n: u16) -> Error {
         // SAFETY: code > 0 as INTERNAL_START > 0 and adding `n` won't overflow `RawOsError`.
         let code = Error::INTERNAL_START + (n as RawOsError);
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
@@ -168,6 +168,7 @@ impl Error {
             Error::UNSUPPORTED => "getrandom: this target is not supported",
             Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
             Error::UNEXPECTED => "unexpected situation",
+
             #[cfg(any(
                 target_os = "ios",
                 target_os = "visionos",
@@ -175,25 +176,28 @@ impl Error {
                 target_os = "tvos",
             ))]
             Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
-            #[cfg(all(windows, target_vendor = "win7"))]
+            #[cfg(target_os = "vxworks")]
+            Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
+            #[cfg(any(
+                getrandom_backend = "windows_legacy",
+                all(windows, target_vendor = "win7"),
+            ))]
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
             #[cfg(all(
                 feature = "wasm_js",
-                target_arch = "wasm32",
+                target_family = "wasm",
                 any(target_os = "unknown", target_os = "none")
             ))]
             Error::WEB_CRYPTO => "Web Crypto API is unavailable",
-            #[cfg(target_os = "vxworks")]
-            Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",
 
             #[cfg(any(
                 getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
+                all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
             ))]
             Error::FAILED_RDRAND => "RDRAND: failed multiple times: CPU issue likely",
             #[cfg(any(
                 getrandom_backend = "rdrand",
-                all(target_arch = "x86_64", target_env = "sgx")
+                all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
             ))]
             Error::NO_RDRAND => "RDRAND: instruction not supported",
 
@@ -201,10 +205,74 @@ impl Error {
             Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
             #[cfg(getrandom_backend = "rndr")]
             Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
+
+            #[cfg(getrandom_backend = "efi_rng")]
+            Error::BOOT_SERVICES_UNAVAILABLE => "UEFI boot services are not available",
+            #[cfg(getrandom_backend = "efi_rng")]
+            Error::NO_RNG_HANDLE => "Failed to retrieve handle for UEFI RNG protocol",
             _ => return None,
         };
         Some(desc)
     }
+}
+
+// Backend-specific custom errors.
+// The errors must mirror code in `Error::internal_desc`.
+impl Error {
+    /// Call to `CCRandomGenerateBytes` failed.
+    #[cfg(any(
+        target_os = "ios",
+        target_os = "visionos",
+        target_os = "watchos",
+        target_os = "tvos",
+    ))]
+    pub(crate) const IOS_RANDOM_GEN: Error = Self::new_internal(10);
+
+    /// Call to VxWorks `randSecure` failed (random number generator is not yet initialized).
+    #[cfg(target_os = "vxworks")]
+    pub(crate) const VXWORKS_RAND_SECURE: Error = Self::new_internal(11);
+
+    /// Call to Windows `RtlGenRandom` failed.
+    #[cfg(any(
+        getrandom_backend = "windows_legacy",
+        all(windows, target_vendor = "win7"),
+    ))]
+    pub(crate) const WINDOWS_RTL_GEN_RANDOM: Error = Self::new_internal(12);
+
+    /// The environment does not support the Web Crypto API.
+    #[cfg(all(
+        feature = "wasm_js",
+        target_family = "wasm",
+        any(target_os = "unknown", target_os = "none")
+    ))]
+    pub(crate) const WEB_CRYPTO: Error = Self::new_internal(13);
+
+    /// RDRAND instruction failed due to a hardware issue.
+    #[cfg(any(
+        getrandom_backend = "rdrand",
+        all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
+    ))]
+    pub(crate) const FAILED_RDRAND: Error = Self::new_internal(14);
+
+    /// RDRAND instruction unsupported on this target.
+    #[cfg(any(
+        getrandom_backend = "rdrand",
+        all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")),
+    ))]
+    pub(crate) const NO_RDRAND: Error = Self::new_internal(15);
+
+    /// RNDR register read failed due to a hardware issue.
+    #[cfg(getrandom_backend = "rndr")]
+    pub(crate) const RNDR_FAILURE: Error = Self::new_internal(16);
+
+    /// RNDR register is not supported on this target.
+    #[cfg(getrandom_backend = "rndr")]
+    pub(crate) const RNDR_NOT_AVAILABLE: Error = Self::new_internal(17);
+
+    #[cfg(getrandom_backend = "efi_rng")]
+    pub(crate) const BOOT_SERVICES_UNAVAILABLE: Error = Self::new_internal(18);
+    #[cfg(getrandom_backend = "efi_rng")]
+    pub(crate) const NO_RNG_HANDLE: Error = Self::new_internal(19);
 }
 
 impl core::error::Error for Error {}
