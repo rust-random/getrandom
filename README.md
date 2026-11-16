@@ -365,7 +365,6 @@ dual licensed as above, without any additional terms or conditions.
 
 [1]: https://manned.org/getrandom.2
 [2]: https://manned.org/urandom.4
-[4]: https://www.unix.com/man-page/mojave/4/urandom/
 [5]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&manpath=FreeBSD+12.0-stable
 [7]: https://man.openbsd.org/getentropy.2
 [8]: https://man.netbsd.org/sysctl.7
