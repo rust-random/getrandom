@@ -205,6 +205,11 @@ impl Error {
             Error::RNDR_FAILURE => "RNDR: Could not generate a random number",
             #[cfg(getrandom_backend = "rndr")]
             Error::RNDR_NOT_AVAILABLE => "RNDR: Register not supported",
+
+            #[cfg(getrandom_backend = "efi_rng")]
+            Error::BOOT_SERVICES_UNAVAILABLE => "UEFI boot services are not available",
+            #[cfg(getrandom_backend = "efi_rng")]
+            Error::NO_RNG_HANDLE => "Failed to retrieve handle for UEFI RNG protocol",
             _ => return None,
         };
         Some(desc)
@@ -263,6 +268,11 @@ impl Error {
     /// RNDR register is not supported on this target.
     #[cfg(getrandom_backend = "rndr")]
     pub(crate) const RNDR_NOT_AVAILABLE: Error = Self::new_internal(17);
+
+    #[cfg(getrandom_backend = "efi_rng")]
+    pub(crate) const BOOT_SERVICES_UNAVAILABLE: Error = Self::new_internal(18);
+    #[cfg(getrandom_backend = "efi_rng")]
+    pub(crate) const NO_RNG_HANDLE: Error = Self::new_internal(19);
 }
 
 impl core::error::Error for Error {}
