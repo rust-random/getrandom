@@ -139,8 +139,7 @@ jobs:
       matrix:
         toolchain: [
           stable-x86_64-gnu,
-          stable-i686-gnu,
-          stable-i686-msvc,
+          stable-x86_64-msvc,
         ]
     steps:
       - uses: actions/checkout@v7
