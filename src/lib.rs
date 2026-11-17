@@ -11,7 +11,10 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(getrandom_backend = "efi_rng", feature(uefi_std))]
 #![cfg_attr(getrandom_backend = "extern_impl", allow(incomplete_features))]
-#![cfg_attr(getrandom_backend = "extern_impl", feature(extern_item_impls, extern_item_default_impls))]
+#![cfg_attr(
+    getrandom_backend = "extern_impl",
+    feature(extern_item_impls, extern_item_default_impls)
+)]
 
 #[macro_use]
 extern crate cfg_if;
