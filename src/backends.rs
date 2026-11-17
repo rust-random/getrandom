@@ -49,7 +49,6 @@ cfg_if! {
         mod use_file;
         pub use use_file::*;
     } else if #[cfg(any(
-        target_os = "macos",
         target_os = "openbsd",
         target_os = "vita",
         target_os = "emscripten",
@@ -130,13 +129,14 @@ cfg_if! {
         mod fuchsia;
         pub use fuchsia::*;
     } else if #[cfg(any(
+        target_os = "macos",
         target_os = "ios",
         target_os = "visionos",
         target_os = "watchos",
         target_os = "tvos",
     ))] {
-        mod apple_other;
-        pub use apple_other::*;
+        mod apple;
+        pub use apple::*;
     } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
         cfg_if! {
             if #[cfg(target_env = "p1")] {
@@ -150,7 +150,7 @@ cfg_if! {
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::*;
-    } else if #[cfg(all(target_arch = "x86_64", target_os = "motor"))] {
+    } else if #[cfg(all(target_arch = "x86_64", any(target_os = "motor", target_env = "sgx")))] {
         mod rdrand;
         pub use rdrand::*;
     } else if #[cfg(target_os = "vxworks")] {
@@ -165,9 +165,6 @@ cfg_if! {
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::*;
-    } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
-        mod rdrand;
-        pub use rdrand::*;
     } else if #[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))] {
         cfg_if! {
             if #[cfg(feature = "wasm_js")] {

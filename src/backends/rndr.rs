@@ -139,10 +139,3 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     // SAFETY: after this point, we know the `rand` target feature is enabled
     unsafe { rndr_fill(dest).ok_or(Error::RNDR_FAILURE) }
 }
-
-impl Error {
-    /// RNDR register read failed due to a hardware issue.
-    pub(crate) const RNDR_FAILURE: Error = Self::new_internal(10);
-    /// RNDR register is not supported on this target.
-    pub(crate) const RNDR_NOT_AVAILABLE: Error = Self::new_internal(11);
-}

@@ -123,15 +123,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          targets: aarch64-apple-ios
       - uses: Swatinem/rust-cache@v2
       
       # We do not need the grep check since linker fails
       # if `panic_nonexistent` can not be eliminated
-      - name: Build (getentropy.rs)
+      - name: Build (apple.rs)
         run: cargo build --release --target=aarch64-apple-darwin
-      - name: Build (apple-other.rs)
-        run: cargo build --release --target=aarch64-apple-ios
 
   windows:
     name: Windows
