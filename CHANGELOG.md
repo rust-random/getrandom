@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `wasm-bindgen-test` dev dependency ([#870])
 - Use `libc::getrandom` on Redox instead of reading `/dev/urandom` ([#871])
 - Use `CCRandomGenerateBytes` on macOS instead of `getentropy` ([#879])
+- Enable `extern_item_default_impls` unstable feature in addition to
+  `extern_item_impls` for the `extern_impl` backend ([#882])
 
 [0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
 [#861]: https://github.com/rust-random/getrandom/pull/861
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#871]: https://github.com/rust-random/getrandom/pull/871
 [#876]: https://github.com/rust-random/getrandom/pull/876
 [#879]: https://github.com/rust-random/getrandom/pull/879
+[#882]: https://github.com/rust-random/getrandom/pull/882
 
 ## [0.4.3] - 2026-06-17
 ### Added
