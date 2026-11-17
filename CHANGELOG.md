@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.4] - UNRELEASED
+## [0.4.4] - 2026-11-17
 ### Added
 - Apache NuttX support ([#861])
 
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `libc::getrandom` on Redox instead of reading `/dev/urandom` ([#871])
 - Use `CCRandomGenerateBytes` on macOS instead of `getentropy` ([#879])
 
-[0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
+[0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...v0.4.4
 [#861]: https://github.com/rust-random/getrandom/pull/861
 [#868]: https://github.com/rust-random/getrandom/pull/868
 [#869]: https://github.com/rust-random/getrandom/pull/869
