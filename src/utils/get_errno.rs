@@ -5,7 +5,7 @@ cfg_if! {
         use libc::__errno_location as errno_location;
     } else if #[cfg(target_os = "illumos")] {
         use libc::___errno as errno_location;
-    } else if #[cfg(any(target_os = "macos", target_os = "freebsd"))] {
+    } else if #[cfg(target_os = "freebsd")] {
         use libc::__error as errno_location;
     } else if #[cfg(target_os = "haiku")] {
         use libc::_errnop as errno_location;

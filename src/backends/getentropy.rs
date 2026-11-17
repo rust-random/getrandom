@@ -5,7 +5,6 @@
 //! <https://pubs.opengroup.org/onlinepubs/9799919799/functions/getentropy.html>.
 //!
 //! Available since:
-//!   - macOS 10.12
 //!   - OpenBSD 5.6
 //!   - Emscripten 2.0.5
 //!   - vita newlib since Dec 2021

@@ -31,7 +31,7 @@ jobs:
       env:
         RUSTFLAGS: -Dwarnings --cfg getrandom_backend="custom"
       run: cargo clippy -Zbuild-std=core --target riscv32i-unknown-none-elf
-    - name: iOS (apple-other.rs)
+    - name: iOS (apple.rs)
       run: cargo clippy -Zbuild-std=core --target x86_64-apple-ios
     - name: ESP-IDF (espidf.rs)
       env:

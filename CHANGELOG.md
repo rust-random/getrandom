@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped `r-efi` dependency to v7 ([#869])
 - Removed `wasm-bindgen-test` dev dependency ([#870])
 - Use `libc::getrandom` on Redox instead of reading `/dev/urandom` ([#871])
+- Use `CCRandomGenerateBytes` on macOS instead of `getentropy` ([#879])
 
 [0.4.4]: https://github.com/rust-random/getrandom/compare/v0.4.3...master
 [#861]: https://github.com/rust-random/getrandom/pull/861
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#870]: https://github.com/rust-random/getrandom/pull/870
 [#871]: https://github.com/rust-random/getrandom/pull/871
 [#876]: https://github.com/rust-random/getrandom/pull/876
+[#879]: https://github.com/rust-random/getrandom/pull/879
 
 ## [0.4.3] - 2026-06-17
 ### Added

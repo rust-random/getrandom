@@ -1,4 +1,4 @@
-//! Implementation for iOS, tvOS, and watchOS where `getentropy` is unavailable.
+//! Implementation for Apple targets using `CCRandomGenerateBytes`.
 use crate::Error;
 use core::{ffi::c_void, mem::MaybeUninit};
 
@@ -11,6 +11,6 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     if ret == libc::kCCSuccess {
         Ok(())
     } else {
-        Err(Error::IOS_RANDOM_GEN)
+        Err(Error::APPLE_RANDOM_GEN)
     }
 }
