@@ -45,6 +45,7 @@ cfg_if! {
         target_os = "haiku",
         target_os = "nto",
         target_os = "aix",
+        target_os = "qnx",
     ))] {
         mod use_file;
         pub use use_file::*;
