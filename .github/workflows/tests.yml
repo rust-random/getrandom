@@ -157,7 +157,7 @@ jobs:
       # Win7 targets are Tier3, so pin a nightly where libstd builds.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-09-28
+          toolchain: nightly-2026-11-23
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --target=x86_64-win7-windows-msvc -Z build-std --features=std,sys_rng

@@ -60,7 +60,7 @@ pub use crate::error::{Error, RawOsError};
 /// ```
 #[cfg(getrandom_backend = "extern_impl")]
 pub mod implementation {
-    pub use crate::backends::extern_impl::{fill_uninit, u32, u64};
+    pub use crate::backends::extern_impl::fill_uninit;
 }
 
 /// Fill `dest` with random bytes from the system's preferred random number source.

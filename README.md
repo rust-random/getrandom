@@ -197,10 +197,11 @@ unsafe extern "Rust" fn __getrandom_v03_custom(
 ### Externally Implemented Interface
 
 Using the nightly-only feature [`extern_item_impls`] it is possible to provide
-a custom backend for `getrandom`, even to override an existing first-party implementation.
+a custom backend for `getrandom` without relying on unsafe code.
+
 First, enable the `extern_impl` opt-in backend to allow usage of this nightly feature.
-Then, you may provide implementations for `fill_uninit`, `u32`, and/or `u64`
-with an attribute macro from the `implementation` module.
+Next, somewhere in your code provide a custom implementation for `fill_uninit` using
+the attribute macro from the `implementation` module:
 
 [`extern_item_impls`]: https://github.com/rust-lang/rust/issues/125418
 
@@ -219,12 +220,6 @@ fn my_fill_uninit_implementation(
 
 For further details on what a suitable implementation for `fill_uninit` may look
 like, see [custom backend].
-
-`getrandom` will provide a default implementation for `u32` and `u64`, but does
-not currently provide a default for `fill_uninit`, even if one is normally
-available for the current target. If no implementation is available,
-a compilation error will be raised with instructions for how to provide
-an implementation.
 
 ### Unsupported backend
 
