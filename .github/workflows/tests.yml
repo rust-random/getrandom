@@ -179,7 +179,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-09-28
+          toolchain: nightly-2026-11-23
           components: rust-src
       # Use --all-targets to skip doctests, which don't work with the -Zsanitizer=memory flag.
       # See: https://github.com/rust-lang/rust/issues/134172
