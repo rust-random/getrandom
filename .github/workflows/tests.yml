@@ -171,7 +171,8 @@ jobs:
         include:
           # MemorySanitizer won't run in QEMU so we can't run it in cross:
           # https://github.com/llvm/llvm-project/issues/65144
-          # Running tests on AArch64 results in SIGSEGV on recent Nigthly compilers
+          # Running tests on AArch64 results in SIGSEGV on recent Nigthly compilers, see:
+          # https://github.com/rust-lang/rust/issues/123615
           # - arch: aarch64
           #   runner: ubuntu-24.04-arm
           - arch: x86_64
