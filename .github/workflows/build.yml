@@ -156,7 +156,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-09-28
+          toolchain: nightly-2026-11-23
           components: rust-src
       - env:
           RUSTFLAGS: -Dwarnings --cfg getrandom_backend="linux_raw"
@@ -188,7 +188,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           targets: ${{ matrix.target.target }}
-          toolchain: nightly-2026-11-15
+          toolchain: nightly-2026-11-23
           components: rust-src
       - uses: Swatinem/rust-cache@v2
       - name: Build
